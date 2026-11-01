@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ckb">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>چایخانەی کۆردەواری (101) خاڵ</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { background-color: #070d14; color: #fff; overflow: hidden; height: 100vh; direction: rtl; }
+
+    #startModal {
+      position: fixed; inset: 0; background: rgba(3, 6, 10, 0.95);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal-box {
+      background: #111a24; border: 2px solid #23354d; border-radius: 14px;
+      padding: 24px; width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .btn-corner-back {
+      position: absolute; top: 12px; left: 12px;
+      background: #1e293b; color: #94a3b8; border: 1px solid #334e68;
+      padding: 4px 10px; border-radius: 8px; text-decoration: none; font-size: 11px; font-weight: bold;
+    }
+    .btn-corner-back:hover { color: #fff; background: #334e68; }
+
+    .modal-box h2 { color: #f59e0b; margin-top: 10px; margin-bottom: 14px; font-size: 18px; }
+    .input-box {
+      width: 100%; padding: 10px; background: #070d14; border: 1px solid #334e68;
+      border-radius: 8px; color: #fff; font-size: 13px; margin-bottom: 10px; text-align: center;
+    }
+    .btn-group { display: flex; gap: 8px; margin-bottom: 12px; }
+    .btn-tab {
+      flex: 1; padding: 8px; background: #182433; border: 1px solid #334e68;
+      color: #94a3b8; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px;
+    }
+    .btn-tab.active { background: #f59e0b; color: #000; border-color: #f59e0b; }
+    
+    .room-type-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+    .btn-enter {
+      width: 100%; padding: 12px; background: #d97706; color: #fff;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;
+    }
+
+    #matchOverModal {
+      display: none; position: fixed; inset: 0; background: rgba(5, 10, 18, 0.95);
+      z-index: 3000; align-items: center; justify-content: center;
+    }
+    .match-over-box {
+      background: #101c2b; border: 3px solid #f59e0b; border-radius: 18px;
+      padding: 30px; text-align: center; box-shadow: 0 0 50px rgba(245, 158, 11, 0.5);
+      max-width: 420px;
+    }
+    .match-over-box h1 { font-size: 26px; color: #22c55e; margin-bottom: 12px; }
+    .match-over-box p { font-size: 16px; color: #cbd5e1; margin-bottom: 20px; line-height: 1.6; }
+    .btn-restart {
+      background: #d97706; color: #fff; border: none; padding: 12px 26px;
+      font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer;
+    }
+
+    #gameContainer { display: none; height: 100vh; flex-direction: column; }
+    header {
+      background: #080e15; padding: 8px 18px; display: flex;
+      justify-content: space-between; align-items: center; border-bottom: 1px solid #1a2634;
+      z-index: 50;
+    }
+    .btn-back-kurdai {
+      background: #d97706; color: #fff; padding: 5px 12px; border-radius: 16px;
+      text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #b45309;
+    }
+    .header-center { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .room-badge {
+      background: #111a24; border: 1px solid #f59e0b; color: #f59e0b;
+      padding: 2px 10px; border-radius: 10px; font-size: 11px;
+    }
+    .scores-text { color: #38bdf8; font-weight: bold; font-size: 14px; }
+
+    #tableArea {
+      flex: 1; background: radial-gradient(circle, #0e4429 0%, #062315 100%);
+      position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      direction: ltr !important;
+    }
+
+    #boardChain {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      direction: ltr !important;
+      transition: transform 0.2s ease-out;
+      z-index: 10;
+    }
+
+    .player-seat {
+      position: absolute; display: flex; flex-direction: column; align-items: center;
+      background: rgba(11, 18, 27, 0.95); border: 2px solid #23354d; padding: 6px 12px;
+      border-radius: 10px; min-width: 110px; transition: 0.3s; z-index: 30;
+      direction: rtl;
+    }
+    .player-seat.active-turn {
+      border-color: #22c55e; box-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
+    }
+
+    .timer-ring-box {
+      position: relative; width: 38px; height: 38px; margin-bottom: 3px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .timer-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+    .timer-circle-bg { fill: none; stroke: #1e293b; stroke-width: 3.5; }
+    .timer-circle-bar {
+      fill: none; stroke: #22c55e; stroke-width: 3.5;
+      stroke-dasharray: 94.25; stroke-dashoffset: 94.25;
+      stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    }
+    .seat-count { position: relative; font-weight: bold; font-size: 14px; color: #f59e0b; z-index: 2; }
+    .seat-name { font-size: 11px; color: #cbd5e1; }
+
+    #seat-1 { right: 20px; top: calc(50% - 40px); }
+    #seat-2 { top: 15px; left: 50%; transform: translateX(-50%); }
+    #seat-3 { left: 20px; top: calc(50% - 40px); }
+
+    #bottomRackArea {
+      background: #080e15; padding: 8px 12px; display: flex;
+      flex-direction: column; align-items: center; border-top: 1px solid #1a2634;
+      z-index: 40; direction: rtl;
+    }
+    .action-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .btn-action {
+      background: #1e293b; color: #fff; border: 1px solid #475569;
+      padding: 5px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;
+    }
+    .btn-action:hover { background: #334155; }
+    #btnPull { background: #d97706; border-color: #b45309; display: none; }
+    
+    .btn-mic {
+      background: #334155; color: #94a3b8; border: 1px solid #475569;
+      padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;
+    }
+    .btn-mic.active { background: #16a34a; color: #fff; border-color: #22c55e; }
+
+    #myRack { display: flex; gap: 8px; min-height: 85px; align-items: center; direction: ltr; }
+
+    .domino-tile {
+      background: radial-gradient(ellipse at top left, #ffffff 10%, #fdfbf7 50%, #e2ded7 100%);
+      border: 1.5px solid #2b2b2b; border-radius: 4px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.9);
+      position: relative; cursor: pointer;
+      display: flex; flex-shrink: 0;
+      transition: transform 0.15s;
+    }
+    .domino-tile:hover {
+      transform: scale(1.06); border-color: #f59e0b;
+    }
+
+    .tile-rack { width: 44px; height: 86px; flex-direction: column; }
+    .tile-rack .half-top { flex: 1; border-bottom: 1.5px solid #475569; }
+    .tile-rack .half-bottom { flex: 1; }
+
+    .tile-board-h { width: 80px; height: 40px; flex-direction: row; }
+    .tile-board-h .half-left { flex: 1; border-right: 1.5px solid #475569; }
+    .tile-board-h .half-right { flex: 1; }
+
+    .tile-board-v { width: 40px; height: 80px; flex-direction: column; }
+    .tile-board-v .half-top { flex: 1; border-bottom: 1.5px solid #475569; }
+    .tile-board-v .half-bottom { flex: 1; }
+
+    .brass-spinner {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 5px; height: 5px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffd700, #b8860b, #593e02);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.6); z-index: 3; pointer-events: none;
+    }
+
+    .domino-half {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr); padding: 2px;
+      align-items: center; justify-items: center; width: 100%; height: 100%;
+      direction: ltr !important;
+    }
+
+    .pip { width: 6.5px; height: 6.5px; border-radius: 50%; box-shadow: inset 0 1px 2px rgba(0,0,0,0.7); }
+    .pip-val-1 { background: radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8); }
+    .pip-val-2 { background: radial-gradient(circle at 35% 35%, #4ade80, #15803d); }
+    .pip-val-3 { background: radial-gradient(circle at 35% 35%, #f87171, #b91c1c); }
+    .pip-val-4 { background: radial-gradient(circle at 35% 35%, #a16207, #5c2d0c); }
+    .pip-val-5 { background: radial-gradient(circle at 35% 35%, #c084fc, #6b21a8); }
+    .pip-val-6 { background: radial-gradient(circle at 35% 35%, #fbbf24, #d97706); }
+
+    #sideChoiceModal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 2000; align-items: center; justify-content: center; direction: rtl;
+    }
+    .side-choice-box {
+      background: #111a24; border: 2px solid #f59e0b; border-radius: 12px;
+      padding: 22px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+    }
+    .side-choice-box h3 { color: #f59e0b; font-size: 15px; margin-bottom: 14px; }
+    .choice-btns { display: flex; gap: 12px; justify-content: center; }
+    .btn-side { padding: 8px 18px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; }
+    .btn-side-left { background: #0284c7; color: #fff; }
+    .btn-side-right { background: #16a34a; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div id="startModal">
+    <div class="modal-box">
+      <a href="index.html" class="btn-corner-back">⬅ گەڕانەوە بۆ KurdAI</a>
+      <h2>چایخانەی کۆردەواری (101)</h2>
+      <input type="text" id="playerName" class="input-box" placeholder="ناوی خۆت بنووسە..." maxlength="20">
+      
+      <div class="btn-group">
+        <button id="mode2" class="btn-tab" onclick="setMode(2)">٢ نەفەری 👤</button>
+        <button id="mode4" class="btn-tab active" onclick="setMode(4)">٤ نەفەری 👥</button>
+      </div>
+
+      <div class="room-type-toggle">
+        <button id="tabPublic" class="btn-tab active" onclick="setRoomType('public')">ژووری گشتی (بۆت/خەڵک)</button>
+        <button id="tabPrivate" class="btn-tab" onclick="setRoomType('private')">🔒 ژووری تایبەت بە هاوڕێ</button>
+      </div>
+
+      <div id="privateCodeBox" style="display: none; margin-bottom: 10px;">
+        <input type="text" id="customRoomCode" class="input-box" placeholder="کۆدی ژوور بنووسە (بۆ نموونە: KURD1)" style="text-transform: uppercase;">
+      </div>
+
+      <button class="btn-enter" onclick="startGame()">چوونە ناو مێزی دۆمینە ⬅</button>
+    </div>
+  </div>
+
+  <div id="matchOverModal">
+    <div class="match-over-box">
+      <h1 id="matchWinnerTitle">🎉 پیرۆزە! بردنەوە</h1>
+      <p id="matchWinnerDesc">تیمی ئێمە گەیشتە ١٠١ خاڵ و یارییەکەی بردەوە!</p>
+      <button class="btn-restart" onclick="location.reload()">یارییەکی نوێ دەستپێبکەرەوە 🔄</button>
+    </div>
+  </div>
+
+  <div id="sideChoiceModal">
+    <div class="side-choice-box">
+      <h3>بەردەکەت لە هەردوو سەرەوە دەخوات، لە کام سەر دایدەنێیت؟</h3>
+      <div class="choice-btns">
+        <button class="btn-side btn-side-left" onclick="executeChosenSide('left')">⬅ سەری چەپ</button>
+        <button class="btn-side btn-side-right" onclick="executeChosenSide('right')">سەری ڕاست ➡</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameContainer">
+    <header>
+      <a href="index.html" class="btn-back-kurdai">گەڕانەوە بۆ یارییەکان</a>
+      <div class="header-center">
+        <div class="room-badge" id="roomDisplay">ژوور: pub_4_...</div>
+        <div class="scores-text" id="scoreDisplay">تیمی ئێمە: ٠ | تیمی ئەوان: ٠</div>
+      </div>
+      <div style="font-size: 14px; color: #f59e0b; font-weight: bold;">چایخانەی کۆردەواری (101) خاڵ</div>
+    </header>
+
+    <div id="tableArea">
+      <div id="seat-1" class="player-seat">
+        <div class="timer-ring-box">
+          <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
+            <circle class="timer-circle-bg" cx="18" cy="18" r="15"/>
+            <circle id="timer-bar-1" class="timer-circle-bar" cx="18" cy="18" r="15"/>
+          </svg>
+          <span id="count-1" class="seat-count">7</span>
+        </div>
+        <div id="name-1" class="seat-name">وەستا حەمە</div>
+      </div>
+
+      <div id="seat-2" class="player-seat">
+        <div class="timer-ring-box">
+          <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
+            <circle class="timer-circle-bg" cx="18" cy="18" r="15"/>
+            <circle id="timer-bar-2" class="timer-circle-bar" cx="18" cy="18" r="15"/>
+          </svg>
+          <span id="count-2" class="seat-count">7</span>
+        </div>
+        <div id="name-2" class="seat-name">وەستا سەردار (شەریک)</div>
+      </div>
+
+      <div id="seat-3" class="player-seat">
+        <div class="timer-ring-box">
+          <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
+            <circle class="timer-circle-bg" cx="18" cy="18" r="15"/>
+            <circle id="timer-bar-3" class="timer-circle-bar" cx="18" cy="18" r="15"/>
+          </svg>
+          <span id="count-3" class="seat-count">7</span>
+        </div>
+        <div id="name-3" class="seat-name">وەستا ڕێبوار</div>
+      </div>
+
+      <div id="boardChain"></div>
+    </div>
+
+    <div id="bottomRackArea">
+      <div class="action-bar">
+        <div class="timer-ring-box">
+          <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
+            <circle class="timer-circle-bg" cx="18" cy="18" r="15"/>
+            <circle id="timer-bar-0" class="timer-circle-bar" cx="18" cy="18" r="15"/>
+          </svg>
+          <span id="count-0" class="seat-count">7</span>
+        </div>
+        <button id="btnPass" class="btn-action" onclick="onPass()">نییە</button>
+        <button id="btnPull" class="btn-action" onclick="onPull()">سەحبکردن (<span id="pullCount">0</span>)</button>
+        <button id="btnMic" class="btn-mic" onclick="toggleVoice()">🎤 پەیوەندی دەنگی</button>
+      </div>
+      <div id="myRack"></div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let selectedMode = 4;
+    let roomType = 'public';
+    let mySeat = 0;
+    let myName = '';
+    let myHand = [];
+    let boardChain = [];
+    let isMyTurn = false;
+    let isFirstEverRound = true;
+    let isGameFinished = false;
+    let timerInterval = null;
+    const TURN_SECONDS = 15;
+    const FULL_CIRCUMFERENCE = 94.25;
+
+    let pendingChoice = null;
+
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playClackSound() {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(650, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } catch (e) {}
+    }
+
+    function playHeavySlamSound() {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(260, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.35);
+        gain.gain.setValueAtTime(1.8, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+
+        const snap = ctx.createOscillator();
+        const snapGain = ctx.createGain();
+        snap.type = 'triangle';
+        snap.frequency.setValueAtTime(800, ctx.currentTime);
+        snap.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.1);
+        snapGain.gain.setValueAtTime(1.2, ctx.currentTime);
+        snapGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        snap.connect(snapGain);
+        snapGain.connect(ctx.destination);
+        snap.start();
+        snap.stop(ctx.currentTime + 0.1);
+      } catch (e) {}
+    }
+
+    // دەنگی دڵنیایی «نییە» بۆ سەرجەم مۆبایل و براوسەرەکان بەبێ پشت بەستن بە پاکێجی ویندۆز
+    function speakNiye() {
+      try {
+        const ctx = getAudioCtx();
+        if (ctx) {
+          // تەقەی کەمەرەیی تیژ لە کاتی پاسدا
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(450, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.5, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.18);
+        }
+
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance("نیە");
+          utter.lang = 'ar';
+          utter.rate = 1.0;
+          utter.pitch = 1.0;
+          utter.volume = 1.0;
+          window.speechSynthesis.speak(utter);
+        }
+      } catch (e) {}
+    }
+
+    let isMicOn = false;
+    let localStream = null;
+    const peerConnections = {};
+
+    async function toggleVoice() {
+      const btn = document.getElementById('btnMic');
+      if (!isMicOn) {
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          isMicOn = true;
+          btn.classList.add('active');
+          btn.innerText = '🔴 مایک کراوەیە';
+          socket.emit('voice_joined');
+        } catch (err) {
+          alert('ڕێگەپێدانی مایکرۆفۆن پێویستە بۆ قسەکردن!');
+        }
+      } else {
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+        isMicOn = false;
+        btn.classList.remove('active');
+        btn.innerText = '🎤 پەیوەندی دەنگی';
+      }
+    }
+
+    socket.on('voice_user_joined', async ({ socketId }) => {
+      if (!isMicOn || !localStream) return;
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      peerConnections[socketId] = pc;
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('voice_signal', { to: socketId, candidate: event.candidate });
+        }
+      };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit('voice_signal', { to: socketId, sdp: offer });
+    });
+
+    socket.on('voice_signal', async ({ from, sdp, candidate }) => {
+      let pc = peerConnections[from];
+      if (!pc) {
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        peerConnections[from] = pc;
+        if (localStream) localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        pc.ontrack = (event) => {
+          const remoteAudio = new Audio();
+          remoteAudio.srcObject = event.streams[0];
+          remoteAudio.play();
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit('voice_signal', { to: from, candidate: event.candidate });
+          }
+        };
+      }
+
+      if (sdp) {
+        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        if (sdp.type === 'offer') {
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('voice_signal', { to: from, sdp: answer });
+        }
+      } else if (candidate) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+    });
+
+    const PIP_LAYOUT = {
+      0: [],
+      1: ['1-1'],
+      2: ['0-0', '2-2'],
+      3: ['0-0', '1-1', '2-2'],
+      4: ['0-0', '0-2', '2-0', '2-2'],
+      5: ['0-0', '0-2', '1-1', '2-0', '2-2'],
+      6: ['0-0', '0-2', '1-0', '1-2', '2-0', '2-2']
+    };
+
+    function createHalf(val, extraClass) {
+      const half = document.createElement('div');
+      half.className = 'domino-half ' + (extraClass || '');
+      const pips = PIP_LAYOUT[val] || [];
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          const cell = document.createElement('div');
+          if (pips.includes(`${r}-${c}`)) {
+            const dot = document.createElement('div');
+            dot.className = `pip pip-val-${val}`;
+            cell.appendChild(dot);
+          }
+          half.appendChild(cell);
+        }
+      }
+      return half;
+    }
+
+    function setMode(m) {
+      selectedMode = m;
+      document.getElementById('mode2').classList.toggle('active', m === 2);
+      document.getElementById('mode4').classList.toggle('active', m === 4);
+    }
+
+    function setRoomType(t) {
+      roomType = t;
+      document.getElementById('tabPublic').classList.toggle('active', t === 'public');
+      document.getElementById('tabPrivate').classList.toggle('active', t === 'private');
+      document.getElementById('privateCodeBox').style.display = (t === 'private') ? 'block' : 'none';
+    }
+
+    function startGame() {
+      const nameInput = document.getElementById('playerName');
+      myName = nameInput.value.trim();
+
+      if (!myName) {
+        alert('تکایە پێش چوونە ژوورەوە ناوی خۆت بنووسە!');
+        nameInput.focus();
+        return;
+      }
+
+      getAudioCtx();
+
+      const customCode = document.getElementById('customRoomCode').value.trim().toUpperCase();
+
+      socket.emit('join_game', {
+        name: myName,
+        mode: selectedMode,
+        roomType: roomType,
+        customCode: customCode
+      });
+
+      document.getElementById('startModal').style.display = 'none';
+      document.getElementById('gameContainer').style.display = 'flex';
+
+      if (selectedMode === 2) {
+        document.getElementById('seat-2').style.display = 'none';
+        document.getElementById('seat-3').style.display = 'none';
+        document.getElementById('name-1').innerText = 'وەستا حەمە';
+        document.getElementById('btnPull').style.display = 'inline-block';
+      }
+    }
+
+    socket.on('game_live', (data) => {
+      mySeat = data.mySeat;
+      myHand = data.myHand;
+      boardChain = data.board || [];
+      isFirstEverRound = data.isFirstEverRound;
+      document.getElementById('roomDisplay').innerText = `ژوور: #${data.roomId || '101'}`;
+      updateScores(data.teamScores);
+      updateHandCounts(data.handCounts);
+      renderBoard();
+      renderRack();
+      setupTurnTimer(data.turnSeat);
+
+      if (selectedMode === 2) {
+        document.getElementById('pullCount').innerText = data.boneyardCount || 0;
+      }
+    });
+
+    socket.on('turn_advanced', (data) => {
+      if (isGameFinished) return;
+      playClackSound();
+      boardChain = data.board || [];
+      renderBoard();
+      updateHandCounts(data.handCounts);
+      updateScores(data.teamScores);
+      setupTurnTimer(data.currentTurnSeat);
+
+      if (selectedMode === 2) {
+        document.getElementById('pullCount').innerText = data.boneyardCount || 0;
+      }
+    });
+
+    socket.on('player_said_pass', () => {
+      speakNiye();
+    });
+
+    function updateHandCounts(counts) {
+      if (!counts) return;
+      for (let i = 0; i < 4; i++) {
+        const el = document.getElementById(`count-${i}`);
+        if (el && counts[i] !== undefined) el.innerText = counts[i];
+      }
+    }
+
+    function updateScores(scores) {
+      if (!scores) return;
+      document.getElementById('scoreDisplay').innerText = `تیمی ئێمە: ${scores.teamA} | تیمی ئەوان: ${scores.teamB}`;
+    }
+
+    function setupTurnTimer(turnSeat) {
+      if (isGameFinished) return;
+      isMyTurn = (turnSeat === mySeat);
+
+      for (let s = 1; s <= 3; s++) {
+        const seatBox = document.getElementById(`seat-${s}`);
+        if (seatBox) seatBox.classList.toggle('active-turn', turnSeat === s);
+      }
+
+      for (let s = 0; s <= 3; s++) {
+        const bar = document.getElementById(`timer-bar-${s}`);
+        if (bar) {
+          bar.style.strokeDasharray = FULL_CIRCUMFERENCE;
+          bar.style.strokeDashoffset = FULL_CIRCUMFERENCE;
+        }
+      }
+
+      clearInterval(timerInterval);
+      let timeLeft = TURN_SECONDS;
+      const activeBar = document.getElementById(`timer-bar-${turnSeat}`);
+
+      function tick() {
+        if (activeBar) {
+          const offset = FULL_CIRCUMFERENCE - (timeLeft / TURN_SECONDS) * FULL_CIRCUMFERENCE;
+          activeBar.style.strokeDashoffset = offset;
+          activeBar.style.stroke = timeLeft <= 4 ? '#ef4444' : '#22c55e';
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          if (isMyTurn) autoPlayRandomTile();
+        }
+        timeLeft--;
+      }
+      tick();
+      timerInterval = setInterval(tick, 1000);
+    }
+
+    function autoPlayRandomTile() {
+      if (!isMyTurn || isGameFinished) return;
+      document.getElementById('sideChoiceModal').style.display = 'none';
+
+      if (boardChain.length === 0) {
+        if (isFirstEverRound) {
+          const d6Idx = myHand.findIndex(t => (t.a === 6 && t.b === 6) || (t[0] === 6 && t[1] === 6));
+          if (d6Idx !== -1) {
+            commitMove(d6Idx, [{ left: 6, right: 6, a: 6, b: 6 }]);
+            return;
+          }
+        } else {
+          const t = myHand[0];
+          const a = Number(t.a !== undefined ? t.a : t[0]);
+          const b = Number(t.b !== undefined ? t.b : t[1]);
+          commitMove(0, [{ left: a, right: b, a: a, b: b }]);
+          return;
+        }
+      } else {
+        const leftEnd = Number(boardChain[0].left);
+        const rightEnd = Number(boardChain[boardChain.length - 1].right);
+
+        for (let i = 0; i < myHand.length; i++) {
+          const t = myHand[i];
+          const a = Number(t.a !== undefined ? t.a : t[0]);
+          const b = Number(t.b !== undefined ? t.b : t[1]);
+
+          if (b === leftEnd || a === leftEnd) {
+            executeSidePlay(i, a, b, 'left');
+            return;
+          } else if (a === rightEnd || b === rightEnd) {
+            executeSidePlay(i, a, b, 'right');
+            return;
+          }
+        }
+      }
+      onPass();
+    }
+
+    function renderBoard() {
+      const container = document.getElementById('boardChain');
+      container.innerHTML = '';
+      if (!boardChain || boardChain.length === 0) return;
+
+      boardChain.forEach((t) => {
+        const isDouble = (t.left === t.right);
+        const div = document.createElement('div');
+        div.className = 'domino-tile ' + (isDouble ? 'tile-board-v' : 'tile-board-h');
+
+        const spinner = document.createElement('div');
+        spinner.className = 'brass-spinner';
+        div.appendChild(spinner);
+
+        if (isDouble) {
+          div.appendChild(createHalf(t.left, 'half-top'));
+          div.appendChild(createHalf(t.right, 'half-bottom'));
+        } else {
+          div.appendChild(createHalf(t.left, 'half-left'));
+          div.appendChild(createHalf(t.right, 'half-right'));
+        }
+        container.appendChild(div);
+      });
+
+      const tableArea = document.getElementById('tableArea');
+      const maxAllowedWidth = tableArea.clientWidth - 280;
+      const chainWidth = container.scrollWidth;
+
+      if (chainWidth > maxAllowedWidth && maxAllowedWidth > 100) {
+        const scale = maxAllowedWidth / chainWidth;
+        container.style.transform = `scale(${Math.max(scale, 0.45)})`;
+      } else {
+        container.style.transform = 'scale(1)';
+      }
+    }
+
+    function renderRack() {
+      const container = document.getElementById('myRack');
+      container.innerHTML = '';
+      myHand.forEach((t, idx) => {
+        const a = Number(t.a !== undefined ? t.a : (t.left !== undefined ? t.left : t[0]));
+        const b = Number(t.b !== undefined ? t.b : (t.right !== undefined ? t.right : t[1]));
+
+        const div = document.createElement('div');
+        div.className = 'domino-tile tile-rack';
+
+        const spinner = document.createElement('div');
+        spinner.className = 'brass-spinner';
+        div.appendChild(spinner);
+
+        div.appendChild(createHalf(a, 'half-top'));
+        div.appendChild(createHalf(b, 'half-bottom'));
+        div.onclick = () => tryPlayTile(idx, a, b);
+        container.appendChild(div);
+      });
+      document.getElementById('count-0').innerText = myHand.length;
+    }
+
+    function tryPlayTile(index, a, b) {
+      if (!isMyTurn || isGameFinished) return;
+
+      if (boardChain.length === 0) {
+        if (isFirstEverRound) {
+          if (a !== 6 || b !== 6) {
+            alert('دەبێت بەردی دوو شەش دابنێیت بۆ دەستپێکردنی یەکەم یاری!');
+            return;
+          }
+        }
+        commitMove(index, [{ left: a, right: b, a: a, b: b }]);
+        return;
+      }
+
+      const leftEnd = Number(boardChain[0].left);
+      const rightEnd = Number(boardChain[boardChain.length - 1].right);
+
+      const canLeft = (b === leftEnd || a === leftEnd);
+      const canRight = (a === rightEnd || b === rightEnd);
+
+      if (canLeft && canRight) {
+        pendingChoice = { index, a, b };
+        document.getElementById('sideChoiceModal').style.display = 'flex';
+      } else if (canLeft) {
+        executeSidePlay(index, a, b, 'left');
+      } else if (canRight) {
+        executeSidePlay(index, a, b, 'right');
+      }
+    }
+
+    function executeChosenSide(side) {
+      document.getElementById('sideChoiceModal').style.display = 'none';
+      if (!pendingChoice) return;
+      executeSidePlay(pendingChoice.index, pendingChoice.a, pendingChoice.b, side);
+      pendingChoice = null;
+    }
+
+    function executeSidePlay(index, a, b, side) {
+      const leftEnd = Number(boardChain[0].left);
+      const rightEnd = Number(boardChain[boardChain.length - 1].right);
+
+      if (side === 'left') {
+        if (b === leftEnd) {
+          boardChain.unshift({ left: a, right: b, a: a, b: b });
+        } else {
+          boardChain.unshift({ left: b, right: a, a: b, b: a });
+        }
+      } else {
+        if (a === rightEnd) {
+          boardChain.push({ left: a, right: b, a: a, b: b });
+        } else {
+          boardChain.push({ left: b, right: a, a: b, b: a });
+        }
+      }
+      commitMove(index, boardChain);
+    }
+
+    function commitMove(index, updatedBoard) {
+      const played = myHand.splice(index, 1)[0];
+      
+      if ((played.a === 6 && played.b === 6) || (played[0] === 6 && played[1] === 6)) {
+        playHeavySlamSound();
+      } else {
+        playClackSound();
+      }
+
+      clearInterval(timerInterval);
+      isMyTurn = false;
+      boardChain = updatedBoard;
+      renderRack();
+      renderBoard();
+
+      socket.emit('submit_move', {
+        boardChain: boardChain,
+        remainingHand: myHand,
+        playedSeat: mySeat,
+        tile: played
+      });
+    }
+
+    function onPass() {
+      if (!isMyTurn || isGameFinished) return;
+      speakNiye();
+      clearInterval(timerInterval);
+      isMyTurn = false;
+      socket.emit('player_pass');
+    }
+
+    function onPull() {
+      if (!isMyTurn || isGameFinished) return;
+      socket.emit('request_pull');
+    }
+
+    socket.on('receive_pulled', (data) => {
+      myHand.push(data.pulled);
+      renderRack();
+      document.getElementById('pullCount').innerText = data.boneyardCount;
+    });
+
+    socket.on('round_finished', (data) => {
+      clearInterval(timerInterval);
+      document.getElementById('sideChoiceModal').style.display = 'none';
+      updateScores(data.teamScores);
+      playHeavySlamSound();
+
+      if (data.isMatchOver) {
+        isGameFinished = true;
+        const modal = document.getElementById('matchOverModal');
+        const title = document.getElementById('matchWinnerTitle');
+        const desc = document.getElementById('matchWinnerDesc');
+
+        if (data.winningTeam === 'teamA') {
+          title.innerText = '🏆 پیرۆزە! تیمی ئێمە بردییەوە';
+          title.style.color = '#22c55e';
+          desc.innerText = `تیمی ئێمە گەیشتە ${data.teamScores.teamA} خاڵ و بەسەرکەوتوویی یارییەکەی بردەوە!`;
+        } else {
+          title.innerText = '💔 تیمی ئەوان بردیانەوە';
+          title.style.color = '#ef4444';
+          desc.innerText = `تیمی ئەوان گەیشتە ${data.teamScores.teamB} خاڵ و یارییەکەیان بردەوە.`;
+        }
+        modal.style.display = 'flex';
+        return;
+      }
+
+      alert(`گەڕ کۆتایی پێهات!\nشێواز: ${data.isLock ? 'قەپات' : 'دۆمینە'}\nبراوە: ${data.winnerName}\nخاڵی زیادکراو: +${data.gainedPoints}`);
+    });
+  </script>
+</body>
+</html>

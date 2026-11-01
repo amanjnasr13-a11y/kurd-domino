@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پیشەوەرەکان - Kurd AI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background-color: #0b111e;
+      color: #ffffff;
+      padding: 20px;
+      direction: rtl;
+    }
+    .header {
+      max-width: 1000px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1a2638;
+      padding-bottom: 15px;
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+    .back-btn {
+      color: #ff9800;
+      text-decoration: none;
+      font-size: 14px;
+      border: 1px solid #ff9800;
+      padding: 6px 16px;
+      border-radius: 20px;
+      transition: 0.2s;
+    }
+    .back-btn:hover {
+      background: #ff9800;
+      color: #000;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    .tab-btn {
+      background: #131c2e;
+      border: 1px solid #22324b;
+      color: #94a3b8;
+      padding: 10px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      background: #ff9800;
+      color: #0b111e;
+      border-color: #ff9800;
+    }
+    .form-wrapper {
+      background: #131c2e;
+      border: 1px solid #22324b;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .form-title {
+      font-size: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #ff9800;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      background: #0b111e;
+      border: 1px solid #22324b;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #ff9800;
+    }
+    .submit-btn {
+      width: 100%;
+      background: #ff9800;
+      color: #0b111e;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+    .pro-card {
+      background: #131c2e;
+      border: 1px solid #22324b;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pro-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .pro-job {
+      color: #ff9800;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .pro-bio {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .call-btn {
+      display: block;
+      text-align: center;
+      background: #22c55e;
+      color: #fff;
+      text-decoration: none;
+      padding: 9px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand-title">🛠️ پیشەوەرەکان و وەستاکان</div>
+    <a href="index.html" class="back-btn">گەڕانەوە بۆ سەرەکی</a>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTab('list')">لیستی پیشەوەران</button>
+      <button class="tab-btn" onclick="setTab('register')">خۆتۆمارکردن</button>
+    </div>
+
+    <!-- تەنها پیشەوەرە پەسەندکراوەکان پیشان دەدات -->
+    <div id="section-list">
+      <div id="approvedList" class="grid"></div>
+    </div>
+
+    <!-- فۆڕمی تۆمارکردنی پیشەوەران -->
+    <div id="section-register" style="display: none;">
+      <div class="form-wrapper">
+        <div class="form-title">تۆمارکردنی پیشە و زانیارییەکانت</div>
+        <form id="regForm" onsubmit="submitForm(event)">
+          <div class="form-group">
+            <label>ناوی سیانی</label>
+            <input type="text" id="name" required placeholder="وەک: ئاراس کامەران">
+          </div>
+          <div class="form-group">
+            <label>پیشە / پسپۆڕی</label>
+            <input type="text" id="job" required placeholder="وەک: فیتەر، کارەباچی، بۆریچی">
+          </div>
+          <div class="form-group">
+            <label>شار</label>
+            <select id="city">
+              <option value="سلێمانی">سلێمانی</option>
+              <option value="هەولێر">هەولێر</option>
+              <option value="دهۆک">دهۆک</option>
+              <option value="کەرکووک">کەرکووک</option>
+              <option value="هەڵەبجە">هەڵەبجە</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ژمارەی مۆبایلی خۆت (تەنها لای بەڕێوەبەر دەبێت)</label>
+            <input type="tel" id="phone" required placeholder="0770xxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>ئەزموون و کورتەی کارەکانت</label>
+            <textarea id="bio" rows="3" placeholder="چەند ساڵ ئەزموونت هەیە و چی دەکەیت..."></textarea>
+          </div>
+          <button type="submit" class="submit-btn">ناردنی داواکاری بۆ بەڕێوەبەر</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // لەم دێڕەدا ژمارەی مۆبایلی خۆت دابنێ:
+    const MY_PHONE_NUMBER = "07701234567";
+
+    let pros = JSON.parse(localStorage.getItem('kurdai_pros')) || [
+      { id: 1, name: "وەستا کاوە", job: "میکانیک و فیتەری بزوێنەر", city: "سلێمانی", phone: "07701111111", bio: "زیاتر لە ٨ ساڵ ئەزموون لە بزوێنەری بەنزین و دیزڵ", status: "approved" },
+      { id: 2, name: "کاروان فەرهاد", job: "کارەبایی و سیستەمی ماڵان", city: "هەولێر", phone: "07502222222", bio: "دانان و چاککردنەوەی سیستەمی کارەبایی", status: "approved" }
+    ];
+
+    function setTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('section-list').style.display = 'none';
+      document.getElementById('section-register').style.display = 'none';
+
+      if (tab === 'list') {
+        document.getElementById('section-list').style.display = 'block';
+        event.target.classList.add('active');
+      } else if (tab === 'register') {
+        document.getElementById('section-register').style.display = 'block';
+        event.target.classList.add('active');
+      }
+    }
+
+    function submitForm(e) {
+      e.preventDefault();
+      const newEntry = {
+        id: Date.now(),
+        name: document.getElementById('name').value,
+        job: document.getElementById('job').value,
+        city: document.getElementById('city').value,
+        phone: document.getElementById('phone').value,
+        bio: document.getElementById('bio').value,
+        status: 'pending' // چاوەڕوان دەبێت تا لە لاپەڕەی سەرەکی پەسەندی دەکەیت
+      };
+
+      pros.push(newEntry);
+      localStorage.setItem('kurdai_pros', JSON.stringify(pros));
+      alert("داواکارییەکەت نێردرا! دوای پەسەندکردنی لەلایەن بەڕێوەبەرەوە لە لیستەکە دەردەکەوێت.");
+      document.getElementById('regForm').reset();
+      setTab('list');
+      renderList();
+    }
+
+    function renderList() {
+      const container = document.getElementById('approvedList');
+      pros = JSON.parse(localStorage.getItem('kurdai_pros')) || pros;
+      const approved = pros.filter(p => p.status === 'approved');
+
+      if (approved.length === 0) {
+        container.innerHTML = '<p style="color: #94a3b8;">هیچ پیشەوەرێک پەسەند نەکراوە تا ئێستا.</p>';
+        return;
+      }
+
+      container.innerHTML = approved.map(p => `
+        <div class="pro-card">
+          <div>
+            <div class="pro-name">${p.name}</div>
+            <div class="pro-job">⚙️ ${p.job} - ${p.city}</div>
+            <div class="pro-bio">${p.bio || 'هیچ زانیارییەک نەنووسراوە'}</div>
+          </div>
+          <!-- ژمارەی پەیوەندی کردن ژمارەی تۆیە نەک پیشەوەرەکە -->
+          <a href="tel:${MY_PHONE_NUMBER}" class="call-btn">📞 پەیوەندی کردن: ${MY_PHONE_NUMBER}</a>
+        </div>
+      `).join('');
+    }
+
+    renderList();
+  </script>
+</body>
+</html>

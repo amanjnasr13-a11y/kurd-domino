@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>هۆڵی یارییەکان - KurdAI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background-color: #070c16;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      direction: rtl;
+    }
+
+    /* سەرپەڕەی فەرمی KurdAI */
+    .navbar {
+      background: rgba(13, 21, 37, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 14px 35px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: #070c16;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+    }
+    .brand-text {
+      font-size: 22px;
+      font-weight: 900;
+      color: #f59e0b;
+      letter-spacing: 0.5px;
+    }
+    .home-btn {
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+    .home-btn:hover {
+      background: #f59e0b;
+      color: #070c16;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+      transform: translateY(-1px);
+    }
+
+    /* ناوەڕۆکی پەڕە */
+    .main-wrapper {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 40px 20px 60px 20px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-banner {
+      text-align: center;
+      margin-bottom: 45px;
+      max-width: 700px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: 32px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: #94a3b8;
+      line-height: 1.7;
+    }
+
+    /* تۆڕی کارتەکان - ٢ کارتی گەورە و پڕۆفیشناڵ */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 35px;
+      width: 100%;
+      max-width: 900px;
+    }
+    .game-card {
+      background: linear-gradient(160deg, #10192b 0%, #0c1322 100%);
+      border: 1px solid #1f2f4c;
+      border-radius: 24px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .game-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(245, 158, 11, 0.5);
+      box-shadow: 0 20px 40px rgba(245, 158, 11, 0.12);
+    }
+    .game-card:hover::before {
+      opacity: 1;
+    }
+    .card-tag {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    /* پیشاندەری وێنەی ڕاستەقینەی بەردی دۆمینە (CSS Realistic Ivory Domino Tile) */
+    .domino-showcase {
+      width: 70px;
+      height: 130px;
+      background: linear-gradient(145deg, #ffffff 0%, #f7f2e5 50%, #e8dec7 100%);
+      border-radius: 10px;
+      box-shadow: 
+        0 12px 25px rgba(0,0,0,0.6), 
+        inset 0 2px 2px #ffffff,
+        inset 0 -2px 3px rgba(0,0,0,0.15);
+      border: 1px solid #d4c7b0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      margin: 15px 0 22px 0;
+      transition: transform 0.3s ease;
+    }
+    .game-card:hover .domino-showcase {
+      transform: scale(1.08) rotate(-4deg);
+    }
+    .dom-half {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 6px;
+    }
+    .dom-split {
+      height: 3px;
+      width: 86%;
+      margin: 0 auto;
+      background: #797163;
+      position: relative;
+      box-shadow: 0 1px 1px rgba(255,255,255,0.7);
+    }
+    .dom-split::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #d4af37;
+      border-radius: 50%;
+      top: -1.5px;
+      left: calc(50% - 3px);
+      box-shadow: 0 0 3px #000;
+    }
+    .dom-dot {
+      width: 9px;
+      height: 9px;
+      background: radial-gradient(circle at 35% 35%, #2a2a2a, #000000);
+      border-radius: 50%;
+      margin: auto;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.8);
+    }
+
+    /* پیشاندەری وێنەی ڕاستەقینەی پووڵی دامەی دارین (Wooden Dama Piece) */
+    .dama-showcase {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #422919 0%, #2b180d 65%, #150a04 100%);
+      border: 4px solid #5a3822;
+      box-shadow: 
+        0 14px 28px rgba(0,0,0,0.65), 
+        inset 0 3px 5px rgba(255,255,255,0.2),
+        inset 0 -4px 6px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 25px 0 37px 0;
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+    .dama-showcase::after {
+      content: '👑';
+      font-size: 38px;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8));
+    }
+    .game-card:hover .dama-showcase {
+      transform: scale(1.08) rotate(6deg);
+    }
+
+    .card-title {
+      font-size: 23px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .card-desc {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.7;
+      text-align: center;
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+    .play-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #070c16;
+      text-decoration: none;
+      text-align: center;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 16px;
+      transition: all 0.25s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+    }
+    .play-btn:hover {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 6px 25px rgba(245, 158, 11, 0.45);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      background: #05080f;
+      border-top: 1px solid #141f33;
+      padding: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <!-- سەرپەڕە -->
+  <header class="navbar">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-logo">K</div>
+      <div class="brand-text">KurdAI</div>
+    </a>
+    <a href="index.html" class="home-btn">
+      <span>🏠</span> لاپەڕەی سەرەکی
+    </a>
+  </header>
+
+  <!-- بەشی سەرەکی -->
+  <div class="main-wrapper">
+    <div class="hero-banner">
+      <div class="hero-badge">☕ چایخانەی دیڤان</div>
+      <h1 class="hero-title">هۆڵی کات بەسەربردن و <span>یارییە بەهێزەکان</span></h1>
+      <p class="hero-subtitle">تەواوی یارییە پیاوانە و کلاسیكەکان بە یاسا و جەوی ڕاستەقینەی چایخانە بەرامبەر زیرەکیی دەستکردی پێشکەوتوو</p>
+    </div>
+
+    <div class="games-grid">
+      <!-- کارتی ١: دۆمینەی کوردی بە بەردی ڕاستەقینە -->
+      <div class="game-card">
+        <span class="card-tag">١٠١ خاڵ</span>
+        
+        <!-- وێنە و مۆدێلی بەردی دۆمینە (٥ بەرامبەر ٤ بە مێخە زێڕینەکەی ناوەڕاست) -->
+        <div class="domino-showcase">
+          <div class="dom-half">
+            <div class="dom-dot" style="grid-column:1; grid-row:1;"></div>
+            <div class="dom-dot" style="grid-column:3; grid-row:1;"></div>
+            <div class="dom-dot" style="grid-column:2; grid-row:2;"></div>
+            <div class="dom-dot" style="grid-column:1; grid-row:3;"></div>
+            <div class="dom-dot" style="grid-column:3; grid-row:3;"></div>
+          </div>
+          <div class="dom-split"></div>
+          <div class="dom-half">
+            <div class="dom-dot" style="grid-column:1; grid-row:1;"></div>
+            <div class="dom-dot" style="grid-column:3; grid-row:1;"></div>
+            <div class="dom-dot" style="grid-column:1; grid-row:3;"></div>
+            <div class="dom-dot" style="grid-column:3; grid-row:3;"></div>
+          </div>
+        </div>
+
+        <h2 class="card-title">دۆمینەی کوردی</h2>
+        <p class="card-desc">یاریی دۆمینەی ڕەسەنی کوردی بە یاسای ١٠١ خاڵ، سەحبکردن، یاسای نییە، ئیختیاری سەرەکان و قفڵبوونی گەڕ بە دەنگی قورسی بەردەکان.</p>
+        <a href="domino.html" class="play-btn">
+          <span>دەستپێکردنی دۆمینە</span>
+          <span>➔</span>
+        </a>
+      </div>
+
+      <!-- کارتی ٢: دامەی کوردی -->
+      <div class="game-card">
+        <span class="card-tag">ستراتیژ و زیرەکی</span>
+
+        <!-- وێنە و مۆدێلی پووڵی دارینی دامە -->
+        <div class="dama-showcase"></div>
+
+        <h2 class="card-title">دامەی کوردی</h2>
+        <p class="card-desc">یاریی ستراتیژیی دامەی کوردی بە یاسای زۆرترین خواردنی زۆرەملێ، فڕینی باڵندەی دامە و زیرەکیی دەستکرد کە وەک مرۆڤ بیردەکاتەوە.</p>
+        <a href="dama.html" class="play-btn">
+          <span>دەستپێکردنی دامە</span>
+          <span>➔</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    هەموو مافەکان پارێزراوە بۆ KurdAI © 2026
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>کێبڕکێی پرسیار و وەڵام - Kurd AI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background-color: #0b111e;
+      color: #ffffff;
+      padding: 20px;
+      direction: rtl;
+    }
+    .header {
+      max-width: 900px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1a2638;
+      padding-bottom: 15px;
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #f59e0b;
+    }
+    .back-btn {
+      color: #f59e0b;
+      text-decoration: none;
+      font-size: 14px;
+      border: 1px solid #f59e0b;
+      padding: 6px 16px;
+      border-radius: 20px;
+      transition: 0.2s;
+    }
+    .back-btn:hover {
+      background: #f59e0b;
+      color: #000;
+    }
+    .main-box {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .main-box {
+        grid-template-columns: 1fr;
+      }
+    }
+    .game-card, .leaderboard-card {
+      background: #131c2e;
+      border: 1px solid #22324b;
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .timer-bar {
+      height: 8px;
+      background: #22324b;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .timer-progress {
+      height: 100%;
+      width: 100%;
+      background: #f59e0b;
+      transition: width 1s linear;
+    }
+    .category-badge {
+      display: inline-block;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #0284c7;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .question-title {
+      font-size: 19px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .option-btn {
+      background: #0b111e;
+      border: 1px solid #22324b;
+      color: #fff;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      text-align: right;
+      transition: 0.2s;
+    }
+    .option-btn:hover {
+      border-color: #f59e0b;
+      background: #1e293b;
+    }
+    .option-btn.correct {
+      background: #15803d !important;
+      border-color: #22c55e !important;
+    }
+    .option-btn.wrong {
+      background: #b91c1c !important;
+      border-color: #ef4444 !important;
+    }
+    .leaderboard-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #f59e0b;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #22324b;
+      padding-bottom: 10px;
+    }
+    .rank-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #1a2638;
+      font-size: 14px;
+    }
+    .rank-item:last-child {
+      border-bottom: none;
+    }
+    .badge {
+      color: #f59e0b;
+      font-weight: bold;
+    }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .input-group input {
+      flex: 1;
+      padding: 10px;
+      background: #0b111e;
+      border: 1px solid #22324b;
+      border-radius: 8px;
+      color: #fff;
+      outline: none;
+    }
+    .action-btn {
+      background: #f59e0b;
+      color: #0b111e;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .bank-status {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand-title">🎮 کێبڕکێی پرسیار و وەڵام</div>
+    <a href="games.html" class="back-btn">گەڕانەوە بۆ یارییەکان</a>
+  </div>
+
+  <div class="main-box">
+    <div class="game-card">
+      <div id="quiz-area">
+        <div class="timer-bar">
+          <div id="progress" class="timer-progress"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="category" class="category-badge">☀️ مێژووی کورد</span>
+          <span id="q-counter" style="color: #94a3b8; font-size: 13px;">پرسیار</span>
+        </div>
+        <div id="question" class="question-title">پرسیار ئامادە دەکرێت...</div>
+        <div id="options" class="options-grid"></div>
+        <div id="bank-stat" class="bank-status">بانکی پرسیار لە ئامادەبووندایە...</div>
+      </div>
+
+      <div id="result-area" style="display: none; text-align: center;">
+        <h2 style="color: #f59e0b; margin-bottom: 10px;">ئەنجامی ئەم گەڕە</h2>
+        <p id="final-score" style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #22c55e;">خاڵ: 0</p>
+        <p style="color: #94a3b8; font-size: 14px;">ناوەکەت بنووسە بۆ تۆمارکردن لە تابلۆی پاڵەوانەکان:</p>
+        <div class="input-group">
+          <input type="text" id="player-name" placeholder="ناوی خۆت بنووسە...">
+          <button class="action-btn" onclick="saveScore()">تۆمارکردن</button>
+        </div>
+        <button class="action-btn" onclick="startQuiz()" style="margin-top: 15px; background: #22c55e; color: #fff; width: 100%;">دەستپێکردنەوە بە ١٠ پرسیاری تەواو نوێ</button>
+      </div>
+    </div>
+
+    <div class="leaderboard-card">
+      <div class="leaderboard-title">🏆 تابلۆی پاڵەوانەکان</div>
+      <div id="leaderboard-list"></div>
+    </div>
+  </div>
+
+  <script>
+    function generateLargeDatabase() {
+      const db = [];
+      let currentId = 1;
+
+      function add(cat, q, correct, wrongs) {
+        let opts = [correct, ...wrongs];
+        opts.sort(() => Math.random() - 0.5);
+        db.push({ id: currentId++, cat, q, opts, correct });
+      }
+
+      // ١. مێژووی کورد، شارەکان و کەسایەتییەکان ☀️
+      const kurdPersonalities = [
+        { name: "سەلاحەدینی ئەییووبی", desc: "سەرکردەی قارەمانی ڕزگارکردنی قودس لە جەنگی خاچپەرستان", origin: "تکریت" },
+        { name: "شێخ مەحموودی حەفید", desc: "ڕابەری شۆڕشی کورد لە باشوور و پاشای کوردستان", origin: "سلێمانی" },
+        { name: "پێشەوا قازی محەمەد", desc: "سەرۆکی کۆماری دیموکراتی کوردستان لە مەهاباد", origin: "مەهاباد" },
+        { name: "شێخ سەعیدی پیران", desc: "ڕابەری شۆڕشی مەزنی ساڵی ١٩٢٥ لە باکووری کوردستان", origin: "پیران" },
+        { name: "خان لەپ زێڕین", desc: "قارەمانی داستانی مێژوویی قەڵای دمدم", origin: "ورمێ" },
+        { name: "ئیبراهیم پاشای بابان", desc: "دامەزرێنەری شاری سلێمانی لە ساڵی ١٧٨٤", origin: "قەڵاچوالان" },
+        { name: "مستەفا بارزانی", desc: "سەرکردەی شۆڕشی ئەیلوول لە مێژووی هاوچەرخی کورد", origin: "بارزان" },
+        { name: "شەرەفخانی بەدلیسی", desc: "نووسەر و مێژوونووسی شاکاری بەناوبانگی شەرەفنامە", origin: "بەدلیس" },
+        { name: "ئەحمەدی خانی", desc: "شاعیر و ڕۆشنبیری گەورەی خاوەن شاکاری مەم و زین", origin: "بایەزید" },
+        { name: "نالی", desc: "شاعیری قوتابخانەی بابان و پێشەنگی شیعری کلاسیکی کوردی", origin: "خاک و خۆڵ" },
+        { name: "مەحوی", desc: "شاعیری گەورەی عارف و خانەقای سلێمانی", origin: "بەڵخ" },
+        { name: "حاجی قادری کۆیی", desc: "شاعیری هۆشیاری نەتەوەیی و ڕێنوێنیکەری کورد", origin: "کۆیە" }
+      ];
+
+      kurdPersonalities.forEach(p => {
+        add("☀️ مێژووی کورد", `کەسایەتی مێژوویی کورد (${p.name}) بە چ ڕۆڵێک لە مێژوودا ناسراوە؟`, p.desc, [
+          "شاعیری سەدەی حەوتەم", "سەرۆکی پێشووی ئۆپۆزسیۆنی عێراق", "فەرماندەی تۆپخانەی عوسمانی"
+        ]);
+        add("☀️ مێژووی کورد", `ناوچە یان زێدی لەدایکبوونی سەرکردە و ناوداری کورد (${p.name}) کامەیە؟`, p.origin, [
+          "بەسرە", "ئەستەنبوڵ", "شام"
+        ]);
+      });
+
+      // ٢. قەڵا، شوێنەوار و جوگرافیای کوردستان ⛰️
+      const kurdPlaces = [
+        { place: "قەڵای هەولێر", city: "هەولێر", feature: "کۆنترین قەڵای نیشتەجێبوونی بەردەوام بە مێژووی ٦٠٠٠ ساڵ" },
+        { place: "پردی دەلال", city: "زاخۆ", feature: "پردێکی شوێنەواری دێرین لەسەر ڕووباری خابوور" },
+        { place: "ئەشکەوتی شانەدەر", city: "چیای برادۆست", feature: "دۆزینەوەی ئێسکەپەیکەری مرۆڤی کۆنی نیاندەرتاڵ" },
+        { place: "قەڵای شێروانە", city: "کەلار", feature: "قەڵای مێژوویی سەر بە دەڤەری گەرمیان" },
+        { place: "قشڵەی کۆیە", city: "کۆیە", feature: "شوێنەواری دێرین و سەربازی سەردەمی میرنشین و عوسمانی" },
+        { place: "لوتکەی هەڵگورد", city: "چۆمان", feature: "بەرزترین لوتکە چیای هەرێمی کوردستان" },
+        { place: "دەربەندی بێسڕە و دەربەندیخان", city: "سلێمانی", feature: "ناوچەی مێژوویی و بەنداوی گەورەی ئاو" },
+        { place: "ئامێدی", city: "دهۆک", feature: "شاری دێرین کە لەسەر تەپۆڵکەیەکی بەردینی یەکپارچە دروستکراوە" }
+      ];
+
+      kurdPlaces.forEach(pl => {
+        add("☀️ جوگرافیا و شوێنەواری کورد", `شوێنەواری دێرینی (${pl.place}) لە سنووری کام شار یان ناوچەی کوردستانە؟`, pl.city, [
+          "موسڵ", "بەغدا", "کوت"
+        ]);
+        add("☀️ مێژووی کورد", `تایبەتمەندی دیاری شوێنی مێژوویی (${pl.place}) چییە؟`, pl.feature, [
+          "تەنها کێڵگەیەکی کشتوکاڵی بووە", "کۆنترین پاڵاوگەی نەوتە", "شوێنی دروستکردنی کاروانسەرای هیندی بووە"
+        ]);
+      });
+
+      // ٣. تۆپی پێ، مۆندیال، ئەستێرەکان و یارییە گەورەکان ⚽
+      const footballLegends = [
+        { player: "لیۆنێل مێسی", country: "ئەرجەنتین", feat: "براوەی ٨ تۆپی زێڕین و مۆندیالی ٢٠٢٢" },
+        { player: "کریستیانۆ ڕۆناڵدۆ", country: "پورتوگال", feat: "گۆڵکاری مێژوویی چامپیۆنزلیگ و ٥ تۆپی زێڕین" },
+        { player: "زینەدین زیدان", country: "فەڕەنسا", feat: "پاڵەوانی مۆندیالی ١٩٩٨ و ٣ چامپیۆنزلیگ لەسەریەک وەک ڕاهێنەر" },
+        { player: "ڕۆناڵدۆ نازاریۆ", country: "بەڕازیل", feat: "دیاردەی تۆپی پێ و گۆڵکاری مۆندیالی ٢٠٠٢" },
+        { player: "پێلێ", country: "بەڕازیل", feat: "تاکە یاریزان کە ٣ جامی جیهانی بردووەتەوە" },
+        { player: "دیێگۆ مارادۆنا", country: "ئەرجەنتین", feat: "سەرکردەی بردنەوەی مۆندیالی ١٩٨٦ لە مەکسیک" },
+        { player: "ئێرلینگ هالاند", country: "نەرویژ", feat: "گۆڵکاری مێژوویی یەک وەرزی پریمەرلیگ بە ٣٦ گۆڵ" },
+        { player: "کیلیان مباپێ", country: "فەڕەنسا", feat: "تۆمارکردنی هاتریک لە یاری کۆتایی مۆندیالی ٢٠٢٢" },
+        { player: "لوکا مۆدریچ", country: "کڕواتیا", feat: "براوەی تۆپی زێڕینی ٢٠١٨ و ٦ چامپیۆنزلیگ" },
+        { player: "کەریم بێنزیما", country: "فەڕەنسا", feat: "براوەی تۆپی زێڕینی ٢٠٢٢ لەگەڵ ڕیاڵ مەدرید" },
+        { player: "ڕۆبێرت لیڤاندۆڤسکی", country: "پۆڵەندا", feat: "تۆمارکردنی ٥ گۆڵ لە ماوەی تەنها ٩ خولەکدا" },
+        { player: "نەیمار داسیلڤا", country: "بەڕازیل", feat: "گۆڵکاری مێژوویی هەڵبژاردەی بەڕازیل" }
+      ];
+
+      footballLegends.forEach(leg => {
+        add("⚽ تۆپی پێ", `ئەستێرەی ناودار (${leg.player}) بە ڕەگەز یاریزانی کام هەڵبژاردەیە؟`, leg.country, [
+          "ئەڵمانیا", "ئیتاڵیا", "هۆڵەندا"
+        ]);
+        add("⚽ تۆپی پێ", `دەستکەوتی ناوازە و مێژوویی یاریزان (${leg.player}) کامەیە؟`, leg.feat, [
+          "بردنەوەی جامی ئاسیا", "تەنها گۆڵپارێز بووە لە مێژوودا", "تەنها لە خولی ڕووسیا یاری کردووە"
+        ]);
+      });
+
+      // ٤. یانە گەورەکانی ئەوروپا و یاریگاکان 🏟️
+      const clubsData = [
+        { club: "ڕیاڵ مەدرید", st: "سانتیاگۆ بێرنابیۆ", city: "مەدرید", l: "لا لیگا" },
+        { club: "بەرشلۆنە", st: "سپۆتیفای کامپ نۆ", city: "بەرشلۆنە", l: "لا لیگا" },
+        { club: "مانچستەر یونایتد", st: "ئۆڵد ترافۆرد", city: "مانچستەر", l: "پریمەرلیگ" },
+        { club: "مانچستەر سیتی", st: "ئیتیحاد ستادیۆم", city: "مانچستەر", l: "پریمەرلیگ" },
+        { club: "لیڤەرپوول", st: "ئانفیڵد", city: "لیڤەرپوول", l: "پریمەرلیگ" },
+        { club: "ئارسناڵ", st: "ئیمارات ستادیۆم", city: "لەندەن", l: "پریمەرلیگ" },
+        { club: "چێڵسی", st: "ستامفۆرد بریج", city: "لەندەن", l: "پریمەرلیگ" },
+        { club: "بایرن میونشن", st: "ئەلیانز ئەرینا", city: "میونشن", l: "بۆندێسلیگا" },
+        { club: "بۆڕووسیا دۆرتمۆند", st: "سیگناڵ ئیدونا پارک", city: "دۆرتمۆند", l: "بۆندێسلیگا" },
+        { club: "ئەی سی میلان", st: "سان سیرۆ", city: "میلان", l: "سێریا ئەی" },
+        { club: "ئینتەر میلان", st: "جۆزێپێ میازای سان سیرۆ", city: "میلان", l: "سێریا ئەی" },
+        { club: "یوڤێنتوس", st: "ئەلیانز ستادیۆم لە تۆرینۆ", city: "تۆرینۆ", l: "سێریا ئەی" }
+      ];
+
+      clubsData.forEach(c => {
+        add("🏟️ یاریگا و یانەکان", `یاریگای فەرمی یانەی بەناوبانگی (${c.club}) ناوی چییە؟`, c.st, [
+          "مێستایا", "ستادیۆ ئۆڵیمپیکۆ", "پارک دی پرێنس"
+        ]);
+        add("🏟️ یاریگا و یانەکان", `یانەی (${c.club}) لە کام خول و خاکی چ وڵاتێکدا کێبڕکێ دەکات؟`, c.l, [
+          "خولی پورتوگال", "خولی هۆڵەندا", "خولی بەلجیکا"
+        ]);
+      });
+
+      // ٥. جامی جیهانی بەپێی ساڵەکان 🏆
+      const worldCups = [
+        { year: "١٩٣٠", host: "ئۆرۆگوای", winner: "ئۆرۆگوای" },
+        { year: "١٩٥٨", host: "سوید", winner: "بەڕازیل (یەکەم نازناوی پێلێ)" },
+        { year: "١٩٦٦", host: "ئینگلتەرا", winner: "ئینگلتەرا" },
+        { year: "١٩٧٠", host: "مەکسیک", winner: "بەڕازیل" },
+        { year: "١٩٨٦", host: "مەکسیک", winner: "ئەرجەنتین (مارادۆنا)" },
+        { year: "١٩٩٨", host: "فەڕەنسا", winner: "فەڕەنسا" },
+        { year: "٢٠٠٢", host: "کۆریای باشوور و ژاپۆن", winner: "بەڕازیل" },
+        { year: "٢٠٠٦", host: "ئەڵمانیا", winner: "ئیتاڵیا" },
+        { year: "٢٠١٠", host: "ئەفریقای باشوور", winner: "ئیسپانیا" },
+        { year: "٢٠١٤", host: "بەڕازیل", winner: "ئەڵمانیا" },
+        { year: "٢٠١٨", host: "ڕووسیا", winner: "فەڕەنسا" },
+        { year: "٢٠٢٢", host: "قەتەر", winner: "ئەرجەنتین" }
+      ];
+
+      worldCups.forEach(w => {
+        add("🏆 مۆندیال", `جامی جیهانی ساڵی (${w.year}) لە کام وڵات بەڕێوەچوو؟`, w.host, [
+          "کەنەدا", "ئوسترالیا", "سویسرا"
+        ]);
+        add("🏆 مۆندیال", `کام هەڵبژاردە لە جامی جیهانی ساڵی (${w.year}) بووە پاڵەوانی جیهان؟`, w.winner, [
+          "پورتوگال", "هۆڵەندا", "کڕواتیا"
+        ]);
+      });
+
+      // ٦. میکانیک، بزوێنەر و ئۆتۆمبێل 🚗
+      const autoTech = [
+        { part: "توربۆچارجەر (Turbocharger)", job: "پاڵنانی هەوای زیاتر بۆ ناو ژووری سووتان لە ڕێگەی گازی گزۆزەوە" },
+        { part: "کارتریجی ناوەوەی توربۆ (CHRA)", job: "بەشە سەرەکییەکەی کە شەفت، تەوەر و باڵەکانی تێدایە و بالانس دەکرێت" },
+        { part: "فلتەری ژینگە (DPF)", job: "پاڵاوتن و کۆکردنەوەی دووکەڵی ڕەش و پاشماوەی ڕەژوو لە بزوێنەری دیزڵدا" },
+        { part: "ڤاڵڤی EGR", job: "گەڕاندنەوەی بەشێک لە گازی سووتاو بۆ ژووری سووتان بۆ کەمکردنەوەی گازی ژەهراوی" },
+        { part: "ئینتەرکووڵەر (Intercooler)", job: "ساردکردنەوەی ئەو هەوایەی لە توربۆوە دێتە دەرەوە پێش چوونە ناو بزوێنەر" },
+        { part: "پەمپی هایدرۆلیکی گێڕ (Transmission Pump)", job: "دروستکردنی پەستانی ڕۆن بۆ گۆڕینی نمرە و ساردکردنەوەی کلاچەکان" },
+        { part: "حاسەی ئۆکسجین (O2 Sensor)", job: "پێوانی ڕێژەی ئۆکسجین لە گزۆزدا بۆ ڕێکخستنی تێکەڵەی هەوا و سووتەمەنی" },
+        { part: "ترۆمبای ئاو (Water Pump)", job: "سوڕاندنەوەی ئاو و دژەبەست بە ناو بزوێنەردا بۆ پاراستنی پلەی گەرمی" },
+        { part: "سیستەمی ABS", job: "ڕێگری لە قفڵبوونی تایەکان لە کاتی برێکی کتوپڕدا بۆ مانەوەی سوکان لە دەستدا" },
+        { part: "ڕۆنی 5W-30", job: "ڕۆنێکی سینسەتیکی مامناوەندە بۆ کەشوهەوای سارد و گەرم بە لینجی و خەستی ستاندارد" }
+      ];
+
+      autoTech.forEach(a => {
+        add("🚗 بزوێنەر و تەکنیک", `لە میکانیکی ئۆتۆمبێلدا، ئەرکی سەرەکی پارچەی (${a.part}) چییە؟`, a.job, [
+          "خێراکردنی کارکردنی سوکان", "داگیرساندنی ڕادیۆ و شاشە", "کەمکردنەوەی هەوای تایەکان"
+        ]);
+      });
+
+      // ٧. تەکنەلۆژیا و زانیاری گشتی 💡
+      const generalScience = [
+        { q: "سیستەمی کارپێکەری ئایفۆن (iPhone) بە چ ناوێک دەناسرێت؟", a: "iOS", w: ["ئەندرۆید", "ویندۆز فۆن", "لینوکس"] },
+        { q: "گەورەترین بیابانی جیهان لە ڕووی ڕووبەرەوە کامەیە؟", a: "بیابانی بەستەڵەکی جەمسەری باشوور", w: ["بیابانی گەورەی ئەفریقا", "بیابانی گۆبی", "بیابانی عەرەبی"] },
+        { q: "قووڵترین شوێنی دەریاکان لە جیهاندا چییە؟", a: "خەندەقی ماریانا لە زەریای هێمن", w: ["خەندەقی جاڤا", "دەریای سوور", "کەنداوی مەکسیک"] },
+        { q: "بەرزترین تاوەری دروستکراوی مرۆڤ لە جیهاندا کامەیە؟", a: "بورجی خەلیفە لە دوبەی", w: ["تاوەری شانگهای", "تاوەری ئیڤڵ", "تاوەری کاتژمێری مەککە"] },
+        { q: "کام کۆمپانیا مۆبایلی گالاکسی (Galaxy) بەرهەمدەهێنێت؟", a: "سامسۆنگ (Samsung)", w: ["ئەپڵ", "هواوی", "نۆکیا"] },
+        { q: "زمانە سەرەکییەکەی کە پەڕەکانی وێبی لەسەر بنیاتنراوە چییە؟", a: "HTML و JavaScript", w: ["پایسن بەتەنیا", "فۆڕتران", "کۆبۆڵ"] }
+      ];
+
+      generalScience.forEach(g => {
+        add("💡 زانیاری گشتی", g.q, g.a, g.w);
+      });
+
+      return db;
+    }
+
+    const questionBank = generateLargeDatabase();
+
+    let activeQuestions = [];
+    let currentQ = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+    const QUESTIONS_PER_ROUND = 10;
+
+    function startQuiz() {
+      // بیرگەی ئەو پرسیارانەی کە یاریزانەکە تا ئێستا بینیوونی
+      let seenIds = JSON.parse(localStorage.getItem('kurdai_seen_questions') || '[]');
+
+      // پاڵاوتنی ئەو پرسیارانەی کە هێشتا نەبینراون
+      let available = questionBank.filter(q => !seenIds.includes(q.id));
+
+      // ئەگەر هەموو بانکەکە تەواو بووبوو، سفر دەبێتەوە
+      if (available.length < QUESTIONS_PER_ROUND) {
+        seenIds = [];
+        localStorage.removeItem('kurdai_seen_questions');
+        available = [...questionBank];
+      }
+
+      available.sort(() => Math.random() - 0.5);
+      activeQuestions = available.slice(0, QUESTIONS_PER_ROUND);
+
+      // زیادکردنی پرسیارە نوێیەکان بۆ ناو پرسیارە بینراوەکان تا لە یاریی دواتردا نەبینرێنەوە
+      activeQuestions.forEach(q => seenIds.push(q.id));
+      localStorage.setItem('kurdai_seen_questions', JSON.stringify(seenIds));
+
+      currentQ = 0;
+      score = 0;
+      document.getElementById('result-area').style.display = 'none';
+      document.getElementById('quiz-area').style.display = 'block';
+
+      document.getElementById('bank-stat').innerText = `📊 لە کۆی ${questionBank.length} پرسیاری نوێ، ${questionBank.length - seenIds.length} پرسیاری نەبینراوت لە بەردەمدایە!`;
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(timer);
+      timeLeft = 15;
+      document.getElementById('progress').style.width = '100%';
+
+      const q = activeQuestions[currentQ];
+      document.getElementById('category').innerText = q.cat;
+      document.getElementById('q-counter').innerText = `پرسیاری ${currentQ + 1} لە ${activeQuestions.length}`;
+      document.getElementById('question').innerText = q.q;
+
+      const optsDiv = document.getElementById('options');
+      optsDiv.innerHTML = '';
+
+      q.opts.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => selectAnswer(opt, btn);
+        optsDiv.appendChild(btn);
+      });
+
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('progress').style.width = (timeLeft / 15 * 100) + '%';
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          nextQuestion();
+        }
+      }, 1000);
+    }
+
+    function selectAnswer(selectedText, clickedBtn) {
+      clearInterval(timer);
+      const q = activeQuestions[currentQ];
+      const buttons = document.querySelectorAll('.option-btn');
+
+      buttons.forEach(b => b.disabled = true);
+
+      if (selectedText === q.correct) {
+        clickedBtn.classList.add('correct');
+        score += 10;
+      } else {
+        clickedBtn.classList.add('wrong');
+        buttons.forEach(b => {
+          if (b.innerText === q.correct) {
+            b.classList.add('correct');
+          }
+        });
+      }
+
+      setTimeout(nextQuestion, 1100);
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ < activeQuestions.length) {
+        loadQuestion();
+      } else {
+        endQuiz();
+      }
+    }
+
+    function endQuiz() {
+      document.getElementById('quiz-area').style.display = 'none';
+      document.getElementById('result-area').style.display = 'block';
+      document.getElementById('final-score').innerText = `خاڵەکانت: ${score} لە ${activeQuestions.length * 10}`;
+    }
+
+    function saveScore() {
+      const name = document.getElementById('player-name').value.trim();
+      if (!name) {
+        alert("تکایە ناوێک بنووسە!");
+        return;
+      }
+
+      let board = JSON.parse(localStorage.getItem('kurdai_quiz_board')) || [
+        { name: "ڕەوەند مەدریدی", score: 90 },
+        { name: "ئاراس مێسی", score: 70 }
+      ];
+
+      board.push({ name: name, score: score });
+      board.sort((a, b) => b.score - a.score);
+      board = board.slice(0, 5);
+
+      localStorage.setItem('kurdai_quiz_board', JSON.stringify(board));
+      renderLeaderboard();
+      alert("خاڵەکەت بە سەرکەوتوویی تۆمار کرا!");
+      document.getElementById('player-name').value = '';
+    }
+
+    function renderLeaderboard() {
+      let board = JSON.parse(localStorage.getItem('kurdai_quiz_board')) || [
+        { name: "ڕەوەند مەدریدی", score: 90 },
+        { name: "ئاراس مێسی", score: 70 }
+      ];
+
+      const listDiv = document.getElementById('leaderboard-list');
+      listDiv.innerHTML = board.map((item, idx) => `
+        <div class="rank-item">
+          <span>${idx + 1}. ${item.name}</span>
+          <span class="badge">${item.score} خاڵ</span>
+        </div>
+      `).join('');
+    }
+
+    renderLeaderboard();
+    startQuiz();
+  </script>
+</body>
+</html>

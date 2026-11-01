@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurd AI - پشکنەری گشتیی ئۆتۆمبێل</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html, body {
+            background-color: #0b111e;
+            color: #ffffff;
+            min-height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 60px;
+        }
+
+        .navbar {
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            background-color: #0b111e;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .kurdish-flag {
+            width: 38px;
+            height: 25px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: inline-block;
+        }
+
+        .logo {
+            color: #f59e0b;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            background: #131c2e;
+            border: 1px solid #1e293b;
+            color: #94a3b8;
+            padding: 7px 16px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            color: #ffffff;
+            border-color: #f59e0b;
+        }
+
+        .main-content {
+            max-width: 900px;
+            margin: 25px auto 0 auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .icon-top {
+            font-size: 3rem;
+            margin-bottom: 6px;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .section-box {
+            background: #131c2e;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-box h3 {
+            color: #f59e0b;
+            font-size: 1.15rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .custom-textarea {
+            width: 100%;
+            background: #0b111e;
+            border: 1.5px solid #1e293b;
+            border-radius: 8px;
+            padding: 14px;
+            color: #ffffff;
+            font-size: 1rem;
+            min-height: 110px;
+            outline: none;
+            direction: rtl;
+            resize: vertical;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .custom-textarea:focus {
+            border-color: #f59e0b;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-input {
+            flex: 1;
+            background: #0b111e;
+            border: 1.5px solid #1e293b;
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: #ffffff;
+            font-size: 1rem;
+            direction: ltr;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #f59e0b;
+        }
+
+        .btn-action {
+            background: #f59e0b;
+            color: #0b111e;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            background: #d97706;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .badge-tag {
+            display: inline-block;
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        .result-box {
+            display: none;
+            background: #0b111e;
+            border: 1.5px solid #10b981;
+            border-radius: 10px;
+            padding: 22px;
+            margin-top: 15px;
+            text-align: right;
+            line-height: 1.9;
+            font-size: 0.95rem;
+        }
+
+        .result-box.error {
+            border-color: #ef4444;
+        }
+
+        .result-title {
+            color: #f59e0b;
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 6px;
+        }
+
+        .step-list {
+            list-style: none;
+            padding-right: 0;
+            margin-top: 8px;
+        }
+
+        .step-list li {
+            position: relative;
+            padding-right: 22px;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .step-list li::before {
+            content: "✓";
+            position: absolute;
+            right: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .quick-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .q-badge {
+            background: #0b111e;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: monospace;
+            transition: all 0.2s;
+        }
+
+        .q-badge:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        @media (max-width: 600px) {
+            .search-row {
+                flex-direction: column;
+            }
+            .btn-action {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="index.html" class="logo-wrap">
+            <svg class="kurdish-flag" viewBox="0 0 600 400">
+                <rect width="600" height="133.3" fill="#EE2A24"/>
+                <rect y="133.3" width="600" height="133.3" fill="#FFFFFF"/>
+                <rect y="266.6" width="600" height="133.4" fill="#008C45"/>
+                <circle cx="300" cy="200" r="50" fill="#F8B617"/>
+                <g fill="#F8B617">
+                    <polygon points="300,125 294,175 306,175"/>
+                    <polygon points="300,275 294,225 306,225"/>
+                    <polygon points="225,200 275,194 275,206"/>
+                    <polygon points="375,200 325,194 325,206"/>
+                    <polygon points="247,147 282,182 291,173"/>
+                    <polygon points="353,253 318,218 309,227"/>
+                    <polygon points="247,253 282,218 273,209"/>
+                    <polygon points="353,147 318,182 327,191"/>
+                </g>
+            </svg>
+            <div class="logo">Kurd AI - پشکنەری ئۆتۆمبێل</div>
+        </a>
+
+        <a href="index.html" class="back-btn">گەڕانەوە بۆ سەرەکی ↩</a>
+    </header>
+
+    <main class="main-content">
+        <div class="header-section">
+            <div class="icon-top">🔧</div>
+            <h1 class="title">سیستەمی پێشکەوتووی فەحسی ئۆتۆمبێل</h1>
+            <p class="subtitle">شیکاری سەدان کۆدی OBD-II لەگەڵ ناسینەوەی کێشەی بزوێنەر، گێڕ، دووکەڵ و عەزم بە زمانی کوردی.</p>
+        </div>
+
+        <!-- بەشی یەکەم: کێشەکەت بە دڵی خۆت بنووسە -->
+        <div class="section-box">
+            <h3>✍️ کێشەی سەیارەکەت بنووسە (بە زمانی کوردی)</h3>
+            <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 12px;">
+                بۆ نموونە: «سەیارەکەم لە کاتی زەخت کردن دەبڕێت»، «بەیانیان دووکەڵی سپی دەکات»، «دووکەڵی ڕەش دەکات و کێشی نییە»:
+            </p>
+
+            <textarea id="carQuestion" class="custom-textarea" placeholder="کێشەکەت لێرە بنووسە..."></textarea>
+            <button class="btn-action btn-full" onclick="diagnoseProblem()">شیکاری بکە 🧠</button>
+
+            <div id="problemResult" class="result-box"></div>
+        </div>
+
+        <!-- بەشی دووەم: شیکەرەوەی هەموو کۆدەکانی فەحس (OBD-II Codes) -->
+        <div class="section-box">
+            <h3>📟 پشکنینی ڕاستەوخۆی کۆدی کۆمپیوتەر (OBD-II)</h3>
+            <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 12px;">کۆدی عەتەڵەکە بنووسە (وەک P0299, P0087, P0401, P0300...):</p>
+            
+            <div class="search-row">
+                <input type="text" id="obdInput" class="search-input" placeholder="کۆدەکە لێرە بنووسە...">
+                <button class="btn-action" onclick="diagnoseCode()">پشکنین ⚡</button>
+            </div>
+
+            <div class="quick-badges">
+                <span style="font-size: 0.8rem; color: #94a3b8; line-height: 2;">نموونەی باو:</span>
+                <span class="q-badge" onclick="setCode('P0299')">P0299</span>
+                <span class="q-badge" onclick="setCode('P0087')">P0087</span>
+                <span class="q-badge" onclick="setCode('P0401')">P0401</span>
+                <span class="q-badge" onclick="setCode('P0101')">P0101</span>
+                <span class="q-badge" onclick="setCode('P0300')">P0300</span>
+                <span class="q-badge" onclick="setCode('P2463')">P2463</span>
+                <span class="q-badge" onclick="setCode('P0420')">P0420</span>
+                <span class="q-badge" onclick="setCode('P0700')">P0700</span>
+            </div>
+
+            <div id="obdResult" class="result-box"></div>
+        </div>
+    </main>
+
+    <script>
+        // داتابەیسی گەورەی وەستایی بۆ سەدان کۆدی فەرمی OBD-II
+        const obdDatabase = {
+            // تۆربۆ، بووست و هەوا
+            "P0299": { name: "Turbocharger Underboost (کەمیی تەوژمی بووستی تۆربۆ)", desc: "پەستانی هەوای تۆربۆ کەمترە لەوەی عەقڵ داوای دەکات؛ سەیارە لە کاتی دەعسەدا کێشی دەبڕێت.", checks: ["پشکنینی بۆریچکەکانی ڤاکیۆم (سۆندە باریکەکانی 3.5mm یان 4mm) بۆ دڕان یان شلبوون.", "پشکنینی ئەکتوەیتەری تۆربۆ و ڤاڵڤی کۆنتڕۆڵی تەوژم (N75 Boost Solenoid).", "پشکنینی هۆزە قەڵەوەکانی ئینتەرکووڵەر بۆ نەبوونی کونی و فوودانی هەوا.", "پشکنینی باڵاوەی تۆربۆ بۆ جووڵەی ناوەوە و دەرەوە یان ڕاست و چەپ (Shaft Play)."] },
+            "P0234": { name: "Turbocharger Overboost (زیادبوونی لەڕادەبەدەری پەستانی تۆربۆ)", desc: "پەستانی هەوای تۆربۆ زۆر بەرز بووەتەوە، عەقڵ دەچێتە Limp Mode بۆ پاراستنی بزوێنەر.", checks: ["چەقینی وێستگەیت (Wastegate) یان گۆڕەپانی ڤانەکانی تۆربۆ (VNT).", "پشکنینی ڤاڵڤی بەڕەڵاکردنی بووست بۆ نەکرانەوە.", "پشکنینی سێنسەری MAP بۆ خوێندنەوەی نادروست."] },
+            "P0045": { name: "Turbocharger Boost Control Solenoid Circuit / Open", desc: "پچڕانی سووڕی کارەبایی سۆلۆنۆیدی بووستی تۆربۆ.", checks: ["پشکنینی فیشەی کارەبایی سۆلۆنۆیدی N75 بۆ شلبوون یان پچڕانی وایەر.", "پێوانی مقاوەمەی ناوەوەی سۆلۆنۆیدەکە بە ئۆم مەتر."] },
+            "P0101": { name: "Mass Air Flow (MAF) Sensor Range/Performance", desc: "خوێندنەوەی هەڵەی بڕی هەوای چوونەژوورەوە لەلایەن ماف سێنسەرەوە.", checks: ["پاککردنەوەی هەستیاری ناو ماف سێنسەر بە سپڕای تایبەتی ئەسڵی MAF Cleaner.", "پشکنینی فلتەری هەوا ئەگەر پیس و ڕەش بووبێت.", "پشکنینی بۆری گەورەی پلاستیکی نێوان فلتەر و تەڕەبوول بۆ قڵیشان."] },
+            "P0102": { name: "Mass Air Flow (MAF) Sensor Circuit Low Input", desc: "ڤۆڵتیەی ماف سێنسەر لە ئاستی ئاسایی نزمترە.", checks: ["پشکنینی کێبڵ و فیشەی ماف سێنسەر بۆ نەبوونی قەتعی.", "پشکنینی ڤۆڵتیەی 5V و 12V کە دەچێتە ناو فیشەکە."] },
+            "P0106": { name: "MAP / Barometric Pressure Circuit Range/Performance", desc: "سێنسەری فشاری مەنیفۆڵد (MAP Sensor) خوێندنەوەی نادروستە.", checks: ["پاککردنەوەی کونی سێنسەری MAP لە ڕۆن و کاربۆن.", "پشکنینی دزەکردنی هەوای سارد لە واشەری مەنیفۆڵد (Vacuum Leak)."] },
+
+            // سووتەمەنی، پەمپ و نۆزڵ
+            "P0087": { name: "Fuel Rail/System Pressure Too Low (نزمیی فشاری کۆمۆن ڕەیل)", desc: "پەستانی سووتەمەنی لەناو ڕەیل کەمترە لە پێویست، سەیارە لە بارگرانی دەبڕێت یان دەکوژێتەوە.", checks: ["گۆڕینی دەستبەجێی فلتەری سووتەمەنی (گاز/بەنزین) بەهۆی گیران.", "پشکنینی گەڕانەوەی نۆزڵەکان (Backleak Test)؛ نۆزڵی دڵۆپەکەر فشار بەفیڕۆ دەدات.", "پشکنینی پەستانی فیتپەمپی سەرەکی و پەمپی پەستانی بەرز (HPFP)."] },
+            "P0088": { name: "Fuel Rail/System Pressure Too High (فشاری زیاد لە پێویستی ڕەیل)", desc: "پەستانی سووتەمەنی لە ڕەیل زیاترە لە ستاندارد بەهۆی نەکرانەوەی وەلفی گەڕانەوە.", checks: ["پشکنین یان گۆڕینی ڤاڵڤی ڕێکخەری پەستان (Fuel Pressure Regulator).", "پشکنینی هێڵی گەڕانەوە بۆ تانکی بۆ نەبوونی قەپاتبوون یان نوشتانەوە."] },
+            "P0190": { name: "Fuel Rail Pressure Sensor Circuit Malfunction", desc: "کێشەی کارەبایی سێنسەری پێوانی فشاری ڕەیل.", checks: ["پشکنینی فیشەی سەر ڕەیل بۆ ژەنگ یان شلبوون.", "پێوانی هێڵی ڤۆڵتیەی 5V سەر سێنسەر."] },
+            "P0200": { name: "Injector Circuit Malfunction (کێشەی کارەبای نۆزڵەکان)", desc: "عەقڵ کێشەی لە پەیوەندی کارەبایی نۆزڵەکان تۆمار کردووە.", checks: ["پشکنینی زەفیلی کارەبایی نۆزڵەکان بۆ نەسووتان یان دڕانی وایەر.", "پشکنینی عەقڵی بزوێنەر بۆ نەبوونی دەرچوونی کۆنتڕۆڵی نۆزڵ."] },
+            "P0201": { name: "Injector Circuit - Cylinder 1 (کێشەی نۆزڵی ژمارە ١)", desc: "پچڕانی کارەبا یان سووتانی کۆیلی نۆزڵی یەکەم.", checks: ["پشکنینی فیشەی نۆزڵی ژمارە ١.", "پێوانی مقاوەمەی نۆزڵەکە بە مەڵتیمیتەر."] },
+
+            // میسفایەر، داگیرسان و تایمینگ
+            "P0300": { name: "Random / Multiple Cylinder Misfire Detected", desc: "سووتانی ناتەواو لە چەند بستۆنێکدا بە یەکەوە؛ مەکینە تەقەی تێدەکەوێت و دەلەرزێت.", checks: ["پشکنینی پلاگ و کۆیلەکان لە بزوێنەری بەنزیندا.", "پشکنینی دزەکردنی هەوای مەنیفۆڵد (Vacuum Leak).", "پشکنینی پەستانی فیتپەمپ و نەبوونی گیرانی فلتەر."] },
+            "P0301": { name: "Cylinder 1 Misfire Detected (تەقەکردنی بستۆنی ١)", desc: "پستۆنی یەکەم ناسووتێت بە باشی.", checks: ["گۆڕینی شوێنی کۆیلی ١ بۆ ٢؛ ئەگەر عەتەڵ چوو بۆ ٢ کەواتە کۆیلەکە سووتاوە.", "گۆڕینی پلاگی ژمارە ١.", "پشکنینی نۆزڵی ژمارە ١."] },
+            "P0335": { name: "Crankshaft Position Sensor A Circuit", desc: "سێنسەری کرانک ناخوێنێتەوە؛ سەیارە سلەفی درێژ دەگرێت یان بە گەرمی دەکوژێتەوە.", checks: ["پشکنینی کێبڵ و فیشەی سێنسەری کرانک لە خوارەوەی مەکینە.", "گۆڕینی سێنسەری کرانک بە پارچەی ئەسڵی."] },
+            "P0340": { name: "Camshaft Position Sensor Circuit Malfunction", desc: "عەقڵ زانیاری لەسەر خولانەوەی قۆڵی قامچی (Camshaft) وەرناگرێت.", checks: ["پشکنینی سێنسەری کام شەفت بۆ پاککردنەوە لە برادەی ئاسن یان ڕۆن.", "پشکنینی ددانەکانی قایش یان زنجیری تایمینگ."] },
+
+            // ژینگە، EGR، کەتەلایزەر و DPF
+            "P0401": { name: "EGR Flow Insufficient Detected (کەمیی گازی EGR)", desc: "سیستەمی ئی جی ئاڕ بە کاربۆن و دووکەڵ گیراوە و ناتوانێت گازەکان بگەڕێنێتەوە.", checks: ["کردنەوەی وەلفی EGR و بۆرییە ئەلەمنیۆمەکەی و پاککردنەوەیان لە کاربۆنی ڕەش.", "پشکنینی سۆندەی ڤاکیۆمی فەرماندەری EGR بۆ بوونی مکش.", "پشکنینی سێنسەری فشاری پێچەوانەی DPFE."] },
+            "P0402": { name: "EGR Flow Excessive Detected (EGR بە کراوەیی ماوەتەوە)", desc: "وەلفی EGR بە کراوەیی چەقیوە؛ دەبێتە هۆی دووکەڵی ڕەشی زۆر و بڕینی کێش لە کاتی خستنەسەر گێڕ.", checks: ["کردنەوەی وەلفەکە و خاوێنکردنەوەی فنەرەکەی تا ئازاد بجوڵێت.", "گۆڕینی وەلفی EGR ئەگەر شکا بێت."] },
+            "P0420": { name: "Catalyst System Efficiency Below Threshold (کەتەلایزەر)", desc: "فلتەری ژینگەی بەنزین ناتوانێت گازە ژەهراوییەکان پاک بکاتەوە.", checks: ["پشکنینی سێنسەری ئۆکسجینی دووەم (Downstream O2 Sensor).", "پشکنینی تەنگەی ئەگزۆز بۆ نەبوونی دزەکردنی هەوا پێش کەتەلایزەر.", "پشکنینی کونیلەکانی کەتەلایزەر بۆ نەسووتانی ڕۆن یان توانەوە."] },
+            "P2463": { name: "DPF Soot Accumulation (پڕبوونی فلتەری دووکەڵی دیزڵ)", desc: "فلتەری ژینگە لە بزوێنەری گاز پڕ بووە لە پاشماوە و کاربۆن.", checks: ["ڕێگای دەرەوە بڕۆ لەسەر خێرایی 80-100 کم بۆ ماوەی 25 خولەک لەسەر RPM 2000-2500 تا خۆی بسووتێنێت.", "پشکنینی سێنسەری فشاری DPF (Differential Pressure Sensor).", "دڵنیابوون لەوەی حەماوە دەگاتە 80 پلە (ئەگەر تەرمۆستات مابێتەوە پاک نابێتەوە)."] },
+
+            // گێڕ و حەماوە
+            "P0700": { name: "Transmission Control System Malfunction (کێشەی گێڕ)", desc: "عەقڵی گێڕ (TCM) کێشەیەکی تۆمار کردووە و فەرمانی بە گڵۆپی مەکینە داوە.", checks: ["پشکنینی ئاست و کوالیتی هایدرۆلیکی گێڕ و گۆڕینی فلتەرەکەی.", "فەحسی وردی عەقڵی گێڕ بۆ دەرهێنانی کۆدی سۆلۆنۆیدەکان.", "پشکنینی فیوز و فیشەی گێڕ بۆ نەبوونی ڕۆن."] },
+            "P0128": { name: "Coolant Thermostat Temperature Below Regulating", desc: "حەماوەی مەکینە ناگاتە ئاستی ئاسایی و بزوێنەر هەمیشە سارد دەمێنێتەوە.", checks: ["تەرمۆستات بە کراوەیی چەقیوە، دەبێت بگۆڕدرێت بە دانەیەکی نوێ.", "سارد مانی بزوێنەر دەبێتە هۆی بەفیڕۆچوونی سووتەمەنی و پڕبوونی DPF."] }
+        };
+
+        // شیکاری کۆدی OBD-II
+        function diagnoseCode() {
+            const input = document.getElementById('obdInput').value.trim().toUpperCase();
+            const res = document.getElementById('obdResult');
+
+            if (!input) {
+                res.className = "result-box error";
+                res.innerHTML = "تکایە سەرەتا کۆدەکە بنووسە!";
+                res.style.display = "block";
+                return;
+            }
+
+            if (obdDatabase[input]) {
+                const item = obdDatabase[input];
+                let checksHtml = item.checks.map(c => `<li>${c}</li>`).join('');
+
+                res.className = "result-box";
+                res.innerHTML = `
+                    <span class="badge-tag">کۆد: ${input}</span>
+                    <div class="result-title">${item.name}</div>
+                    <p style="margin-bottom: 8px;"><strong>مانا و شوێنی کێشە:</strong> ${item.desc}</p>
+                    <p style="color: #f59e0b; margin-top: 10px;"><strong>هەنگاوەکانی پشکنین و چاککردنی وەستایی:</strong></p>
+                    <ul class="step-list">${checksHtml}</ul>
+                `;
+                res.style.display = "block";
+                return;
+            }
+
+            // ئەگەر کۆدەکە لە داتابەیسەکەش نەبوو، بەپێی سیستەمی جیهانی دەستنیشانی دەکات
+            const letter = input.charAt(0);
+            let sys = "", guide = "";
+
+            if (letter === 'P') {
+                sys = "سیستەمی بزوێنەر، گێڕ، هەوا و سووتەمەنی (Powertrain)";
+                guide = "ئەم کۆدە پەیوەندی بە دەدای کارکردنی مەکینە، سووتان، عەزم، سێنسەرەکان یان گێڕەوە هەیە.";
+            } else if (letter === 'C') {
+                sys = "سیستەمی شاسی، برێک و ئیستێرن (Chassis & ABS)";
+                guide = "ئەم کۆدە پەیوەندی بە سێنسەری تایەکان (ABS)، کۆنتڕۆڵی تەرازوی سوکان یان برێکەوە هەیە.";
+            } else if (letter === 'B') {
+                sys = "سیستەمی لاشە و کارەبا (Body & Airbag)";
+                guide = "ئەم کۆدە پەیوەندی بە ئێرباگ، قوفڵی دەرگاکان یان مۆدیوڵی BCMـەوە هەیە.";
+            } else if (letter === 'U') {
+                sys = "تۆڕی پەیوەندی عەقڵەکان (Network & CAN-Bus)";
+                guide = "پچڕانی پەیوەندی نێوان عەقڵەکان؛ زۆرجار بەهۆی شلبوونی فیشە یان لاوازی پاتری دروست دەبێت.";
+            } else {
+                res.className = "result-box error";
+                res.innerHTML = "تکایە دڵنیابەوە لە پیتی سەرەتای کۆدەکە (دەبێت بە P یان C یان B یان U دەست پێ بکات).";
+                res.style.display = "block";
+                return;
+            }
+
+            res.className = "result-box";
+            res.innerHTML = `
+                <span class="badge-tag">کۆد: ${input}</span>
+                <div class="result-title">کۆدی سیستەمی: ${sys}</div>
+                <p><strong>مانای کۆد:</strong> ${guide}</p>
+                <p style="color: #f59e0b; margin-top: 10px;"><strong>پشکنینی پێشنیارکراو:</strong></p>
+                <ul class="step-list">
+                    <li>پشکنینی فیشەی کارەبایی پەیوەندیدار بەو بەشە بۆ نەبوونی ژەنگ یان شلبوون.</li>
+                    <li>پشکنینی ڤۆڵتیەی پاتری و دینەمۆ (کەمبوونی ڤۆڵتیە کۆدی هەڵە تۆمار دەکات).</li>
+                    <li>پشکنینی فیوز و ڕیلەییەکانی ناو بۆکس بەپێی نەخشەی قەپاغەکە.</li>
+                    <li>سڕینەوەی کۆدەکە (Clear DTC) پاش چاککردن بۆ دڵنیابوون لە نەگەڕانەوەی.</li>
+                </ul>
+            `;
+            res.style.display = "block";
+        }
+
+        function setCode(c) {
+            document.getElementById('obdInput').value = c;
+            diagnoseCode();
+        }
+
+        // شیکاری کێشەی نووسراو بە زمانی کوردی
+        function diagnoseProblem() {
+            const raw = document.getElementById('carQuestion').value.trim();
+            const res = document.getElementById('problemResult');
+
+            if (!raw) {
+                alert("تکایە سەرەتا کێشەکەت بنووسە!");
+                return;
+            }
+
+            // یەکخستنی تەواوی پیتە کوردی و عەرەبییەکان
+            const t = raw.replace(/ك/g, 'ک').replace(/ي/g, 'ی').toLowerCase();
+            let title = "";
+            let points = [];
+
+            // ١. بڕینی عەزم و خەفەبوون کاتی زەخت و گازلێدان
+            if (t.includes("دەبڕێت") || t.includes("دەبریت") || t.includes("دەبڕی") || t.includes("دەبری") || t.includes("زەخت") || t.includes("بڕین") || t.includes("دەخنکێت") || (t.includes("عەزم") && (t.includes("کەم") || t.includes("نییە")))) {
+                title = "شیکاری بڕینی عەزم و خەفەبوون لە کاتی زەخت و دەعسەدا (Underboost / Limp Mode):";
+                points = [
+                    "لێچوونی تەوژم لە بۆریچکەکانی ڤاکیۆم (سۆندە باریکەکانی 3.5mm یان 4mm) کە فەرمان بە کردنەوەی تۆربۆ دەدەن.",
+                    "دڕانی هۆزی ئەستووری ئینتەرکووڵەر یان شلبوونی تەنگەکانی بەستن لە ژێر بۆنیت.",
+                    "گیرانی فلتەری سووتەمەنی (گاز/بەنزین)؛ لە کاتی زەختدا بڕی سووتەمەنی پێویست ناگات بە نۆزڵەکان.",
+                    "گیرانی فلتەری ژینگە (DPF لە دیزڵ یان کەتەلایزەر لە بەنزین) بەهۆی کەڵەکەبوونی کاربۆنەوە.",
+                    "تێکچوونی سۆلۆنۆیدی بووست (N75 Valve) یان چەقینی ئەکتوەیتەری تۆربۆ."
+                ];
+            }
+            // ٢. دووکەڵی سپی لە بەیانیاندا و کاتی داگیرساندن
+            else if (t.includes("سپی") && (t.includes("بەیانی") || t.includes("داگیرساندن") || t.includes("سلەف") || t.includes("سەرد") || t.includes("سارد"))) {
+                title = "شیکاری دووکەڵی سپی لە کاتی یەکەم داگیرساندندا (بەیانیان):";
+                points = [
+                    "لە بزوێنەری دیزڵدا: تێکچوونی یەکێک لە گڵۆوپلاگەکان (Glow Plugs) یان فیوزی گەرمکردنەوە؛ سووتەمەنی بە ساردی ناسووتێت و بە دووکەڵی سپی و بۆنی تیژی گاز دەردەکەوێت.",
+                    "لاوازی لە پڕژانی نۆزڵ لە کاتی ساردیدا (نۆزڵ دڵۆپە دەکات لەجیاتی ئەوەی بە جوانی بیپڕژێنێت).",
+                    "ئەگەر ئاوی ڕادێتەر کەم دەکات: دزەکردنی دڵۆپە ئاو لە گاسکێتی سەر مەکینەوە بۆ ناو بستۆن لە کاتی کوژاوەییدا.",
+                    "ئەگەر تەنها کاتی سەرمای زستان بێت و بۆنی گاز نەیەت: تەنها هەڵمی ئاسایی ناو ئەگزۆزە و هیچ کێشەی نییە."
+                ];
+            }
+            // ٣. دووکەڵی سپی گشتی بە بەردەوامی
+            else if (t.includes("سپی")) {
+                title = "شیکاری دووکەڵی سپی خەست (دزەکردنی ئاو بۆ ناو ژووری سووتان):";
+                points = [
+                    "سووتان یان دڕانی گاسکێتی سەر مەکینە (Head Gasket).",
+                    "قڵیشانی کۆڵەری ئی جی ئاڕ (EGR Cooler) لە بزوێنەرە دیزڵەکاندا کە ئاو تێکەڵی هەوا دەکات.",
+                    "قڵیشانی سەر مەکینە بەهۆی حەماوەی زۆر."
+                ];
+            }
+            // ٤. دووکەڵی شین و ڕۆن خواردن
+            else if (t.includes("شین") || t.includes("ڕۆن ئەخوات") || t.includes("رۆن ئەخوات") || t.includes("کەمکردنی ڕۆن")) {
+                title = "شیکاری دووکەڵی شینباو و ڕۆن سووتان:";
+                points = [
+                    "تێکچوونی لاستیکی وەلفەکان (Valve Stem Seals)؛ بەیانیان لە یەکەم داگیرساندندا بۆ چەند چرکەیەک دەردەکەوێت.",
+                    "داخورانی کارتێجی تۆربۆ (CHRA) و دزەکردنی ڕۆن بۆ ناو پەڕەکان.",
+                    "داخورانی ڕینگی بستۆنەکان لە ناو مەکینەدا.",
+                    "گیرانی سیستەمی PCV (تەنەفوسی مەکینە) کە فشار لە کارتێر دروست دەکات."
+                ];
+            }
+            // ٥. دووکەڵی ڕەش
+            else if (t.includes("ڕەش") || t.includes("رەش")) {
+                title = "شیکاری دووکەڵی ڕەش (سووتەمەنی زۆر لە ئاستی هەوا):";
+                points = [
+                    "گیرانی تەواوی فلتەری هەوا بە تۆز و خۆڵ.",
+                    "دزەکردنی هەوای تۆربۆ لە هۆزەکانی ئینتەرکووڵەر یان بۆریچکەکانی ڤاکیۆم.",
+                    "بە کراوەیی مانەوە یان چەقینی وەلفی EGR.",
+                    "دڵۆپەکردنی نۆزڵەکان کە سووتەمەنی زیاد لە پێویست دەڕژێنن."
+                ];
+            }
+            // ٦. کێشەی گێڕ (جیاکراوە لە داگیرساندن)
+            else if ((t.includes("گێڕ") || t.includes("گێر") || t.includes("نمرەی گێر") || t.includes("تەپەی گێڕ")) && !t.includes("داگیرساندن")) {
+                title = "شیکاری کێشەی دواکەوتن و لێدانی نمرەکانی گێڕ:";
+                points = [
+                    "کەمی یان سووتانی هایدرۆلیکی گێڕ و گیرانی فلتەرەکەی.",
+                    "کێشەی سۆلۆنۆیدەکانی ناو ڤاڵڤ بۆدی گێڕ (Valve Body).",
+                    "پشکنینی سێنسەری خێرایی خولانەوەی تەوەرەی گێڕ."
+                ];
+            }
+            // ٧. دەنگ و زیفەی تۆربۆ
+            else if (t.includes("زیفە") || t.includes("فوو") || t.includes("ویزە")) {
+                title = "شیکاری دەنگی زیفە و فوولێکردن لە بزوێنەردا:";
+                points = [
+                    "دڕانی کەمێکی هۆزی ئینتەرکووڵەر یان شلبوونی بەستەرەکانی هەوا.",
+                    "ئەگەر دەنگی ویزەی بەرزە وەک سیرێنەی پۆلیس: پەڕەکانی باڵاوەی تۆربۆ بالانسی نەماوە و بەر لاشە دەکەوێت."
+                ];
+            }
+            // ٨. لەرزین و سلۆلی
+            else if (t.includes("لەرزین") || t.includes("لەرین") || t.includes("سلۆلی")) {
+                title = "شیکاری لەرزین و ناڕێکیی کارکردنی بزوێنەر:";
+                points = [
+                    "کێشەی پلاگ، کۆیل یان نۆزڵ لە یەکێک لە بستۆنەکاندا.",
+                    "دڕان یان پسانی کورسییەکانی مەکینە (Engine Mounts / تەپڵەک).",
+                    "پیسبوونی تڕاتڵ بۆدی (Throttle Body) لە کاربۆنی ڕەش."
+                ];
+            }
+            // ٩. گشتی
+            else {
+                title = "شیکاری گشتی و هەنگاوەکانی دەستنیشانکردن:";
+                points = [
+                    "پشکنینی بۆریچکەکانی هەوا و ڤاکیۆم لە ژێر بۆنیت بۆ نەبوونی دڕان یان لێبوونەوە.",
+                    "پشکنینی ئاستی سووتەمەنی، ڕۆن و ئاوی ڕادێتەر.",
+                    "خستنەسەر کۆمپیوتەری پشکنین بۆ دەرهێنانی کۆدی DTC و نووسینی کۆدەکە لە بەشی سەرەوە."
+                ];
+            }
+
+            let html = `<div class="result-title">${title}</div><ul class="step-list">`;
+            points.forEach(p => {
+                html += `<li>${p}</li>`;
+            });
+            html += `</ul>`;
+
+            res.innerHTML = html;
+            res.style.display = "block";
+        }
+    </script>
+</body>
+</html>

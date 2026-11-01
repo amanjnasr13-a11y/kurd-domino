@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurd AI - داواکاری خاوەن تاکسی بۆ ئیشکردن</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html, body {
+            background-color: #0b111e;
+            color: #ffffff;
+            min-height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto; /* ڕێگەدان بە دابەزینی پەڕەکە */
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 50px;
+        }
+
+        .navbar {
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            background-color: #0b111e;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .kurdish-flag {
+            width: 38px;
+            height: 25px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: inline-block;
+        }
+
+        .logo {
+            color: #f59e0b;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            background: #131c2e;
+            border: 1px solid #1e293b;
+            color: #94a3b8;
+            padding: 7px 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            color: #ffffff;
+            border-color: #f59e0b;
+        }
+
+        .main-content {
+            max-width: 780px;
+            margin: 20px auto 0 auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .icon-top {
+            font-size: 2.5rem;
+            margin-bottom: 6px;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .rules-card {
+            background: #131c2e;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .rules-card h3 {
+            color: #f59e0b;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rules-list {
+            list-style: none;
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            line-height: 1.8;
+        }
+
+        .rules-list li::before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .form-box {
+            background: #131c2e;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: right;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: bold;
+        }
+
+        input, select {
+            background: #0b111e;
+            border: 1.5px solid #1e293b;
+            border-radius: 8px;
+            padding: 11px 13px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+            direction: rtl;
+        }
+
+        input:focus, select:focus {
+            border-color: #f59e0b;
+        }
+
+        .agree-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            color: #e2e8f0;
+        }
+
+        .agree-check input {
+            accent-color: #f59e0b;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background: #f59e0b;
+            color: #0b111e;
+            border: none;
+            width: 100%;
+            padding: 13px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            background: #d97706;
+        }
+
+        .pending-box {
+            display: none;
+            background: #131c2e;
+            border: 1.5px solid #f59e0b;
+            border-radius: 12px;
+            padding: 35px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .pending-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full {
+                grid-column: span 1;
+            }
+            .navbar {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="index.html" class="logo-wrap">
+            <svg class="kurdish-flag" viewBox="0 0 600 400">
+                <rect width="600" height="133.3" fill="#EE2A24"/>
+                <rect y="133.3" width="600" height="133.3" fill="#FFFFFF"/>
+                <rect y="266.6" width="600" height="133.4" fill="#008C45"/>
+                <circle cx="300" cy="200" r="50" fill="#F8B617"/>
+                <g fill="#F8B617">
+                    <polygon points="300,125 294,175 306,175"/>
+                    <polygon points="300,275 294,225 306,225"/>
+                    <polygon points="225,200 275,194 275,206"/>
+                    <polygon points="375,200 325,194 325,206"/>
+                    <polygon points="247,147 282,182 291,173"/>
+                    <polygon points="353,253 318,218 309,227"/>
+                    <polygon points="247,253 282,218 273,209"/>
+                    <polygon points="353,147 318,182 327,191"/>
+                </g>
+            </svg>
+            <div class="logo">Kurd AI - تاکسی</div>
+        </a>
+
+        <a href="index.html" class="back-btn">گەڕانەوە بۆ سەرەکی ↩</a>
+    </header>
+
+    <main class="main-content">
+        <div class="header-section">
+            <div class="icon-top">🚖</div>
+            <h1 class="title">داواکاری خاوەن تاکسی بۆ ئیشکردن</h1>
+            <p class="subtitle">پێش دەستپێکردنی کار، پێویستە فۆڕمەکە پڕبکەیتەوە و ڕێکەوتن لەگەڵ بەڕێوەبەرایەتی پلاتفۆرمەکە واژۆ بکەیت.</p>
+        </div>
+
+        <div class="rules-card">
+            <h3>📜 مەرج و ڕێساکانی ڕێکەوتن</h3>
+            <ul class="rules-list">
+                <li>پابەندبوون بە خاوێنیی ئۆتۆمبێل و هەڵسوکەوتی شایستە لەگەڵ سەرنشین.</li>
+                <li>دیاریکردنی نرخ بەپێی ستانداردی پلاتفۆرم و ڕێگری لە زیادەڕەوی.</li>
+                <li>ڕێکەوتنی لێپرسینەوە و کۆمسیۆنی دیاریکراو پێش کاراکردنی هەژمار.</li>
+                <li>داواکارییەکەت تا پەسەند نەکرێت لەلایەن بەڕێوەبەرەوە، دەستبەکاربوون کارا نابێت.</li>
+            </ul>
+        </div>
+
+        <div class="form-box" id="form-container">
+            <form id="driverForm" onsubmit="submitDriver(event)">
+                <div class="form-grid">
+                    <!-- ١. ناوی شۆفێر -->
+                    <div class="form-group full">
+                        <label>ناوی چواری شۆفێر:</label>
+                        <input type="text" id="driverName" required placeholder="ناوی تەواو بنووسە...">
+                    </div>
+
+                    <!-- ٢. ژمارەی مۆبایل -->
+                    <div class="form-group">
+                        <label>ژمارەی مۆبایل (کۆڕەک / ئاسیاسێڵ):</label>
+                        <input type="tel" id="driverPhone" required placeholder="0750 000 0000">
+                    </div>
+
+                    <!-- ٣. شار -->
+                    <div class="form-group">
+                        <label>شار / پارێزگا:</label>
+                        <select id="driverCity" required>
+                            <option value="سلێمانی">سلێمانی</option>
+                            <option value="هەولێر">هەولێر</option>
+                            <option value="دهۆک">دهۆک</option>
+                            <option value="هەڵەبجە">هەڵەبجە</option>
+                        </select>
+                    </div>
+
+                    <!-- ٤. جۆری ئۆتۆمبێل -->
+                    <div class="form-group">
+                        <label>جۆری ئۆتۆمبێل و مۆدێل:</label>
+                        <input type="text" id="driverCar" required placeholder="بۆ نموونە: تۆیۆتا کامری 2021">
+                    </div>
+
+                    <!-- ٥. ژمارەی تابلۆ -->
+                    <div class="form-group">
+                        <label>ژمارەی تابلۆی تاکسی:</label>
+                        <input type="text" id="driverPlate" required placeholder="بۆ نموونە: 12345 / سلێمانی">
+                    </div>
+                </div>
+
+                <!-- مەرجی ڕازیبوون -->
+                <label class="agree-check">
+                    <input type="checkbox" required>
+                    <span>هەموو مەرج و ڕێکەوتنەکانم خوێندەوە و ڕەزامەندم لەسەریان.</span>
+                </label>
+
+                <!-- دوگمەی ناردن -->
+                <button type="submit" class="submit-btn">ناردنی داواکاری بۆ ڕێکەوتن</button>
+            </form>
+        </div>
+
+        <!-- دۆخی چاوەڕوانی دوای ناردن -->
+        <div class="pending-box" id="pendingBox">
+            <div class="pending-icon">⏳</div>
+            <h2 style="color: #f59e0b; margin-bottom: 10px;">داواکارییەکەت لە چاوەڕوانیدایە!</h2>
+            <p style="color: #cbd5e1; line-height: 1.6;">
+                زانیارییەکانت بە سەرکەوتوویی تۆمار کران. بەڕێوەبەر لە ماوەیەکی کەمدا پەیوەندیت پێوە دەکات بۆ ڕێکەوتن و واژۆکردنی کار، پاشان ئەکاونتەکەت کارا دەکرێت بۆ دەستبەکاربوون.
+            </p>
+        </div>
+    </main>
+
+    <script>
+        function submitDriver(e) {
+            e.preventDefault();
+            let requests = JSON.parse(localStorage.getItem('taxi_requests')) || [];
+            
+            const newReq = {
+                id: Date.now(),
+                name: document.getElementById('driverName').value,
+                phone: document.getElementById('driverPhone').value,
+                city: document.getElementById('driverCity').value,
+                car: document.getElementById('driverCar').value,
+                plate: document.getElementById('driverPlate').value,
+                status: "pending"
+            };
+
+            requests.push(newReq);
+            localStorage.setItem('taxi_requests', JSON.stringify(requests));
+
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('pendingBox').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
