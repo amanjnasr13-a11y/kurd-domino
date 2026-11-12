@@ -308,12 +308,6 @@
                 <div class="card-desc">نرخ و هێڵەکانی ناو شار و شارەکان</div>
             </a>
 
-            <!-- ٣. زانیاری و فەحسی ئۆتۆمبێل (بەستراوەتەوە بە car_check.html) -->
-            <a href="car_check.html" class="card">
-                <div class="card-icon">🚗</div>
-                <div class="card-title">زانیاری و فەحسی ئۆتۆمبێل</div>
-                <div class="card-desc">ناسینەوەی عەتەڵ و کێشەی بزوێنەر</div>
-            </a>
 
             <!-- ٤. گه‌یمینگ -->
     <a href="games.html" class="card" style="text-decoration: none; color: inherit;">
@@ -323,18 +317,18 @@
     </a>
 
             <!-- ٥. بۆ قوتابیان -->
-            <div class="card">
-                <div class="card-icon">🎓</div>
-                <div class="card-title">بۆ قوتابیان</div>
-                <div class="card-desc">شیکاری پرسیار، مەلزەمە و کورتکراوەی وانەکان</div>
-            </div>
+            <a href="student.html" class="card" style="text-decoration: none; color: inherit;">
+    <div class="card-icon">🎓</div>
+    <div class="card-title">بۆ قوتابیان</div>
+    <div class="card-desc">شیکاری پرسیار، مەلازەمە و کورتکراوەی وانەکان</div>
+</a>
 
             <!-- ٦. کڕین و فرۆشتن -->
-            <div class="card">
-                <div class="card-icon">🏷️</div>
-                <div class="card-title">کڕین و فرۆشتنی دەستی دوو</div>
-                <div class="card-desc">کەرەستەی تازە + بەکارهاتوو</div>
-            </div>
+            <a href="marketplace.html" class="card" style="text-decoration: none; color: inherit;">
+    <div class="card-icon">🏷️</div>
+    <div class="card-title">کڕین و فرۆشتنی دەستی دوو</div>
+    <div class="card-desc">کەرەستەی تازە + بەکارهاتوو</div>
+</a>
 
             <!-- ٧. پیشەوەرەکان -->
             <a href="professionals.html" class="card" style="text-decoration: none; color: inherit;">
@@ -347,15 +341,20 @@
 
     <!-- مۆداڵی ئەدمین -->
     <div class="admin-modal" id="adminModal">
-        <div class="modal-content">
-            <div class="modal-header">
+<div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
+                <div class="modal-header">
                 <h2 style="color: #f59e0b;">داواکارییەکانی شۆفێرانی تاکسی بۆ ڕێکەوتن</h2>
                 <button class="close-btn" onclick="closeAdmin()">&times;</button>
             </div>
             <div id="requestsList"></div>
             <h2 style="color: #f59e0b; margin-top: 25px; border-top: 1px solid #334155; padding-top: 15px;">داواکارییەکانی پیشەوەران و وەستاکان</h2>
 <div id="proRequestsList"></div>
+        <!-- بەشی کاڵاکانی کۆنەبازاڕ (دەستی دوو) -->
+        <h2 style="color: #f59e0b; margin-top: 25px; border-top: 1px solid #334155; padding-top: 15px; font-size: 16px;">🛒 کاڵاکانی کۆنەبازاڕ (چاوەڕوانی پەسەندکردن)</h2>
+        <div id="adminMarketplaceList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+          <p style="color: #9ca3af; font-size: 13px;">هیچ کاڵایەکی نوێ لە چاوەڕوانیدا نییە.</p>
         </div>
+    </div>
     </div>
 
     <script>
@@ -364,6 +363,7 @@
             if (pass === "admin123") {
                 renderRequests();
                 renderProRequests();
+                loadAdminMarketItems();
                 document.getElementById('adminModal').style.display = 'flex';
             } else if (pass !== null) {
                 alert("وشەی نهێنی هەڵەیە!");
@@ -452,6 +452,66 @@
       localStorage.setItem('kurdai_pros', JSON.stringify(pros));
       renderProRequests();
     }
+    // هێنانی کاڵاکانی کۆنەبازاڕ بۆ ناو مۆداڵی ئەدمین
+async function loadAdminMarketItems() {
+  const container = document.getElementById('adminMarketplaceList');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/admin/marketplace/items');
+    const items = await res.json();
+    const pendingItems = items.filter(i => i.status === 'pending');
+
+    if (pendingItems.length === 0) {
+      container.innerHTML = '<p style="color: #9ca3af; font-size: 13px;">هیچ کاڵایەکی نوێ لە چاوەڕوانیدا نییە.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    pendingItems.forEach(item => {
+      const itemRow = document.createElement('div');
+      itemRow.style.cssText = 'background: #0b1320; border: 1px solid #374151; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px;';
+
+      itemRow.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="${item.img}" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+          <div>
+            <div style="font-weight: bold; color: #fff; font-size: 14px;">${item.title}</div>
+            <div style="color: #10b981; font-size: 13px;">${item.price}</div>
+            <div style="color: #9ca3af; font-size: 11px;">📍 ${item.city} | 📞 ${item.phone}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="approveMarketItem(${item.id})" style="background: #10b981; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✔ پەسەندکردن</button>
+          <button onclick="rejectMarketItem(${item.id})" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✖ سڕینەوە</button>
+        </div>
+      `;
+      container.appendChild(itemRow);
+    });
+  } catch (err) {
+    container.innerHTML = '<p style="color: #ef4444; font-size: 12px;">هەڵە لە هێنانی کاڵاکان ڕوویدا.</p>';
+  }
+}
+
+// پەسەندکردنی کاڵا بۆ ناو بازاڕ
+async function approveMarketItem(id) {
+  if (!confirm('ئایا دڵنیایت لە پەسەندکردنی ئەم کاڵایە بۆ ناو بازاڕ؟')) return;
+  const res = await fetch(`/api/admin/marketplace/approve/${id}`, { method: 'POST' });
+  const data = await res.json();
+  if (data.success) {
+    loadAdminMarketItems();
+  }
+}
+
+// سڕینەوە و ڕەتکردنەوەی کاڵا
+async function rejectMarketItem(id) {
+  if (!confirm('ئایا دڵنیایت لە سڕینەوەی ئەم کاڵایە؟')) return;
+  const res = await fetch(`/api/admin/marketplace/reject/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.success) {
+    loadAdminMarketItems();
+  }
+}
     </script>
 </body>
 </html>

@@ -2,17 +2,165 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
+// ڕێگەپێدان بە وەرگرتنی وێنەی قەبارە گەورە و فایلە ستاتیکەکان
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(express.static(__dirname));
+app.use('/materials', express.static(path.join(__dirname, 'materials')));
 
+// لاپەڕە سەرەکییەکان
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'domino.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+app.get('/marketplace', (req, res) => {
+  res.sendFile(path.join(__dirname, 'marketplace.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.post('/api/solve-question', async (req, res) => {
+    try {
+        const { questionText, subject } = req.body;
+const apiKey = process.env.OPENROUTER_API_KEY;
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:3000",
+                "X-Title": "Kurd AI"
+            },
+            body: JSON.stringify({
+                model: "qwen/qwen-2.5-72b-instruct",
+                messages: [
+                    {
+                        role: "system",
+                        content: `تۆ پرۆفیسۆری پسپۆڕی بیرکاریت لە سیستەمی Kurd AI.
+ڕێنمایی توند بۆ زمان و شێواز:
+١. بە زمانی کوردی سۆرانی زۆر ڕێزمانی و ستاندارد بنووسە. وشەی نامۆ و وەرگێڕدراوی بێواتا بەکارمەهێنە.
+٢. دەستەواژەی وەک (بەخێرایی، دەتوانم یارمەتیت بدەم، ژمارەی گرته) بە هیچ جۆرێک مەنووسە.
+٣. دەستەواژە زانستییەکان وەک ئەمانە بەکاربهێنە: (سەرەتا لایەکان سادە دەکەینەوە، گواستنەوەی نەزانراوەکان، دابەشکردنی هەردوو لا بەسەر هاوکۆڵکەی س).
+٤. ڕاستەوخۆ بەم شێوازە دەست پێ بکە:
+هەنگاو ١: ...
+هەنگاو ٢: ...
+ئەنجامی کۆتایی: س = ...`
+                    },
+                    {
+                        role: "user",
+                        content: `ئەم پرسیارە شیکار بکە بە هەنگاوی زانستی:
+${questionText}`
+                    }
+                ],
+                temperature: 0.1
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.choices && data.choices[0]?.message?.content) {
+            let cleanAnswer = data.choices[0].message.content;
+            cleanAnswer = cleanAnswer
+                .replace(/###/g, '')
+                .replace(/[\u4e00-\u9fa5]/g, '')
+                .trim();
+
+            return res.json({ success: true, answer: cleanAnswer });
+        } else if (data.error) {
+            return res.json({ success: true, answer: "هەڵە: " + data.error.message });
+        } else {
+            return res.json({ success: true, answer: "وەڵام نەگەڕایەوە." });
+        }
+
+    } catch (error) {
+        return res.status(500).json({ success: false, answer: "هەڵەی سێرڤەر: " + error.message });
+    }
+});
+
+// ==========================================
+// --- بەشی بازاڕ و پەسەندکردنی ئەدمین ---
+// ==========================================
+const MARKET_FILE = path.join(__dirname, 'items.json');
+
+function getMarketItems() {
+  if (!fs.existsSync(MARKET_FILE)) return [];
+  try {
+    const data = fs.readFileSync(MARKET_FILE, 'utf-8');
+    return JSON.parse(data || '[]');
+  } catch (err) {
+    return [];
+  }
+}
+
+function saveMarketItems(items) {
+  fs.writeFileSync(MARKET_FILE, JSON.stringify(items, null, 2), 'utf-8');
+}
+
+// ١. وەرگرتنی تەنها ئەو کاڵایانەی لەلایەن ئەدمینەوە پەسەند کراون (بۆ خەڵک)
+app.get('/api/marketplace/items', (req, res) => {
+  const items = getMarketItems();
+  const approvedItems = items.filter(item => item.status === 'approved');
+  res.json(approvedItems);
+});
+
+// ٢. پۆستکردنی کاڵای نوێ لەلایەن خەڵکەوە (خۆکارانە دەبێتە pending)
+app.post('/api/marketplace/items', (req, res) => {
+  try {
+    const items = getMarketItems();
+    const newItem = {
+      id: Date.now(),
+      status: 'pending', // چاوەڕوانی ڕەزامەندیی ئەدمین دەکات
+      createdAt: new Date().toISOString(),
+      ...req.body
+    };
+    items.unshift(newItem);
+    saveMarketItems(items);
+    res.json({ success: true, message: 'کاڵاکەت نێردرا و پاش پەسەندکردنی ئەدمین بڵاودەبێتەوە.' });
+  } catch (err) {
+    res.status(500).json({ error: 'پاشەکەوت نەکرا' });
+  }
+});
+
+// ٣. وەرگرتنی هەموو کاڵاکان بۆ تابلۆی ئەدمین
+app.get('/api/admin/marketplace/items', (req, res) => {
+  const items = getMarketItems();
+  res.json(items);
+});
+
+// ٤. قبووڵکردنی کاڵا لەلایەن ئەدمینەوە
+app.post('/api/admin/marketplace/approve/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const items = getMarketItems();
+  const item = items.find(i => i.id === id);
+  if (item) {
+    item.status = 'approved';
+    saveMarketItems(items);
+    return res.json({ success: true });
+  }
+  res.status(404).json({ error: 'کاڵاکە نەدۆزرایەوە' });
+});
+
+// ٥. ڕەتکردنەوە یان سڕینەوەی کاڵا لەلایەن ئەدمینەوە
+app.delete('/api/admin/marketplace/reject/:id', (req, res) => {
+  const id = Number(req.params.id);
+  let items = getMarketItems();
+  items = items.filter(i => i.id !== id);
+  saveMarketItems(items);
+  res.json({ success: true });
+});
+
+// ==========================================
+// --- بەشی یاریی دۆمینە (Domino Game Logic) ---
+// ==========================================
 const rooms = {};
 
 function generateFullDeck() {
@@ -292,6 +440,38 @@ function handleRoundWin(room, winner, isLock) {
 }
 
 io.on('connection', (socket) => {
+  // ==========================================
+  // سیستەمی ئۆنلاینی دامەی کوردی (ژوور و جووڵەکان)
+  // ==========================================
+  socket.on('dama_create_room', () => {
+    const roomId = 'DAMA-' + Math.floor(1000 + Math.random() * 9000);
+    socket.join(roomId);
+    socket.damaRoom = roomId;
+    socket.damaSide = 1;
+    socket.emit('dama_room_created', { roomId, side: 1 });
+  });
+
+  socket.on('dama_join_room', (roomId) => {
+    const room = io.sockets.adapter.rooms.get(roomId);
+    if (!room) {
+      socket.emit('dama_error', 'ئەم ژوورە بوونی نییە! دڵنیابەرەوە لە کۆدەکە.');
+      return;
+    }
+    if (room.size >= 2) {
+      socket.emit('dama_error', 'ئەم ژوورە پڕ بووە لە یاریزان!');
+      return;
+    }
+    socket.join(roomId);
+    socket.damaRoom = roomId;
+    socket.damaSide = -1;
+    io.to(roomId).emit('dama_game_start', { roomId });
+  });
+
+  socket.on('dama_make_move', (data) => {
+    if (data && data.roomId) {
+      socket.to(data.roomId).emit('dama_receive_move', data.move);
+    }
+  });
   socket.on('join_game', ({ name, mode, roomType, customCode }) => {
     const selectedMode = (mode === 2) ? 2 : 4;
     const finalPlayerName = (name && name.trim()) ? name.trim() : 'یاریزان';

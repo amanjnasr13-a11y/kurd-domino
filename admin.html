@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>کۆنتڕۆڵی بەڕێوەبەر (Admin Panel) - Kurd AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { background-color: #0b1320; color: #fff; padding-bottom: 50px; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #060b13; border-bottom: 1px solid #1f2937; }
+    .nav-title { font-size: 20px; font-weight: bold; color: #ef4444; }
+    .btn-back { color: #9ca3af; text-decoration: none; font-size: 14px; border: 1px solid #374151; padding: 6px 14px; border-radius: 8px; }
+    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid #1f2937; padding-bottom: 10px; }
+    .tab-btn { background: #111927; color: #fff; border: 1px solid #374151; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .tab-btn.active { background: #f59e0b; color: #0b1320; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .admin-card { background: #111927; border: 1px solid #374151; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .admin-card img { width: 100%; height: 160px; object-fit: cover; }
+    .card-content { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; width: fit-content; margin-bottom: 8px; }
+    .badge-pending { background: #78350f; color: #fde68a; }
+    .badge-approved { background: #064e3b; color: #6ee7b7; }
+    .actions { display: flex; gap: 8px; margin-top: 15px; }
+    .btn-approve { flex: 1; background: #10b981; color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-reject { flex: 1; background: #ef4444; color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+    /* پەنجەرەی داخڵبوونی ئەدمین */
+    #loginModal {
+      position: fixed;
+      inset: 0;
+      background: #0b1320;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: #111927;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 30px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- پەنجەرەی پاسۆردی ئەدمین -->
+  <div id="loginModal">
+    <div class="login-box">
+      <h2 style="color: #ef4444; margin-bottom: 10px;">🔒 تابلۆی بەڕێوەبەر</h2>
+      <p style="color: #9ca3af; font-size: 13px; margin-bottom: 20px;">تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە</p>
+      
+      <form id="adminLoginForm" onsubmit="handleLogin(event)">
+        <input type="password" id="passInput" placeholder="وشەی نهێنی (پاسۆرد)" required 
+               style="width: 100%; padding: 12px; background: #0b1320; border: 1px solid #374151; border-radius: 8px; color: #fff; text-align: center; font-size: 16px; outline: none; margin-bottom: 15px;">
+        <button type="submit" 
+                style="width: 100%; padding: 12px; background: #f59e0b; color: #0b1320; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
+          چوونەژوورەوە
+        </button>
+      </form>
+      <a href="index.html" style="display: inline-block; margin-top: 15px; color: #9ca3af; text-decoration: none; font-size: 13px;">← گەڕانەوە بۆ لاپەڕەی سەرەکی</a>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <a href="index.html" class="btn-back">← پەڕەی سەرەکی</a>
+    <div class="nav-title">کۆنتڕۆڵی بەڕێوەبەر (Admin)</div>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" id="tabPending" onclick="filterStatus('pending')">چاوەڕوانکراو (Pending)</button>
+      <button class="tab-btn" id="tabApproved" onclick="filterStatus('approved')">پەسەندکراوەکان (Approved)</button>
+      <button class="tab-btn" id="tabAll" onclick="filterStatus('all')">هەموو کاڵاکان</button>
+    </div>
+
+    <div class="grid" id="adminGrid">
+      <p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">باردەکرێت...</p>
+    </div>
+  </div>
+
+  <script>
+    // پشکنینی پاسۆرد لە کاتی تۆماربووندا
+    function checkLoginStatus() {
+      if (sessionStorage.getItem('admin_logged') === 'true') {
+        document.getElementById('loginModal').style.display = 'none';
+        fetchAdminItems();
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById('passInput').value.trim();
+
+      // پشکنینی هەردوو شێوازی ژمارەی ئینگلیزی و کوردی
+      let normalized = input.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+                            .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+
+      if (normalized === "123456") {
+        sessionStorage.setItem('admin_logged', 'true');
+        document.getElementById('loginModal').style.display = 'none';
+        fetchAdminItems();
+      } else {
+        alert("❌ وشەی نهێنی هەڵەیە! تکایە دووبارە تاقی بکەرەوە.");
+        document.getElementById('passInput').value = '';
+      }
+    }
+
+    let allItems = [];
+    let currentFilter = 'pending';
+
+    async function fetchAdminItems() {
+      try {
+        const res = await fetch('/api/admin/marketplace/items');
+        allItems = await res.json();
+        renderAdminCards();
+      } catch (err) {
+        document.getElementById('adminGrid').innerHTML = '<p style="color:#ef4444;">هەڵە لە هێنانی داتاکان.</p>';
+      }
+    }
+
+    function filterStatus(status) {
+      currentFilter = status;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      if (status === 'pending') document.getElementById('tabPending').classList.add('active');
+      if (status === 'approved') document.getElementById('tabApproved').classList.add('active');
+      if (status === 'all') document.getElementById('tabAll').classList.add('active');
+      renderAdminCards();
+    }
+
+    function renderAdminCards() {
+      const grid = document.getElementById('adminGrid');
+      grid.innerHTML = '';
+
+      let list = allItems;
+      if (currentFilter !== 'all') {
+        list = allItems.filter(item => item.status === currentFilter);
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = '<p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">هیچ کاڵایەک لەم بەشەدا نییە.</p>';
+        return;
+      }
+
+      list.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'admin-card';
+
+        const isPending = item.status === 'pending';
+        const badgeClass = isPending ? 'badge-pending' : 'badge-approved';
+        const badgeText = isPending ? '⏳ لە چاوەڕوانیدایە' : '✅ پەسەندکراوە';
+
+        card.innerHTML = `
+          <img src="${item.img}" alt="${item.title}">
+          <div class="card-content">
+            <span class="badge ${badgeClass}">${badgeText}</span>
+            <h3 style="margin-bottom: 5px;">${item.title}</h3>
+            <p style="color: #10b981; font-weight: bold; margin-bottom: 4px;">${item.price}</p>
+            <p style="color: #9ca3af; font-size: 13px;">📍 ${item.city} | بەش: ${item.category}</p>
+            <p style="color: #38bdf8; font-size: 13px; margin-top: 4px;">📞 ${item.phone}</p>
+            
+            <div class="actions">
+              ${isPending ? `<button class="btn-approve" onclick="approveItem(${item.id})">✔ قبووڵکردن</button>` : ''}
+              <button class="btn-reject" onclick="rejectItem(${item.id})">✖ سڕینەوە</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function approveItem(id) {
+      if (!confirm('ئایا دڵنیایت لە قبووڵکردنی ئەم کاڵایە بۆ ناو بازاڕ؟')) return;
+      const res = await fetch(`/api/admin/marketplace/approve/${id}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        fetchAdminItems();
+      }
+    }
+
+    async function rejectItem(id) {
+      if (!confirm('ئایا دڵنیایت لە سڕینەوە و ڕەتکردنەوەی ئەم کاڵایە؟')) return;
+      const res = await fetch(`/api/admin/marketplace/reject/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        fetchAdminItems();
+      }
+    }
+
+    // دەستپێکردنی پشکنین
+    checkLoginStatus();
+  </script>
+</body>
+</html>

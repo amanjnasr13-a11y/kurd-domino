@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دامەی ڕەسەنی کوردی - KurdAI</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: #0b1329;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .back-btn {
+      background: #1e293b;
+      color: #f59e0b;
+      border: 1px solid #334155;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    .back-btn:hover { background: #334155; }
+
+    /* مۆدی ژوورەکان و ئۆنلاین */
+    .lobby-panel {
+      background: #151f38;
+      border: 1px solid #334155;
+      padding: 15px;
+      border-radius: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      max-width: 600px;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .lobby-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .lobby-btn.gold { background: #f59e0b; color: #0b1329; }
+    .lobby-input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: #0b1329;
+      color: white;
+      width: 130px;
+      text-align: center;
+      direction: ltr;
+      font-weight: bold;
+    }
+
+    .status-panel {
+      background: #151f38;
+      border: 1px solid #334155;
+      padding: 12px 20px;
+      border-radius: 12px;
+      display: flex;
+      gap: 25px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .score-box { text-align: center; font-size: 14px; }
+    .score-num { font-size: 22px; font-weight: bold; color: #f59e0b; }
+    #turnIndicator { font-weight: bold; color: #38bdf8; }
+
+    .board-wrapper {
+      background: #1e293b;
+      padding: 14px;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.7), 0 0 20px rgba(245, 158, 11, 0.2);
+      border: 3px solid #f59e0b;
+      position: relative;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 62px);
+      grid-template-rows: repeat(8, 62px);
+      border: 2px solid #0f172a;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    @media (max-width: 550px) {
+      .board {
+        grid-template-columns: repeat(8, 42px);
+        grid-template-rows: repeat(8, 42px);
+      }
+    }
+
+    .kurdish-sun-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 170px;
+      height: 170px;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0.45;
+      filter: drop-shadow(0 0 10px #eab308);
+    }
+
+    .cell {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      z-index: 6;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      transition: background-color 0.2s;
+    }
+
+    /* ئاڵای کوردستان */
+    .flag-red-light   { background-color: #ef4444; }
+    .flag-red-dark    { background-color: #dc2626; }
+    .flag-white-light { background-color: #f8fafc; }
+    .flag-white-dark  { background-color: #e2e8f0; }
+    .flag-green-light { background-color: #22c55e; }
+    .flag-green-dark  { background-color: #16a34a; }
+
+    .cell.selected {
+      background-color: #fde047 !important;
+      box-shadow: inset 0 0 12px #ca8a04;
+    }
+    .cell.valid-target::after {
+      content: '';
+      width: 18px;
+      height: 18px;
+      background: #38bdf8;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 10px #0284c7;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    .piece {
+      width: 82%;
+      height: 82%;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.5);
+      user-select: none;
+      transition: transform 0.15s ease;
+      z-index: 7;
+    }
+    .piece:hover { transform: scale(1.08); }
+    .piece.white {
+      background: radial-gradient(circle, #ffffff 40%, #cbd5e1 100%);
+      border: 2px solid #64748b;
+      color: #b45309;
+    }
+    .piece.black {
+      background: radial-gradient(circle, #334155 40%, #0f172a 100%);
+      border: 2px solid #000;
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="games.html" class="back-btn">⬅ گەڕانەوە بۆ هۆڵی یارییەکان</a>
+    <h2 style="color: #f59e0b;">دامەی ڕەسەنی کوردی</h2>
+  </div>
+
+  <!-- مێنۆی دروستکردنی ژوور و ئۆنلاین -->
+  <div class="lobby-panel">
+    <button class="lobby-btn gold" onclick="startVsAI()">🤖 یاری لەگەڵ بۆت</button>
+    <button class="lobby-btn" onclick="createOnlineRoom()">➕ دروستکردنی ژوور</button>
+    <input type="text" id="roomCodeInput" class="lobby-input" placeholder="کۆدی ژوور">
+    <button class="lobby-btn" style="background:#10b981;" onclick="joinOnlineRoom()">چوونە ژوور</button>
+    <div id="roomStatusText" style="width: 100%; text-align: center; font-size: 13px; color: #38bdf8; margin-top: 5px;">مۆد: یاری لەگەڵ بۆتی ژیر</div>
+  </div>
+
+  <div class="status-panel">
+    <div class="score-box">
+      <div id="p1Name">موورەی تۆ (سپی)</div>
+      <div id="humanScore" class="score-num">16</div>
+    </div>
+    <div class="score-box">
+      <div>دۆخی یاری</div>
+      <div id="turnIndicator">نۆرەی سپییە</div>
+    </div>
+    <div class="score-box">
+      <div id="p2Name">موورەی بۆت (ڕەش)</div>
+      <div id="aiScore" class="score-num">16</div>
+    </div>
+  </div>
+
+  <div class="board-wrapper">
+    <svg class="kurdish-sun-overlay" viewBox="0 0 200 200">
+      <defs>
+        <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fef08a" />
+          <stop offset="80%" stop-color="#eab308" />
+          <stop offset="100%" stop-color="#ca8a04" />
+        </radialGradient>
+      </defs>
+      <g transform="translate(100,100)">
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(0)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(17.14)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(34.28)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(51.42)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(68.57)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(85.71)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(102.85)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(120)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(137.14)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(154.28)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(171.42)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(188.57)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(205.71)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(222.85)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(240)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(257.14)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(274.28)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(291.42)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(308.57)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(325.71)" />
+        <polygon points="0,-95 -7,-40 7,-40" fill="url(#sunGrad)" transform="rotate(342.85)" />
+        <circle cx="0" cy="0" r="44" fill="url(#sunGrad)" stroke="#b45309" stroke-width="2"/>
+      </g>
+    </svg>
+
+    <div id="board" class="board"></div>
+  </div>
+
+  <script>
+    const socket = io();
+    const ROWS = 8;
+    const COLS = 8;
+    const EMPTY = 0;
+    const P_WHITE = 1;
+    const P_WHITE_KING = 2;
+    const P_BLACK = -1;
+    const P_BLACK_KING = -2;
+
+    let boardState = [];
+    let currentTurn = P_WHITE;
+    let selectedCell = null;
+    let validMoves = [];
+    let isGameOver = false;
+
+    // بارودۆخی ئۆنلاین
+    let gameMode = 'ai'; // 'ai' یان 'online'
+    let mySide = P_WHITE; // لە ئۆنلایندا یان سپیت یان ڕەش
+    let currentRoomId = null;
+
+    function initGame() {
+      boardState = Array(ROWS).fill(null).map(() => Array(COLS).fill(EMPTY));
+      for (let r = 1; r <= 2; r++) {
+        for (let c = 0; c < COLS; c++) boardState[r][c] = P_BLACK;
+      }
+      for (let r = 5; r <= 6; r++) {
+        for (let c = 0; c < COLS; c++) boardState[r][c] = P_WHITE;
+      }
+
+      currentTurn = P_WHITE;
+      selectedCell = null;
+      validMoves = [];
+      isGameOver = false;
+      document.getElementById('turnIndicator').innerText = "نۆرەی سپییە";
+      updateStatusDisplay();
+      renderBoard();
+    }
+
+    function startVsAI() {
+      gameMode = 'ai';
+      mySide = P_WHITE;
+      document.getElementById('p1Name').innerText = "موورەی تۆ (سپی)";
+      document.getElementById('p2Name').innerText = "موورەی بۆت (ڕەش)";
+      document.getElementById('roomStatusText').innerText = "مۆد: یاری لەگەڵ بۆتی ژیر";
+      initGame();
+    }
+
+    // --- بەشی ژوور و ئۆنلاین ---
+    function createOnlineRoom() {
+      socket.emit('dama_create_room');
+    }
+
+    socket.on('dama_room_created', ({ roomId, side }) => {
+      gameMode = 'online';
+      currentRoomId = roomId;
+      mySide = side; // سپی
+      document.getElementById('roomStatusText').innerHTML = `کۆدی ژوورەکەت: <strong style="color:#f59e0b; font-size:16px;">${roomId}</strong> (چاوەڕوانی هاتنەژوورەوەی هاوڕێکەتە...)`;
+      document.getElementById('p1Name').innerText = "تۆ (سپی)";
+      document.getElementById('p2Name').innerText = "هاوڕێکەت (ڕەش)";
+      initGame();
+    });
+
+    function joinOnlineRoom() {
+      const code = document.getElementById('roomCodeInput').value.trim();
+      if (!code) {
+        alert('تکایە کۆدی ژوور بنووسە!');
+        return;
+      }
+      socket.emit('dama_join_room', code);
+    }
+
+    socket.on('dama_game_start', ({ roomId }) => {
+      gameMode = 'online';
+      currentRoomId = roomId;
+      if (mySide !== P_WHITE) {
+        mySide = P_BLACK; // ئەو کەسەی داخڵ بووە دەبێتە ڕەش
+        document.getElementById('p1Name').innerText = "هاوڕێکەت (سپی)";
+        document.getElementById('p2Name').innerText = "تۆ (ڕەش)";
+      }
+      document.getElementById('roomStatusText').innerHTML = `ژوور: <strong>${roomId}</strong> - یاری دەستی پێکرد!`;
+      initGame();
+    });
+
+    socket.on('dama_receive_move', (move) => {
+      executeMove(move);
+      renderBoard();
+      checkWinCondition();
+      currentTurn = (currentTurn === P_WHITE) ? P_BLACK : P_WHITE;
+      document.getElementById('turnIndicator').innerText = (currentTurn === mySide) ? "نۆرەی تۆیە!" : "نۆرەی ڕکابەرەکەتە";
+    });
+
+    socket.on('dama_player_left', () => {
+      alert('یاریزانەکەی تر لە یارییەکە چووە دەرەوە!');
+      startVsAI();
+    });
+
+    socket.on('dama_error', (msg) => { alert(msg); });
+
+    // --- ڕەندەرکردنی تەختە ---
+    function renderBoard() {
+      const boardEl = document.getElementById('board');
+      boardEl.innerHTML = '';
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          
+          let colorClass = '';
+          const isLight = (r + c) % 2 === 0;
+          if (r <= 2) colorClass = isLight ? 'flag-red-light' : 'flag-red-dark';
+          else if (r <= 4) colorClass = isLight ? 'flag-white-light' : 'flag-white-dark';
+          else colorClass = isLight ? 'flag-green-light' : 'flag-green-dark';
+
+          cell.className = `cell ${colorClass}`;
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+
+          if (selectedCell && selectedCell.r === r && selectedCell.c === c) cell.classList.add('selected');
+          if (validMoves.some(m => m.toR === r && m.toC === c)) cell.classList.add('valid-target');
+
+          const val = boardState[r][c];
+          if (val !== EMPTY) {
+            const piece = document.createElement('div');
+            piece.className = `piece ${val > 0 ? 'white' : 'black'}`;
+            if (Math.abs(val) === 2) piece.innerText = '👑';
+            cell.appendChild(piece);
+          }
+
+          cell.addEventListener('click', () => handleCellClick(r, c));
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function handleCellClick(r, c) {
+      if (isGameOver) return;
+
+      // ئەگەر نۆرەی یاریزان نەبێت لە ئۆنلاین یان لەگەڵ بۆت
+      if (gameMode === 'online' && currentTurn !== mySide) return;
+      if (gameMode === 'ai' && currentTurn !== P_WHITE) return;
+
+      const piece = boardState[r][c];
+      const side = (gameMode === 'online') ? mySide : P_WHITE;
+
+      if ((side === P_WHITE && piece > 0) || (side === P_BLACK && piece < 0)) {
+        const allCaptures = getAllCaptures(boardState, side);
+        const pieceCaptures = getCapturesForPiece(boardState, r, c);
+
+        if (allCaptures.length > 0) {
+          const maxCount = allCaptures[0].captures.length;
+          const pieceMax = pieceCaptures.length > 0 ? pieceCaptures[0].captures.length : 0;
+          if (pieceMax < maxCount) {
+            alert('یاسای مل مل: دەبێت ئەو موورەیە بجوڵێنیت کە زۆرترین دەخوات!');
+            return;
+          }
+          selectedCell = { r, c };
+          validMoves = pieceCaptures.filter(m => m.captures.length === maxCount);
+        } else {
+          selectedCell = { r, c };
+          validMoves = getNormalMovesForPiece(boardState, r, c);
+        }
+        renderBoard();
+        return;
+      }
+
+      if (selectedCell) {
+        const move = validMoves.find(m => m.toR === r && m.toC === c);
+        if (move) {
+          executeMove(move);
+          selectedCell = null;
+          validMoves = [];
+          renderBoard();
+          checkWinCondition();
+
+          if (gameMode === 'online') {
+            socket.emit('dama_make_move', { roomId: currentRoomId, move });
+            currentTurn = (currentTurn === P_WHITE) ? P_BLACK : P_WHITE;
+            document.getElementById('turnIndicator').innerText = "نۆرەی ڕکابەرەکەتە";
+          } else {
+            if (!isGameOver) {
+              currentTurn = P_BLACK;
+              document.getElementById('turnIndicator').innerText = "بۆت بیردەکاتەوە...";
+              setTimeout(aiPlayTurn, 400);
+            }
+          }
+        }
+      }
+    }
+
+    function executeMove(move) {
+      const { fromR, fromC, toR, toC, captures } = move;
+      let val = boardState[fromR][fromC];
+      boardState[fromR][fromC] = EMPTY;
+
+      if (captures && captures.length > 0) {
+        captures.forEach(cap => { boardState[cap.r][cap.c] = EMPTY; });
+      }
+
+      if (val === P_WHITE && toR === 0) val = P_WHITE_KING;
+      if (val === P_BLACK && toR === 7) val = P_BLACK_KING;
+
+      boardState[toR][toC] = val;
+      updateStatusDisplay();
+    }
+
+    function getAllCaptures(bState, side) {
+      let all = [];
+      let maxLen = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if ((side === P_WHITE && bState[r][c] > 0) || (side === P_BLACK && bState[r][c] < 0)) {
+            const caps = getCapturesForPiece(bState, r, c);
+            caps.forEach(cMove => {
+              if (cMove.captures.length > maxLen) {
+                maxLen = cMove.captures.length;
+                all = [cMove];
+              } else if (cMove.captures.length === maxLen && maxLen > 0) {
+                all.push(cMove);
+              }
+            });
+          }
+        }
+      }
+      return all;
+    }
+
+    // یاسای خواردنی تەنیشت و مل مل بەبێ گەڕانەوە بۆ دواوە
+    function getCapturesForPiece(bState, r, c) {
+      const val = bState[r][c];
+      const isKing = Math.abs(val) === 2;
+      const isWhite = val > 0;
+      let fullPaths = [];
+
+      function searchCapture(currR, currC, currentBoard, capturedList) {
+        let foundAny = false;
+        const dirs = [ [-1, 0], [1, 0], [0, -1], [0, 1] ];
+
+        for (let [dr, dc] of dirs) {
+          if (!isKing) {
+            if (isWhite && dr === 1) continue;
+            if (!isWhite && dr === -1) continue;
+
+            const enemyR = currR + dr;
+            const enemyC = currC + dc;
+            const landR = currR + dr * 2;
+            const landC = currC + dc * 2;
+
+            if (landR >= 0 && landR < 8 && landC >= 0 && landC < 8) {
+              const enemyVal = currentBoard[enemyR][enemyC];
+              const landVal = currentBoard[landR][landC];
+
+              if (((isWhite && enemyVal < 0) || (!isWhite && enemyVal > 0)) && landVal === EMPTY) {
+                foundAny = true;
+                const nextB = currentBoard.map(row => [...row]);
+                nextB[currR][currC] = EMPTY;
+                nextB[enemyR][enemyC] = EMPTY;
+                nextB[landR][landC] = val;
+                searchCapture(landR, landC, nextB, [...capturedList, { r: enemyR, c: enemyC }]);
+              }
+            }
+          } else {
+            let step = 1;
+            while (true) {
+              const scanR = currR + dr * step;
+              const scanC = currC + dc * step;
+              if (scanR < 0 || scanR >= 8 || scanC < 0 || scanC >= 8) break;
+              const scanVal = currentBoard[scanR][scanC];
+              if ((isWhite && scanVal > 0) || (!isWhite && scanVal < 0)) break;
+
+              if ((isWhite && scanVal < 0) || (!isWhite && scanVal > 0)) {
+                let landStep = 1;
+                while (true) {
+                  const landR = scanR + dr * landStep;
+                  const landC = scanC + dc * landStep;
+                  if (landR < 0 || landR >= 8 || landC < 0 || landC >= 8) break;
+                  if (currentBoard[landR][landC] !== EMPTY) break;
+
+                  foundAny = true;
+                  const nextB = currentBoard.map(row => [...row]);
+                  nextB[currR][currC] = EMPTY;
+                  nextB[scanR][scanC] = EMPTY;
+                  nextB[landR][landC] = val;
+                  searchCapture(landR, landC, nextB, [...capturedList, { r: scanR, c: scanC }]);
+                  landStep++;
+                }
+                break;
+              }
+              step++;
+            }
+          }
+        }
+
+        if (!foundAny && capturedList.length > 0) {
+          fullPaths.push({ fromR: r, fromC: c, toR: currR, toC: currC, captures: capturedList });
+        }
+      }
+
+      searchCapture(r, c, bState, []);
+      let maxCaptured = 0;
+      fullPaths.forEach(p => { if (p.captures.length > maxCaptured) maxCaptured = p.captures.length; });
+      return fullPaths.filter(p => p.captures.length === maxCaptured);
+    }
+
+    function getNormalMovesForPiece(bState, r, c) {
+      const val = bState[r][c];
+      const isKing = Math.abs(val) === 2;
+      const isWhite = val > 0;
+      let moves = [];
+      const dirs = [ [-1, 0], [1, 0], [0, -1], [0, 1] ];
+
+      for (let [dr, dc] of dirs) {
+        if (!isKing) {
+          if (isWhite && dr === 1) continue;
+          if (!isWhite && dr === -1) continue;
+          const nR = r + dr;
+          const nC = c + dc;
+          if (nR >= 0 && nR < 8 && nC >= 0 && nC < 8 && bState[nR][nC] === EMPTY) {
+            moves.push({ fromR: r, fromC: c, toR: nR, toC: nC, captures: [] });
+          }
+        } else {
+          let step = 1;
+          while (true) {
+            const nR = r + dr * step;
+            const nC = c + dc * step;
+            if (nR < 0 || nR >= 8 || nC < 0 || nC >= 8) break;
+            if (bState[nR][nC] !== EMPTY) break;
+            moves.push({ fromR: r, fromC: c, toR: nR, toC: nC, captures: [] });
+            step++;
+          }
+        }
+      }
+      return moves;
+    }
+
+    function getAllPossibleMoves(bState, side) {
+      const captures = getAllCaptures(bState, side);
+      if (captures.length > 0) return captures;
+
+      let normals = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if ((side === P_WHITE && bState[r][c] > 0) || (side === P_BLACK && bState[r][c] < 0)) {
+            normals = normals.concat(getNormalMovesForPiece(bState, r, c));
+          }
+        }
+      }
+      return normals;
+    }
+
+    // بۆتی Minimax
+    function aiPlayTurn() {
+      const moves = getAllPossibleMoves(boardState, P_BLACK);
+      if (moves.length === 0) {
+        isGameOver = true;
+        alert("پیرۆزە! هەموو ڕێگاکانی بۆت داخران و بردتەوە.");
+        return;
+      }
+
+      let bestVal = -Infinity;
+      let selected = moves[0];
+
+      for (let move of moves) {
+        const nextBoard = simulateMove(boardState, move);
+        const score = minimax(nextBoard, 3, -Infinity, Infinity, false);
+        if (score > bestVal) {
+          bestVal = score;
+          selected = move;
+        }
+      }
+
+      executeMove(selected);
+      renderBoard();
+      checkWinCondition();
+      if (!isGameOver) {
+        currentTurn = P_WHITE;
+        document.getElementById('turnIndicator').innerText = "نۆرەی تۆیە";
+      }
+    }
+
+    function minimax(bState, depth, alpha, beta, isMaximizing) {
+      if (depth === 0) {
+        let score = 0;
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const val = bState[r][c];
+            if (val === P_BLACK) score += 100 + (r * 12);
+            else if (val === P_BLACK_KING) score += 350;
+            else if (val === P_WHITE) score -= 100 + ((7 - r) * 12);
+            else if (val === P_WHITE_KING) score -= 350;
+          }
+        }
+        return score;
+      }
+
+      const side = isMaximizing ? P_BLACK : P_WHITE;
+      const moves = getAllPossibleMoves(bState, side);
+      if (moves.length === 0) return isMaximizing ? -10000 : 10000;
+
+      if (isMaximizing) {
+        let maxEval = -Infinity;
+        for (let m of moves) {
+          const evalScore = minimax(simulateMove(bState, m), depth - 1, alpha, beta, false);
+          maxEval = Math.max(maxEval, evalScore);
+          alpha = Math.max(alpha, evalScore);
+          if (beta <= alpha) break;
+        }
+        return maxEval;
+      } else {
+        let minEval = Infinity;
+        for (let m of moves) {
+          const evalScore = minimax(simulateMove(bState, m), depth - 1, alpha, beta, true);
+          minEval = Math.min(minEval, evalScore);
+          beta = Math.min(beta, evalScore);
+          if (beta <= alpha) break;
+        }
+        return minEval;
+      }
+    }
+
+    function simulateMove(bState, move) {
+      const next = bState.map(row => [...row]);
+      let val = next[move.fromR][move.fromC];
+      next[move.fromR][move.fromC] = EMPTY;
+      if (move.captures && move.captures.length > 0) {
+        move.captures.forEach(c => { next[c.r][c.c] = EMPTY; });
+      }
+      if (val === P_WHITE && move.toR === 0) val = P_WHITE_KING;
+      if (val === P_BLACK && move.toR === 7) val = P_BLACK_KING;
+      next[move.toR][move.toC] = val;
+      return next;
+    }
+
+    function updateStatusDisplay() {
+      let whiteCount = 0;
+      let blackCount = 0;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (boardState[r][c] > 0) whiteCount++;
+          if (boardState[r][c] < 0) blackCount++;
+        }
+      }
+      document.getElementById('humanScore').innerText = whiteCount;
+      document.getElementById('aiScore').innerText = blackCount;
+    }
+
+    function checkWinCondition() {
+      let whiteCount = 0;
+      let blackCount = 0;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (boardState[r][c] > 0) whiteCount++;
+          if (boardState[r][c] < 0) blackCount++;
+        }
+      }
+      if (whiteCount === 0) {
+        isGameOver = true;
+        alert("موورەی ڕەش سەرکەوت!");
+      } else if (blackCount === 0) {
+        isGameOver = true;
+        alert("موورەی سپی سەرکەوت!");
+      }
+    }
+
+    initGame();
+  </script>
+</body>
+</html>

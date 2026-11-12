@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurd AI - بەشی قوتابیان</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #152238;
+            --accent-color: #ffb703;
+            --text-color: #ffffff;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
+            --input-bg: #0d1b2a;
+            --success-color: #2a9d8f;
+            --danger-color: #e63946;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background-color: rgba(11, 19, 41, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .back-btn {
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        .hero-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero-title h1 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-title p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* بەشی لێکۆڵینەوە و پرسیارکردن لە AI */
+        .ai-box {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        .ai-box h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-color);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* وێنەگرتن و بارکردن */
+        .image-upload-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background-color: var(--input-bg);
+            border: 1.5px dashed var(--border-color);
+            padding: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        .image-upload-wrapper:hover {
+            border-color: var(--accent-color);
+            background-color: rgba(255, 183, 3, 0.05);
+        }
+
+        .image-upload-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .preview-container {
+            position: relative;
+            display: none;
+            width: fit-content;
+            margin: 0.5rem 0;
+        }
+
+        .image-preview {
+            max-width: 180px;
+            max-height: 180px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: block;
+        }
+
+        .remove-img-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--danger-color);
+            color: #fff;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            font-size: 0.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #fff;
+            padding: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .select-subject {
+            background-color: var(--input-bg);
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+            transform: scale(0.99);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* دەرکەوتنی ئەنجام */
+        .response-area {
+            margin-top: 1.5rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            display: none;
+            position: relative;
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .response-header span {
+            font-weight: bold;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        .response-text {
+            line-height: 1.85;
+            font-size: 1.05rem;
+            color: #f1f5f9;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* بەشی مەلازیم */
+        .materials-box {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        .materials-box h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1.2rem;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            outline: none;
+        }
+
+        .search-bar:focus {
+            border-color: var(--accent-color);
+        }
+
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .material-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .material-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+        }
+
+        .material-info h3 {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: #fff;
+        }
+
+        .material-info p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .download-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 0.55rem 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-right"></i> گەڕانەوە بۆ سەرەکی</a>
+        <div class="logo">
+            <span>بەشی قوتابیان - Kurd AI</span>
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero-title">
+            <h1>یاریدەدەری زیرەک و مەکتبەی قوتابیان</h1>
+            <p>وێنەی پرسیارەکەت بگرە، وەڵام وەرگرە و مەلازیمەکان بە دەست بهێنە</p>
+        </div>
+
+        <!-- بەشی وێنەگرتن و پرسیارکردن لە AI -->
+        <div class="ai-box">
+            <h2><i class="fa-solid fa-robot"></i> پرسیارەکەت بنووسە یان وێنەکەی دابنێ</h2>
+            
+            <div class="input-group">
+                <!-- بارکردنی وێنە -->
+                <label class="image-upload-wrapper" for="imageInput">
+                    <i class="fa-solid fa-camera" style="color: var(--accent-color); font-size: 1.6rem;"></i>
+                    <span id="uploadLabelText">وێنەگرتن یان بارکردنی وێنەی پرسیار (کامێرا / گەلەری)</span>
+                    <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
+                </label>
+
+                <!-- پیشاندانی وێنە پێش ناردن -->
+                <div class="preview-container" id="previewContainer">
+                    <img id="imagePreview" class="image-preview" alt="پێشبینی وێنە">
+                    <button type="button" class="remove-img-btn" onclick="clearSelectedImage()" title="سڕینەوەی وێنە">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <textarea id="questionInput" placeholder="پرسیارەکەت لێرە بنووسە... (ئەگەر وێنەت داناوە دەتوانیت ڕوونکردنەوەی زیاتر بنووسیت یان بە بەتاڵی جێی بهێڵیت)"></textarea>
+                
+                <div class="actions">
+                    <select id="subjectSelect" class="select-subject">
+                        <option value="گشتی">بابەت: گشتی</option>
+                        <option value="بیرکاری">بیرکاری</option>
+                        <option value="زانستی (فیزیا / کیمیا / زیندەزانی)">فیزیا / کیمیا / زیندەزانی</option>
+                        <option value="زمانەکان (کوردی / ئینگلیزی / عەرەبی)">زمانەکان (کوردی، ئینگلیزی، عەرەبی)</option>
+                        <option value="مێژوو و جوگرافیا">مێژوو و جوگرافیا</option>
+                    </select>
+
+                    <button class="btn-submit" id="submitBtn" onclick="solveQuestion()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> شیکار بکە
+                    </button>
+                </div>
+            </div>
+
+            <!-- شوێنی دەرکەوتنی وەڵام -->
+            <div id="resultBox" class="response-area">
+                <div class="response-header">
+                    <span><i class="fa-solid fa-circle-check"></i> شیکاری ژیر:</span>
+                    <button class="copy-btn" onclick="copyResultText()"><i class="fa-regular fa-copy"></i> کۆپیکردن</button>
+                </div>
+                <div class="response-text" id="responseText"></div>
+            </div>
+        </div>
+
+        <!-- بەشی مەلازیم و کتێبەکان -->
+        <div class="materials-box">
+            <h2><i class="fa-solid fa-book"></i> مەکتبەی مەلازیم و کتێبەکانی پۆل (PDF)</h2>
+            <input type="text" id="searchBar" class="search-bar" placeholder="بگەڕێ بۆ ناوی مەلازمە یان پۆل..." onkeyup="filterMaterials()">
+
+            <div class="materials-grid" id="materialsGrid">
+                <!-- مەلازیمی ١ -->
+                <div class="material-card">
+                    <div class="material-info">
+                        <h3>مەلازیمی بیرکاری - پۆلی ١٢</h3>
+                        <p>مامۆستا شێروان • زانستی و وێژەیی</p>
+                    </div>
+<a href="/materials/math-12.jpg" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>                </div>
+                <!-- مەلازیمی ٢ -->
+                <div class="material-card">
+                    <div class="material-info">
+                        <h3>مەلازیمی ئینگلیزی (Sunrise) - پۆلی ١٢</h3>
+                        <p>تەواوی بابەتەکان بە شیکارییەوە</p>
+                    </div>
+                    <a href="/materials/english-12.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                </div>
+                <!-- مەلازیمی ٣ -->
+                <div class="material-card">
+                    <div class="material-info">
+                        <h3>کورتکراوەی مێژوو - پۆلی ١٢</h3>
+                        <p>پوختەی هەموو بەشەکان لە ١٥ لاپەڕەدا</p>
+                    </div>
+                    <a href="/materials/history-12.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                </div>
+                <!-- مەلازیمی ٤ -->
+                <div class="material-card">
+                    <div class="material-info">
+                        <h3>فیزیا پۆلی ١١</h3>
+                        <p>شیکاری پرسیار و دەفتەری تاقیگە</p>
+                    </div>
+                    <a href="/materials/physics-11.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let base64ImageData = null;
+
+        // کاتی هەڵبژاردنی وێنە
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            const previewContainer = document.getElementById('previewContainer');
+            const preview = document.getElementById('imagePreview');
+            const uploadText = document.getElementById('uploadLabelText');
+
+            if (file) {
+                uploadText.innerText = "وێنە هەڵبژێردرا: " + file.name;
+                preview.src = URL.createObjectURL(file);
+                previewContainer.style.display = 'block';
+
+                // گۆڕینی بۆ Base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64ImageData = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // سڕینەوەی وێنەی دەستنیشانکراو
+        function clearSelectedImage() {
+            const imageInput = document.getElementById('imageInput');
+            const previewContainer = document.getElementById('previewContainer');
+            const uploadText = document.getElementById('uploadLabelText');
+            
+            imageInput.value = '';
+            base64ImageData = null;
+            previewContainer.style.display = 'none';
+            uploadText.innerText = 'وێنەگرتن یان بارکردنی وێنەی پرسیار (کامێرا / گەلەری)';
+        }
+
+        // گەڕان لە ناو مەلازیمەکان
+        function filterMaterials() {
+            const query = document.getElementById('searchBar').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.material-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // شیکارکردنی پرسیار
+        async function solveQuestion() {
+            const textInput = document.getElementById('questionInput');
+            const subject = document.getElementById('subjectSelect').value;
+            const resultBox = document.getElementById('resultBox');
+            const responseText = document.getElementById('responseText');
+            const submitBtn = document.getElementById('submitBtn');
+
+            const textValue = textInput.value.trim();
+
+            if (!textValue && !base64ImageData) {
+                alert('تکایە سەرەتا پرسیارێک بنووسە یان وێنەی پرسیارەکە دابنێ!');
+                return;
+            }
+
+            // چالاککردنی دۆخی چاوەڕوانی
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> کەمێک چاوەڕێ بکە...';
+            resultBox.style.display = 'block';
+            responseText.innerHTML = 'خەریکی پشکنین و شیکارکردنی پرسیارەکەیە بە شێوەیەکی زانستی...';
+
+            try {
+                // ناردنی داواکاری بۆ سێرڤەری Node.js بە JSON (شێوازی خێرا و سەربەخۆ لە پڕۆژەکەت)
+                const res = await fetch('/api/solve-question', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        questionText: textValue,
+                        imageBase64: base64ImageData,
+                        subject: subject
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    responseText.innerText = data.answer || data.message || "وەڵام وەرگیرا.";
+                } else {
+                    responseText.innerText = "ببورە، هەڵەیەک ڕوویدا لە کاتی وەرگرتنی وەڵام لە سێرڤەرەوە. تکایە پشکنین بۆ کۆدی server.js بکە.";
+                }
+            } catch (err) {
+                responseText.innerText = "پەیوەندی لەگەڵ سێرڤەر بەردەست نییە. دڵنیابە سێرڤەری پڕۆژەکەت (node server.js) کراوەتەوە.";
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> شیکار بکە';
+            }
+        }
+
+        // کۆپیکردنی وەڵام
+        function copyResultText() {
+            const text = document.getElementById('responseText').innerText;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('وەڵامەکە کۆپی کرا!');
+            }).catch(() => {
+                alert('کۆپی نەکرا، تکایە خۆت دیاری بکە و کۆپی بکە.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>کۆنەبازاڕی دەستی دوو - Kurd AI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #0b1320;
+      color: #ffffff;
+      padding-bottom: 50px;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background-color: #060b13;
+      border-bottom: 1px solid #1f2937;
+    }
+    .nav-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #f59e0b;
+    }
+    .btn-back {
+      color: #9ca3af;
+      text-decoration: none;
+      font-size: 14px;
+      border: 1px solid #374151;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+    .btn-back:hover {
+      background: #1f2937;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .page-header h1 {
+      font-size: 26px;
+      color: #fff;
+    }
+
+    .filter-section {
+      background: #111927;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 15px 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .search-box {
+      flex: 1 1 250px;
+    }
+    .search-box input, .filter-select {
+      width: 100%;
+      background: #0b1320;
+      border: 1px solid #374151;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-select {
+      width: auto;
+      min-width: 130px;
+      cursor: pointer;
+    }
+    .btn-add {
+      background: #f59e0b;
+      color: #0b1320;
+      font-weight: bold;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-add:hover {
+      background: #d97706;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #111927;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #3b82f6;
+    }
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: #1f2937;
+    }
+    .card-body {
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .card-price {
+      color: #10b981;
+      font-weight: bold;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    .card-location {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+    .card-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 8px;
+    }
+    .btn-action {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: 0.2s;
+    }
+    .btn-call {
+      background: #1f2937;
+      color: #38bdf8;
+      border: 1px solid #374151;
+    }
+    .btn-call:hover {
+      background: #2563eb;
+      color: #fff;
+    }
+    .btn-wa {
+      background: #064e3b;
+      color: #34d399;
+      border: 1px solid #059669;
+    }
+    .btn-wa:hover {
+      background: #059669;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <a href="index.html" class="btn-back">← گەڕانەوە بۆ سەرەکی</a>
+    <div class="nav-title">Kurd AI - کۆنەبازاڕ</div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>کۆنەبازاڕی دەستی دوو (Kurd AI Marketplace)</h1>
+    </div>
+
+    <!-- فلتەر و گەڕان -->
+    <div class="filter-section">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 بگەڕێ بەدوای کاڵادا...">
+      </div>
+
+      <div class="filter-group">
+        <!-- تەنها ٤ پارێزگاکە بە هەڵەبجەوە و بەبێ کەرکووک -->
+        <select class="filter-select" id="cityFilter">
+          <option value="">هەموو شارەکان</option>
+          <option value="سلێمانی">سلێمانی</option>
+          <option value="هەولێر">هەولێر</option>
+          <option value="دهۆک">دهۆک</option>
+          <option value="هەڵەبجە">هەڵەبجە</option>
+        </select>
+
+        <select class="filter-select" id="categoryFilter">
+          <option value="">هەموو بەشەکان</option>
+          <option value="ئۆتۆمبێل">ئۆتۆمبێل</option>
+          <option value="مۆبایل و تەکنەلۆجیا">مۆبایل و تەکنەلۆجیا</option>
+          <option value="کەلوپەلی ناوماڵ">کەلوپەلی ناوماڵ</option>
+          <option value="کەلوپەلی تر">کەلوپەلی تر</option>
+        </select>
+      </div>
+
+      <a href="#" class="btn-add" id="openModalBtn">＋ زیادکردنی کاڵا</a>
+    </div>
+
+    <!-- پێشانگای کاڵاکان -->
+    <div class="grid" id="itemsGrid">
+      <p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">چاوەڕێ بکە، کاڵاکان باردەکرێن...</p>
+    </div>
+  </div>
+
+  <!-- پەنجەرەی مۆداڵی زیادکردنی کاڵا -->
+  <div id="addModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #111927; border: 1px solid #374151; border-radius: 12px; width: 100%; max-width: 480px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: #f59e0b;">زیادکردنی کاڵای نوێ</h3>
+        <button id="closeModalBtn" style="background: transparent; border: none; color: #9ca3af; font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+
+      <form id="itemForm" style="display: flex; flex-direction: column; gap: 12px;">
+        <input type="text" id="itemTitle" placeholder="ناوی کاڵا (نموونە: ئایفۆن ١٤)" required style="padding: 10px; background: #0b1320; border: 1px solid #374151; border-radius: 8px; color: #fff; outline: none;">
+        
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="itemPrice" placeholder="نرخ (نموونە: $500 یان 150 هەزار)" required style="flex: 1; padding: 10px; background: #0b1320; border: 1px solid #374151; border-radius: 8px; color: #fff; outline: none;">
+          <select id="itemCity" required style="padding: 10px; background: #0b1320; border: 1px solid #374151; border-radius: 8px; color: #fff; outline: none;">
+            <option value="سلێمانی">سلێمانی</option>
+            <option value="هەولێر">هەولێر</option>
+            <option value="دهۆک">دهۆک</option>
+            <option value="هەڵەبجە">هەڵەبجە</option>
+          </select>
+        </div>
+
+        <select id="itemCategory" required style="padding: 10px; background: #0b1320; border: 1px solid #374151; border-radius: 8px; color: #fff; outline: none;">
+          <option value="مۆبایل و تەکنەلۆجیا">مۆبایل و تەکنەلۆجیا</option>
+          <option value="ئۆتۆمبێل">ئۆتۆمبێل</option>
+          <option value="کەلوپەلی ناوماڵ">کەلوپەلی ناوماڵ</option>
+          <option value="کەلوپەلی تر">کەلوپەلی تر</option>
+        </select>
+
+        <input type="tel" id="itemPhone" placeholder="ژمارەی مۆبایل (نموونە: 07701234567)" required style="padding: 10px; background: #0b1320; border: 1px solid #374151; border-radius: 8px; color: #fff; outline: none; text-align: left;" dir="ltr">
+        
+        <label style="font-size: 13px; color: #9ca3af; margin-top: 4px;">وێنەی کاڵاکە هەڵبژێرە:</label>
+        <input type="file" id="itemFileInput" accept="image/*" required style="padding: 8px; background: #0b1320; border: 1px dashed #f59e0b; border-radius: 8px; color: #fff; outline: none; cursor: pointer;">
+
+        <button type="submit" id="submitBtn" style="background: #f59e0b; color: #0b1320; font-weight: bold; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px;">بڵاوکردنەوەی کاڵا</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('addModal');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const itemForm = document.getElementById('itemForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const searchInput = document.getElementById('searchInput');
+    const cityFilter = document.getElementById('cityFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const grid = document.getElementById('itemsGrid');
+
+    openModalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      modal.style.display = 'flex';
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    function renderCard(item) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.setAttribute('data-city', item.city);
+      card.setAttribute('data-cat', item.category);
+
+      let cleanPhone = (item.phone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '964' + cleanPhone.substring(1);
+      }
+
+      card.innerHTML = `
+        <img src="${item.img}" alt="${item.title}">
+        <div class="card-body">
+          <div class="card-title">${item.title}</div>
+          <div class="card-price">${item.price}</div>
+          <div class="card-location">📍 ${item.city}</div>
+          <div class="card-actions">
+            <a href="tel:${item.phone}" class="btn-action btn-call">📞 تەلەفۆن</a>
+            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-action btn-wa">💬 واتسئەپ</a>
+          </div>
+        </div>
+      `;
+
+      grid.appendChild(card);
+    }
+
+    // تەنها ئەو کاڵایانە دێن کە ئەدمین پەسەندی کردوون
+    async function loadItems() {
+      try {
+        const res = await fetch('/api/marketplace/items');
+        const items = await res.json();
+        grid.innerHTML = '';
+        if (items && items.length > 0) {
+          items.forEach(item => renderCard(item));
+        } else {
+          grid.innerHTML = '<p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">هیچ کاڵایەک نییە یان پەسەند نەکراوە.</p>';
+        }
+      } catch (err) {
+        grid.innerHTML = '<p style="color: #ef4444; text-align: center; grid-column: 1 / -1;">کێشەیەک ڕوویدا لە بارکردنی کاڵاکان.</p>';
+      }
+    }
+
+    loadItems();
+
+    // پۆستکردنی کاڵا (دەچێتە چاوەڕوانی ئەدمین)
+    itemForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById('itemTitle').value;
+      const price = document.getElementById('itemPrice').value;
+      const city = document.getElementById('itemCity').value;
+      const category = document.getElementById('itemCategory').value;
+      const phone = document.getElementById('itemPhone').value.trim();
+      const fileInput = document.getElementById('itemFileInput');
+
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      submitBtn.innerText = 'چاوەڕێ بکە...';
+      submitBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = async function(event) {
+        const fileSrc = event.target.result;
+        const itemData = { title, price, city, category, phone, img: fileSrc };
+
+        try {
+          const response = await fetch('/api/marketplace/items', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemData)
+          });
+          const result = await response.json();
+
+          if (result.success) {
+            alert('✅ کاڵاکەت بە سەرکەوتوویی نێردرا!\nپاش پشکنین و قبووڵکردنی لەلایەن ئەدمینەوە، لە بازاڕدا دەردەکەوێت.');
+            itemForm.reset();
+            modal.style.display = 'none';
+          }
+        } catch (error) {
+          alert('کێشەیەک ڕوویدا لە کاتی ناردندا');
+        } finally {
+          submitBtn.innerText = 'بڵاوکردنەوەی کاڵا';
+          submitBtn.disabled = false;
+        }
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    // فلتەرکردنی خێرا
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase().trim();
+      const selectedCity = cityFilter.value;
+      const selectedCat = categoryFilter.value;
+      const cards = document.querySelectorAll('#itemsGrid .card');
+
+      cards.forEach(card => {
+        const title = card.querySelector('.card-title')?.innerText.toLowerCase() || '';
+        const cardCity = card.getAttribute('data-city') || '';
+        const cardCat = card.getAttribute('data-cat') || '';
+
+        const matchesSearch = title.includes(query);
+        const matchesCity = !selectedCity || cardCity === selectedCity;
+        const matchesCat = !selectedCat || cardCat === selectedCat;
+
+        if (matchesSearch && matchesCity && matchesCat) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    cityFilter.addEventListener('change', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+  </script>
+</body>
+</html>
