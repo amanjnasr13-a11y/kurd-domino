@@ -1,5 +1,9 @@
 {
-  "appId": "com.kurdai.app",
-  "appName": "Kurd AI",
-  "webDir": "www"
+    "appId":  "com.kurdai.app",
+    "appName":  "Kurd AI",
+    "webDir":  "www",
+    "server":  {
+                   "cleartext":  true,
+                   "url":  "https://kurd-domino-production.up.railway.app"
+               }
 }
