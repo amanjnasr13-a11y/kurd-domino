@@ -382,6 +382,13 @@
         .download-btn:hover {
             opacity: 0.9;
         }
+        #uploadLabelText {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -561,7 +568,7 @@
 
             try {
                 // ناردنی داواکاری بۆ سێرڤەری Node.js بە JSON (شێوازی خێرا و سەربەخۆ لە پڕۆژەکەت)
-                const res = await fetch('/api/solve-question', {
+                const res = await fetch('https://kurd-domino-production.up.railway.app/api/solve-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
