@@ -10,6 +10,11 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 // ڕێگەپێدان بە وەرگرتنی وێنەی قەبارە گەورە و فایلە ستاتیکەکان
 app.use(express.json({ limit: '15mb' }));
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(express.static(__dirname));
 app.use('/materials', express.static(path.join(__dirname, 'materials')));
@@ -32,10 +37,12 @@ app.post('/api/solve-question', async (req, res) => {
         const { questionText, imageBase64, subject } = req.body;
         const apiKey = process.env.OPENROUTER_API_KEY;
 
-        // ئەگەر وێنە هەبوو مۆدێلی بینین (Gemini 2.5 Flash) بەکاردەهێنین، ئەگەر نا Qwen
-        const selectedModel = imageBase64 ? "google/gemini-2.5-flash" : "qwen/qwen-2.5-72b-instruct";
+        if (!apiKey) {
+            return res.json({ success: true, answer: "هەڵە: کلیلی OPENROUTER_API_KEY لە Railway دانەنراوە!" });
+        }
 
-        // دروستکردنی ناوەڕۆکی نامەکە (نووسین + وێنە ئەگەر هەبوو)
+        const selectedModel = imageBase64 ? "google/gemini-2.0-flash-001" : "qwen/qwen-2.5-72b-instruct";
+
         let userContent;
         if (imageBase64) {
             userContent = [
@@ -72,9 +79,7 @@ app.post('/api/solve-question', async (req, res) => {
                         content: `تۆ پرۆفیسۆری پسپۆڕی بیرکاری و زانستەکانیت لە سیستەمی Kurd AI (بابەت: ${subject || 'گشتی'}).
 ڕێنمایی توند بۆ زمان و شێواز:
 ١. بە زمانی کوردی سۆرانی زۆر ڕێزمانی و ستاندارد بنووسە. وشەی نامۆ و وەرگێڕدراوی بێواتا بەکارمەهێنە.
-٢. دەستەواژەی وەک (بەخێرایی، دەتوانم یارمەتیت بدەم، ژمارەی گرته) بە هیچ جۆرێک مەنووسە.
-٣. دەستەواژە زانستییەکان وەک ئەمانە بەکاربهێنە: (سەرەتا لایەکان سادە دەکەینەوە، گواستنەوەی نەزانراوەکان، دابەشکردنی هەردوو لا بەسەر هاوکۆڵکەی س).
-٤. ڕاستەوخۆ بەم شێوازە دەست پێ بکە:
+٢. ڕاستەوخۆ بەم شێوازە دەست پێ بکە:
 پرسیارەکە: ...
 هەنگاو ١: ...
 هەنگاو ٢: ...
@@ -101,13 +106,13 @@ app.post('/api/solve-question', async (req, res) => {
 
             return res.json({ success: true, answer: cleanAnswer });
         } else if (data.error) {
-            return res.json({ success: true, answer: "هەڵە: " + data.error.message });
+            return res.json({ success: true, answer: "هەڵەی OpenRouter: " + JSON.stringify(data.error) });
         } else {
-            return res.json({ success: true, answer: "وەڵام نەگەڕایەوە." });
+            return res.json({ success: true, answer: "وەڵامی نەناسراو: " + JSON.stringify(data) });
         }
 
     } catch (error) {
-        return res.status(500).json({ success: false, answer: "هەڵەی سێرڤەر: " + error.message });
+        return res.json({ success: true, answer: "هەڵەی سێرڤەر: " + error.message });
     }
 });
 
