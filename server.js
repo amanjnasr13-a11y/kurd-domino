@@ -29,8 +29,32 @@ app.get('/admin', (req, res) => {
 
 app.post('/api/solve-question', async (req, res) => {
     try {
-        const { questionText, subject } = req.body;
-const apiKey = process.env.OPENROUTER_API_KEY;
+        const { questionText, imageBase64, subject } = req.body;
+        const apiKey = process.env.OPENROUTER_API_KEY;
+
+        // ئەگەر وێنە هەبوو مۆدێلی بینین (Gemini 2.5 Flash) بەکاردەهێنین، ئەگەر نا Qwen
+        const selectedModel = imageBase64 ? "google/gemini-2.5-flash" : "qwen/qwen-2.5-72b-instruct";
+
+        // دروستکردنی ناوەڕۆکی نامەکە (نووسین + وێنە ئەگەر هەبوو)
+        let userContent;
+        if (imageBase64) {
+            userContent = [
+                {
+                    type: "text",
+                    text: questionText 
+                        ? `ئەم پرسیارەی ناو وێنەکە بەم ڕوونکردنەوەیەوە شیکار بکە: ${questionText}` 
+                        : "پرسیارەکەی ناو ئەم وێنەیە بخوێنەرەوە و بە هەنگاوی زانستی شیکاری بکە:"
+                },
+                {
+                    type: "image_url",
+                    image_url: {
+                        url: imageBase64
+                    }
+                }
+            ];
+        } else {
+            userContent = `ئەم پرسیارە شیکار بکە بە هەنگاوی زانستی:\n${questionText}`;
+        }
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -41,24 +65,24 @@ const apiKey = process.env.OPENROUTER_API_KEY;
                 "X-Title": "Kurd AI"
             },
             body: JSON.stringify({
-                model: "qwen/qwen-2.5-72b-instruct",
+                model: selectedModel,
                 messages: [
                     {
                         role: "system",
-                        content: `تۆ پرۆفیسۆری پسپۆڕی بیرکاریت لە سیستەمی Kurd AI.
+                        content: `تۆ پرۆفیسۆری پسپۆڕی بیرکاری و زانستەکانیت لە سیستەمی Kurd AI (بابەت: ${subject || 'گشتی'}).
 ڕێنمایی توند بۆ زمان و شێواز:
 ١. بە زمانی کوردی سۆرانی زۆر ڕێزمانی و ستاندارد بنووسە. وشەی نامۆ و وەرگێڕدراوی بێواتا بەکارمەهێنە.
 ٢. دەستەواژەی وەک (بەخێرایی، دەتوانم یارمەتیت بدەم، ژمارەی گرته) بە هیچ جۆرێک مەنووسە.
 ٣. دەستەواژە زانستییەکان وەک ئەمانە بەکاربهێنە: (سەرەتا لایەکان سادە دەکەینەوە، گواستنەوەی نەزانراوەکان، دابەشکردنی هەردوو لا بەسەر هاوکۆڵکەی س).
 ٤. ڕاستەوخۆ بەم شێوازە دەست پێ بکە:
+پرسیارەکە: ...
 هەنگاو ١: ...
 هەنگاو ٢: ...
-ئەنجامی کۆتایی: س = ...`
+ئەنجامی کۆتایی: ...`
                     },
                     {
                         role: "user",
-                        content: `ئەم پرسیارە شیکار بکە بە هەنگاوی زانستی:
-${questionText}`
+                        content: userContent
                     }
                 ],
                 temperature: 0.1
@@ -71,6 +95,7 @@ ${questionText}`
             let cleanAnswer = data.choices[0].message.content;
             cleanAnswer = cleanAnswer
                 .replace(/###/g, '')
+                .replace(/\*\*/g, '')
                 .replace(/[\u4e00-\u9fa5]/g, '')
                 .trim();
 
