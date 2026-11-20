@@ -88,6 +88,52 @@ app.get('/api/materials-list', (req, res) => {
   });
 });
 
+// بەشی چاتکردنی گشتی وەک Google Gemini (پرسیار بکە)
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { history } = req.body;
+    if (!history || !Array.isArray(history) || history.length === 0) {
+      return res.status(400).json({ error: 'تکایە پرسیارەکەت بنووسە.' });
+    }
+
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'کلیلی OPENROUTER_API_KEY لە سێرڤەر دانەنراوە!' });
+    }
+
+    const messages = [
+      {
+        role: 'system',
+        content: `تۆ (Kurd AI - کورد ئەی ئای)ـیت، زیرەکترین یاریدەدەری دیجیتاڵی بە زمانی کوردیی سۆرانی، هاوشێوەی Google Gemini و ChatGPT.
+تۆ شارەزاییت لە هەموو بوارێکدا هەیە: زانست، مێژوو، تەکنەلۆژیا، بەرنامەسازی، تەندروستی، ئابووری، ئەدەب، نووسینی وتار و چیرۆک، وەرگێڕانی هەموو زمانەکان، و ئامۆژگاریی ڕۆژانە.
+یاساکانی وەڵامدانەوە:
+1. هەمیشە بە زمانی کوردیی سۆرانییەکی زۆر پاراو، ڕێکوپێک و سادە وەڵام بدەرەوە (مەگەر بەکارهێنەر داوای زمانێکی تر بکات وەک عەرەبی یان ئینگلیزی).
+2. وەڵامەکانت بە شێوەی خاڵبەندی و ڕێکخراو بنووسە تا خوێندنەوەیان لەسەر مۆبایل زۆر ئاسان بێت.
+3. هێما تێکەڵەکانی LaTeX وەک ($ یان $$) بەکارمەهێنە تا نووسینەکە تێکنەچێت.`
+      },
+      ...history.slice(-12)
+    ];
+
+    const models = [
+      'google/gemini-2.5-flash',
+      'google/gemini-2.0-flash-001'
+    ];
+
+    let lastError = null;
+    for (const model of models) {
+      try {
+        const answer = await callOpenRouter(apiKey, model, messages);
+        return res.json({ answer });
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    throw lastError || new Error('وەڵام نەهاتەوە');
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/solve-question', async (req, res) => {
   try {
     const { questionText, imageBase64, subject } = req.body;
