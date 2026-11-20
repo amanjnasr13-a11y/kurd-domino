@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl" id="htmlTag">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,12 +22,10 @@
 
         /* ناڤبار */
         .navbar {
-            padding: 18px 30px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
         }
 
         .logo-wrap {
@@ -51,43 +49,12 @@
             font-weight: bold;
         }
 
-        .nav-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* دوگمەی زمانەکان */
-        .lang-switcher {
-            display: flex;
-            background: #131c2e;
-            border: 1px solid #1e293b;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .lang-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            padding: 7px 12px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .lang-btn.active {
-            background: #f59e0b;
-            color: #0b111e;
-        }
-
         .admin-btn {
             background: #131c2e;
             border: 1.5px solid #f59e0b;
             color: #f59e0b;
-            padding: 7px 15px;
-            font-size: 0.85rem;
+            padding: 8px 18px;
+            font-size: 0.9rem;
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
@@ -102,14 +69,14 @@
         /* بەشی ناوەڕاست */
         .main-content {
             max-width: 1150px;
-            margin: 30px auto 50px auto;
+            margin: 35px auto 50px auto;
             padding: 10px 20px;
             text-align: center;
             width: 100%;
         }
 
         .title {
-            font-size: 2.2rem;
+            font-size: 2.3rem;
             font-weight: 800;
             margin-bottom: 12px;
         }
@@ -117,10 +84,10 @@
         .subtitle {
             color: #94a3b8;
             font-size: 1rem;
-            margin-bottom: 40px;
+            margin-bottom: 45px;
         }
 
-        /* کارتەکان */
+        /* تۆڕی کارتەکان */
         .cards-container {
             display: flex;
             flex-wrap: wrap;
@@ -196,24 +163,51 @@
 
         .ai-header {
             background: #0b111e;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border-bottom: 1px solid #1e293b;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .ai-header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        /* دوگمەی زمانەکان تەنها لە ناو چاتەکە */
+        .lang-switcher {
+            display: flex;
+            background: #131c2e;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lang-btn.active {
+            background: #f59e0b;
+            color: #0b111e;
         }
 
         .clear-chat-btn {
             background: #1e293b;
             color: #cbd5e1;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
             font-size: 0.8rem;
             cursor: pointer;
@@ -382,6 +376,7 @@
         }
 
         .req-info {
+            text-align: right;
             line-height: 1.6;
             font-size: 0.9rem;
         }
@@ -406,7 +401,7 @@
 
         @media (max-width: 580px) {
             .card { width: 100%; }
-            .navbar { padding: 15px; justify-content: center; }
+            .navbar { padding: 15px 20px; }
             .req-card { flex-direction: column; gap: 15px; text-align: center; }
             .ai-chat-box { height: 92vh; }
         }
@@ -414,7 +409,7 @@
 </head>
 <body>
 
-    <!-- ناڤبار -->
+    <!-- ناڤبار (هەمووی بە کوردی) -->
     <header class="navbar">
         <div class="logo-wrap">
             <svg class="kurdish-flag" viewBox="0 0 600 400">
@@ -433,76 +428,74 @@
                     <polygon points="353,147 318,182 327,191"/>
                 </g>
             </svg>
-            <div class="logo">Kurd AI</div>
+            <div class="logo">Kurd AI - کورد ئەی ئای</div>
         </div>
 
-        <div class="nav-controls">
-            <div class="lang-switcher">
-                <button class="lang-btn active" id="btn-ku" onclick="setLanguage('ku')">کوردی</button>
-                <button class="lang-btn" id="btn-ar" onclick="setLanguage('ar')">عربي</button>
-                <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">English</button>
-            </div>
-            <button class="admin-btn" id="adminBtnText" onclick="openAdmin()">کۆنتڕۆڵی بەڕێوەبەر</button>
-        </div>
+        <button class="admin-btn" onclick="openAdmin()">کۆنتڕۆڵی بەڕێوەبەر (Admin)</button>
     </header>
 
-    <!-- ناوەڕۆک -->
+    <!-- ناوەڕۆکی سەرەکی (هەمووی بە کوردی) -->
     <main class="main-content">
-        <h1 class="title" id="mainTitle">بەخێربێیت بۆ سیستەمی Kurd AI</h1>
-        <p class="subtitle" id="mainSubtitle">زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت</p>
+        <h1 class="title">بەخێربێیت بۆ سیستەمی Kurd AI</h1>
+        <p class="subtitle">زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت</p>
 
         <div class="cards-container">
             <!-- ١. پرسیار بکە -->
             <div class="card" onclick="openAIChat()">
                 <div class="card-icon">✨</div>
-                <div class="card-title" id="c1Title">پرسیار بکە (Kurd AI)</div>
-                <div class="card-desc" id="c1Desc">هەر پرسیارێکت هەیە یان وێنەیەک بگرە لێرە بیپرسە</div>
+                <div class="card-title">پرسیار بکە (Kurd AI)</div>
+                <div class="card-desc">هەر پرسیارێکت هەیە یان وێنەیەک بگرە لێرە بیپرسە</div>
             </div>
 
             <!-- ٢. تەکسی و گواستنەوە -->
             <a href="taxi.html" class="card">
                 <div class="card-icon">🚖</div>
-                <div class="card-title" id="c2Title">تەکسی و گواستنەوە</div>
-                <div class="card-desc" id="c2Desc">نرخ و هێڵەکانی ناو شار و شارەکان</div>
+                <div class="card-title">تەکسی و گواستنەوە</div>
+                <div class="card-desc">نرخ و هێڵەکانی ناو شار و شارەکان</div>
             </a>
 
             <!-- ٣. گەیمینگ -->
             <a href="games.html" class="card">
                 <div class="card-icon">🎮</div>
-                <div class="card-title" id="c3Title">گەیمینگ و یارییەکان</div>
-                <div class="card-desc" id="c3Desc">خۆشترین یارییەکان</div>
+                <div class="card-title">گەیمینگ و یارییەکان</div>
+                <div class="card-desc">خۆشترین یارییەکان</div>
             </a>
 
             <!-- ٤. بۆ قوتابیان -->
             <a href="student.html" class="card">
                 <div class="card-icon">🎓</div>
-                <div class="card-title" id="c4Title">بۆ قوتابیان</div>
-                <div class="card-desc" id="c4Desc">شیکاری پرسیار، مەلزەمە و کورتکراوەی وانەکان</div>
+                <div class="card-title">بۆ قوتابیان</div>
+                <div class="card-desc">شیکاری پرسیار، مەلزەمە و کورتکراوەی وانەکان</div>
             </a>
 
             <!-- ٥. کڕین و فرۆشتن -->
             <a href="marketplace.html" class="card">
                 <div class="card-icon">🏷️</div>
-                <div class="card-title" id="c5Title">کڕین و فرۆشتنی دەستی دوو</div>
-                <div class="card-desc" id="c5Desc">کەرەستەی تازە + بەکارهاتوو</div>
+                <div class="card-title">کڕین و فرۆشتنی دەستی دوو</div>
+                <div class="card-desc">کەرەستەی تازە + بەکارهاتوو</div>
             </a>
 
             <!-- ٦. پیشەوەرەکان -->
             <a href="professionals.html" class="card">
                 <div class="card-icon">🛠️</div>
-                <div class="card-title" id="c6Title">پیشەوەرەکان</div>
-                <div class="card-desc" id="c6Desc">وەستا، کارەباچی، بۆریچی و چاککردنەوەی ماڵ</div>
+                <div class="card-title">پیشەوەرەکان</div>
+                <div class="card-desc">وەستا، کارەباچی، بۆریچی و چاککردنەوەی ماڵ</div>
             </a>
         </div>
     </main>
 
-    <!-- پەنجەرەی چاتی Kurd AI -->
+    <!-- پەنجەرەی چاتی Kurd AI (سێ زمان لێرەدایە) -->
     <div class="ai-modal" id="aiModal">
-        <div class="ai-chat-box">
+        <div class="ai-chat-box" id="aiChatBox" dir="rtl">
             <div class="ai-header">
                 <div style="font-weight: bold; color: #f59e0b; font-size: 1.05rem;" id="aiModalTitle">✨ یاریدەدەری زیرەکی Kurd AI</div>
                 <div class="ai-header-actions">
-                    <button class="clear-chat-btn" id="aiClearBtn" onclick="clearAIChat()">🗑️ گفتوگۆی نوێ</button>
+                    <div class="lang-switcher">
+                        <button class="lang-btn active" id="btn-ku" onclick="setChatLang('ku')">کوردی</button>
+                        <button class="lang-btn" id="btn-ar" onclick="setChatLang('ar')">عربي</button>
+                        <button class="lang-btn" id="btn-en" onclick="setChatLang('en')">English</button>
+                    </div>
+                    <button class="clear-chat-btn" id="aiClearBtn" onclick="clearAIChat()">🗑️ نوێ</button>
                     <button class="close-btn" onclick="closeAIChat()">&times;</button>
                 </div>
             </div>
@@ -551,30 +544,15 @@
             ? ''
             : 'https://kurd-domino-production.up.railway.app';
 
-        let currentLang = localStorage.getItem('kurdai_lang') || 'ku';
+        let currentLang = 'ku';
         let chatHistory = [];
         let aiSelectedImage = null;
 
-        const translations = {
+        const chatTranslations = {
             ku: {
                 dir: 'rtl',
-                adminBtn: 'کۆنتڕۆڵی بەڕێوەبەر',
-                mainTitle: 'بەخێربێیت بۆ سیستەمی Kurd AI',
-                mainSubtitle: 'زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت',
-                c1Title: 'پرسیار بکە (Kurd AI)',
-                c1Desc: 'هەر پرسیارێکت هەیە یان وێنەیەک بگرە لێرە بیپرسە',
-                c2Title: 'تەکسی و گواستنەوە',
-                c2Desc: 'نرخ و هێڵەکانی ناو شار و شارەکان',
-                c3Title: 'گەیمینگ و یارییەکان',
-                c3Desc: 'خۆشترین یارییەکان',
-                c4Title: 'بۆ قوتابیان',
-                c4Desc: 'شیکاری پرسیار، مەلزەمە و کورتکراوەی وانەکان',
-                c5Title: 'کڕین و فرۆشتنی دەستی دوو',
-                c5Desc: 'کەرەستەی تازە + بەکارهاتوو',
-                c6Title: 'پیشەوەرەکان',
-                c6Desc: 'وەستا، کارەباچی، بۆریچی و چاککردنەوەی ماڵ',
                 aiModalTitle: '✨ یاریدەدەری زیرەکی Kurd AI',
-                aiClearBtn: '🗑️ گفتوگۆی نوێ',
+                aiClearBtn: '🗑️ نوێ',
                 aiWelcome: 'سڵاو! من <b>Kurd AI</b>ـم. هەر پرسیارێکت هەیە بینووسە یان وێنەی هەر شتێک بگرە تا بە وردی هەموو زانیارییەکانت بۆ باس بکەم!',
                 aiImgReady: 'وێنەکە ئامادەیە بۆ ناردن...',
                 aiPlaceholder: 'پرسیار بنووسە یان وێنەیەک بگرە...',
@@ -586,23 +564,8 @@
             },
             ar: {
                 dir: 'rtl',
-                adminBtn: 'لوحة الإدارة',
-                mainTitle: 'مرحباً بك في نظام Kurd AI',
-                mainSubtitle: 'معظم احتياجاتك اليومية متوفرة هنا في مكان واحد',
-                c1Title: 'اسأل الذكاء الاصطناعي (Kurd AI)',
-                c1Desc: 'اكتب أي سؤال أو التقط صورة وسيتم شرحها لك بالكامل',
-                c2Title: 'التكسي والنقل',
-                c2Desc: 'أسعار وخطوط النقل داخل المدن وبين المحافظات',
-                c3Title: 'الألعاب والترفيه',
-                c3Desc: 'أمتع الألعاب الجماعية والفردية',
-                c4Title: 'قسم الطلاب',
-                c4Desc: 'حل الأسئلة والملخصات والكتب الدراسية',
-                c5Title: 'البيع والشراء المستعمل',
-                c5Desc: 'أغراض جديدة + مستعملة',
-                c6Title: 'الحرفيون والمهنيون',
-                c6Desc: 'كهربائي، سباك، وصيانة المنازل',
                 aiModalTitle: '✨ مساعد Kurd AI الذكي',
-                aiClearBtn: '🗑️ محادثة جديدة',
+                aiClearBtn: '🗑️ جديد',
                 aiWelcome: 'مرحباً! أنا <b>Kurd AI</b>. اكتب أي سؤال أو التقط صورة لأي شيء وسأشرح لك كل التفاصيل بدقة!',
                 aiImgReady: 'الصورة جاهزة للإرسال...',
                 aiPlaceholder: 'اكتب سؤالك أو التقط صورة...',
@@ -614,23 +577,8 @@
             },
             en: {
                 dir: 'ltr',
-                adminBtn: 'Admin Panel',
-                mainTitle: 'Welcome to Kurd AI System',
-                mainSubtitle: 'All your daily needs and smart tools in one place',
-                c1Title: 'Ask Kurd AI',
-                c1Desc: 'Ask anything or snap a photo for detailed AI analysis',
-                c2Title: 'Taxi & Transport',
-                c2Desc: 'City and intercity fares and routes',
-                c3Title: 'Gaming & Fun',
-                c3Desc: 'Play exciting multiplayer and classic games',
-                c4Title: 'For Students',
-                c4Desc: 'AI homework solver, study guides, and PDF books',
-                c5Title: 'Second-Hand Marketplace',
-                c5Desc: 'Buy & sell new and used items',
-                c6Title: 'Professionals & Craftsmen',
-                c6Desc: 'Electricians, plumbers, and home repair experts',
                 aiModalTitle: '✨ Kurd AI Smart Assistant',
-                aiClearBtn: '🗑️ New Chat',
+                aiClearBtn: '🗑️ New',
                 aiWelcome: 'Hello! I am <b>Kurd AI</b>. Ask me anything or capture a photo of any object and I will explain everything in detail!',
                 aiImgReady: 'Image ready to send...',
                 aiPlaceholder: 'Type a question or take a photo...',
@@ -642,33 +590,15 @@
             }
         };
 
-        function setLanguage(lang) {
+        function setChatLang(lang) {
             currentLang = lang;
-            localStorage.setItem('kurdai_lang', lang);
-            const t = translations[lang] || translations.ku;
+            const t = chatTranslations[lang] || chatTranslations.ku;
 
-            document.getElementById('htmlTag').lang = lang;
-            document.getElementById('htmlTag').dir = t.dir;
+            document.getElementById('aiChatBox').dir = t.dir;
 
             ['ku', 'ar', 'en'].forEach(code => {
                 document.getElementById('btn-' + code).classList.toggle('active', code === lang);
             });
-
-            document.getElementById('adminBtnText').textContent = t.adminBtn;
-            document.getElementById('mainTitle').textContent = t.mainTitle;
-            document.getElementById('mainSubtitle').textContent = t.mainSubtitle;
-            document.getElementById('c1Title').textContent = t.c1Title;
-            document.getElementById('c1Desc').textContent = t.c1Desc;
-            document.getElementById('c2Title').textContent = t.c2Title;
-            document.getElementById('c2Desc').textContent = t.c2Desc;
-            document.getElementById('c3Title').textContent = t.c3Title;
-            document.getElementById('c3Desc').textContent = t.c3Desc;
-            document.getElementById('c4Title').textContent = t.c4Title;
-            document.getElementById('c4Desc').textContent = t.c4Desc;
-            document.getElementById('c5Title').textContent = t.c5Title;
-            document.getElementById('c5Desc').textContent = t.c5Desc;
-            document.getElementById('c6Title').textContent = t.c6Title;
-            document.getElementById('c6Desc').textContent = t.c6Desc;
 
             document.getElementById('aiModalTitle').textContent = t.aiModalTitle;
             document.getElementById('aiClearBtn').textContent = t.aiClearBtn;
@@ -693,7 +623,7 @@
         function clearAIChat() {
             chatHistory = [];
             clearAIImage();
-            const t = translations[currentLang] || translations.ku;
+            const t = chatTranslations[currentLang] || chatTranslations.ku;
             document.getElementById('aiMessages').innerHTML = `<div class="msg bot">${t.aiWelcome}</div>`;
         }
 
@@ -731,7 +661,7 @@
             const input = document.getElementById('aiInput');
             const sendBtn = document.getElementById('aiSendBtn');
             const messagesBox = document.getElementById('aiMessages');
-            const t = translations[currentLang] || translations.ku;
+            const t = chatTranslations[currentLang] || chatTranslations.ku;
             const text = input.value.trim();
             const imageToSend = aiSelectedImage;
 
@@ -936,9 +866,6 @@
             const data = await res.json();
             if (data.success) loadAdminMarketItems();
         }
-
-        // کارپێکردنی زمانە هەڵبژێردراوەکە لە سەرەتادا
-        setLanguage(currentLang);
     </script>
 </body>
 </html>
