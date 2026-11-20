@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kurd AI - بەشی قوتابیان</title>
+    <title>بەشی قوتابیان - Kurd AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -11,273 +11,110 @@
             --card-bg: #152238;
             --accent-color: #ffb703;
             --text-color: #ffffff;
-            --text-muted: #94a3b8;
             --border-color: #1e293b;
             --input-bg: #0d1b2a;
             --success-color: #2a9d8f;
             --danger-color: #e63946;
         }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; }
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.9rem 1rem;
-            background-color: rgba(11, 19, 41, 0.98);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 50;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 1.5rem; background-color: #091024; border-bottom: 1px solid var(--border-color);
         }
+        .logo { font-size: 1.15rem; font-weight: bold; color: var(--accent-color); }
         .back-btn {
-            background: transparent;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            padding: 0.45rem 0.9rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: var(--accent-color); border: 1px solid var(--accent-color);
+            padding: 0.45rem 1rem; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;
         }
-        .logo {
-            font-size: 1.05rem;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-        .container {
-            max-width: 850px;
-            margin: 1rem auto;
-            padding: 0 1rem 2rem 1rem;
-            width: 100%;
-        }
+        .container { max-width: 900px; margin: 1.5rem auto; padding: 0 1rem; }
         .ai-box {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.2rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 1.5rem;
         }
-        .ai-box h2 {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            color: var(--accent-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .media-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 1rem;
-        }
+        .media-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
         .media-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background-color: var(--input-bg);
-            border: 1.5px dashed var(--accent-color);
-            color: #fff;
-            padding: 1rem 0.5rem;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: transform 0.15s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            background-color: var(--input-bg); border: 1.5px dashed var(--accent-color);
+            color: #fff; padding: 1rem; border-radius: 10px; cursor: pointer; font-weight: bold;
         }
-        .media-btn:active {
-            transform: scale(0.97);
-        }
-        .media-btn.gallery-btn {
-            border-color: var(--success-color);
-        }
-        .preview-container {
-            position: relative;
-            display: none;
-            width: fit-content;
-            margin: 0.8rem auto 1rem auto;
-        }
-        .image-preview {
-            max-width: 240px;
-            max-height: 240px;
-            border-radius: 12px;
-            border: 2px solid var(--accent-color);
-            display: block;
-            object-fit: cover;
-        }
-        .remove-img-btn {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: var(--danger-color);
-            color: #fff;
-            border: 2px solid var(--card-bg);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .media-btn.gallery { border-color: var(--success-color); }
+        .preview-box { position: relative; display: none; width: fit-content; margin: 0 auto 1rem auto; }
+        .preview-box img { max-width: 240px; max-height: 240px; border-radius: 10px; border: 2px solid var(--accent-color); }
+        .remove-btn {
+            position: absolute; top: -10px; right: -10px; background: var(--danger-color);
+            color: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold;
         }
         textarea {
-            width: 100%;
-            height: 110px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: #fff;
-            padding: 0.9rem;
-            font-size: 1rem;
-            margin-bottom: 0.9rem;
-            outline: none;
-            resize: vertical;
+            width: 100%; height: 110px; background-color: var(--input-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; color: #fff; padding: 1rem; font-size: 1rem; margin-bottom: 1rem; outline: none;
         }
-        textarea:focus {
-            border-color: var(--accent-color);
-        }
-        .actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .actions { display: flex; gap: 12px; flex-wrap: wrap; }
         .select-subject {
-            background-color: var(--input-bg);
-            color: #fff;
-            border: 1px solid var(--border-color);
-            padding: 0.8rem;
-            border-radius: 10px;
-            flex: 1;
-            min-width: 150px;
-            font-size: 0.95rem;
-            outline: none;
+            background-color: var(--input-bg); color: #fff; border: 1px solid var(--border-color);
+            padding: 0.8rem 1rem; border-radius: 10px; flex: 1; font-size: 0.95rem;
         }
         .btn-submit {
-            background-color: var(--accent-color);
-            color: #000;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            flex: 1;
-            min-width: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            background-color: var(--accent-color); color: #000; border: none; padding: 0.8rem 1.5rem;
+            border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; flex: 1;
         }
-        .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .btn-submit:disabled { opacity: 0.6; }
         .response-area {
-            margin-top: 1.3rem;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            display: none;
+            margin-top: 1.5rem; background-color: var(--input-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 1.2rem; display: none;
         }
         .response-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.6rem;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--accent-color);
-            font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.8rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-color);
+            color: var(--accent-color); font-weight: bold;
         }
-        .copy-btn {
-            background: rgba(255, 255, 255, 0.12);
-            border: none;
-            color: #fff;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .response-text {
-            line-height: 1.85;
-            font-size: 1rem;
-            color: #f1f5f9;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .error-text {
-            color: #ff6b6b;
-            font-weight: bold;
-        }
+        .copy-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; }
+        .response-text { line-height: 1.9; font-size: 1.05rem; color: #f1f5f9; white-space: pre-wrap; }
     </style>
 </head>
 <body>
     <header>
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-right"></i> سەرەکی</a>
         <div class="logo">بەشی قوتابیان - Kurd AI 🎓</div>
+        <a href="index.html" class="back-btn">گەڕانەوە بۆ سەرەکی <i class="fa-solid fa-arrow-left"></i></a>
     </header>
 
     <div class="container">
         <div class="ai-box">
-            <h2><i class="fa-solid fa-robot"></i> وێنەی پرسیار بگرە یان بینووسە</h2>
-
-            <div class="media-buttons">
+            <div class="media-row">
                 <label for="cameraInput" class="media-btn">
-                    <i class="fa-solid fa-camera" style="color: #ffb703; font-size: 1.6rem;"></i>
+                    <i class="fa-solid fa-camera" style="color: #ffb703; font-size: 1.5rem;"></i>
                     <span>وێنەگرتن بە کامێرا</span>
                 </label>
-                <label for="galleryInput" class="media-btn gallery-btn">
-                    <i class="fa-solid fa-images" style="color: #2a9d8f; font-size: 1.6rem;"></i>
+                <label for="galleryInput" class="media-btn gallery">
+                    <i class="fa-solid fa-images" style="color: #2a9d8f; font-size: 1.5rem;"></i>
                     <span>هەڵبژاردن لە گەلەری</span>
                 </label>
             </div>
 
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelect(event)">
-            <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="loadImg(event)">
+            <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="loadImg(event)">
 
-            <div class="preview-container" id="previewContainer">
-                <img id="imagePreview" class="image-preview" alt="پێشبینی وێنە">
-                <button type="button" class="remove-img-btn" onclick="clearSelectedImage()">✕</button>
+            <div class="preview-box" id="previewBox">
+                <img id="imgPreview" alt="پرسیار">
+                <button type="button" class="remove-btn" onclick="clearImg()">✕</button>
             </div>
 
-            <textarea id="questionInput" placeholder="پرسیارەکەت لێرە بنووسە یان وێنەی پرسیارەکە دابنێ..."></textarea>
+            <textarea id="questionInput" placeholder="پرسیارەکەت لێرە بنووسە... (ئەگەر وێنەت داناوە دەتوانیت بە بەتاڵی جێی بهێڵیت)"></textarea>
 
             <div class="actions">
                 <select id="subjectSelect" class="select-subject">
                     <option value="گشتی">بابەت: گشتی</option>
                     <option value="بیرکاری">بیرکاری</option>
                     <option value="فیزیا / کیمیا / زیندەزانی">فیزیا / کیمیا / زیندەزانی</option>
-                    <option value="زمانەکان">زمانەکان (کوردی / ئینگلیزی / عەرەبی)</option>
+                    <option value="زمانەکان">زمانەکان</option>
                 </select>
-                <button type="button" class="btn-submit" id="submitBtn" onclick="solveQuestion()">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> شیکار بکە
-                </button>
+                <button type="button" class="btn-submit" id="submitBtn" onclick="solveNow()">✨ شیکار بکە</button>
             </div>
 
             <div id="resultBox" class="response-area">
                 <div class="response-header">
-                    <span>✅ وەڵام و شیکار:</span>
-                    <button type="button" class="copy-btn" id="copyBtn" onclick="copyResultText()">کۆپیکردن</button>
+                    <span>✅ شیکاری ژیر:</span>
+                    <button type="button" class="copy-btn" onclick="copyText()">کۆپیکردن</button>
                 </div>
                 <div class="response-text" id="responseText"></div>
             </div>
@@ -285,141 +122,81 @@
     </div>
 
     <script>
-        let base64ImageData = null;
-        const SERVER_URL = "https://kurd-domino-production.up.railway.app";
+        let imageBase64 = null;
+        const API_BASE = window.location.origin.includes('railway.app') 
+            ? '' 
+            : 'https://kurd-domino-production.up.railway.app';
 
-        function handleImageSelect(event) {
+        function loadImg(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            const objectUrl = URL.createObjectURL(file);
-            const img = new Image();
-
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                // بچووککردنەوەی وێنە بۆ ئەوەی بە خێرایی بچێت بۆ سێرڤەر و نەپچڕێت
-                const MAX_SIZE = 900;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_SIZE) {
-                        height = Math.round((height * MAX_SIZE) / width);
-                        width = MAX_SIZE;
-                    }
-                } else {
-                    if (height > MAX_SIZE) {
-                        width = Math.round((width * MAX_SIZE) / height);
-                        height = MAX_SIZE;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, width, height);
-                ctx.drawImage(img, 0, 0, width, height);
-
-                base64ImageData = canvas.toDataURL('image/jpeg', 0.75);
-                document.getElementById('imagePreview').src = base64ImageData;
-                document.getElementById('previewContainer').style.display = 'block';
-                URL.revokeObjectURL(objectUrl);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 900;
+                    let w = img.width, h = img.height;
+                    if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    imageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('imgPreview').src = imageBase64;
+                    document.getElementById('previewBox').style.display = 'block';
+                };
+                img.src = e.target.result;
             };
-
-            img.onerror = function() {
-                alert("کێشەیەک لە خوێندنەوەی وێنەکەدا هەبوو، تکایە دووبارە هەوڵبدەرەوە.");
-                URL.revokeObjectURL(objectUrl);
-            };
-
-            img.src = objectUrl;
+            reader.readAsDataURL(file);
         }
 
-        function clearSelectedImage() {
+        function clearImg() {
+            imageBase64 = null;
             document.getElementById('cameraInput').value = '';
             document.getElementById('galleryInput').value = '';
-            base64ImageData = null;
-            document.getElementById('imagePreview').src = '';
-            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('previewBox').style.display = 'none';
         }
 
-        function cleanResponseText(text) {
-            // پاککردنەوەی هێما زیادەکانی مارکداون تا بە جوانی لە مۆبایل بخوێنرێتەوە
-            return text
-                .replace(/\*\*/g, '')
-                .replace(/###\s?/g, '📌 ')
-                .replace(/##\s?/g, '🔹 ')
-                .trim();
-        }
-
-        async function solveQuestion() {
-            const textValue = document.getElementById('questionInput').value.trim();
+        async function solveNow() {
+            const questionText = document.getElementById('questionInput').value.trim();
             const subject = document.getElementById('subjectSelect').value;
             const resultBox = document.getElementById('resultBox');
             const responseText = document.getElementById('responseText');
-            const submitBtn = document.getElementById('submitBtn');
+            const btn = document.getElementById('submitBtn');
 
-            if (!textValue && !base64ImageData) {
-                alert('تکایە سەرەتا پرسیارێک بنووسە یان وێنەی پرسیارەکە بگرە!');
+            if (!questionText && !imageBase64) {
+                alert('تکایە وێنەی پرسیارەکە دابنێ یان پرسیارێک بنووسە!');
                 return;
             }
 
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> خەریکی شیکارکردنە...';
+            btn.disabled = true;
+            btn.innerText = '⏳ خەریکی خوێندنەوەی وێنەکەیە...';
             resultBox.style.display = 'block';
-            responseText.classList.remove('error-text');
-            responseText.innerText = '⏳ تکایە کەمێک چاوەڕێ بکە، زیرەکی دەستکرد خەریکی خوێندنەوەی پرسیارەکەیە...';
-
-            // دانانی کاتی دیاریکراو (45 چرکە) تا ئەگەر ئینتەرنێت خاو بوو هەڵنەواسرێت
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 45000);
+            responseText.innerText = '⏳ تکایە چاوەڕێ بکە، زیرەکی دەستکرد خەریکی شیکارکردنی وێنەکەیە...';
 
             try {
-                const res = await fetch(`${SERVER_URL}/api/solve-question`, {
+                const res = await fetch(`${API_BASE}/api/solve-question`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        questionText: textValue,
-                        imageBase64: base64ImageData,
-                        subject: subject
-                    })
+                    body: JSON.stringify({ questionText, imageBase64, subject })
                 });
-
-                clearTimeout(timeoutId);
                 const data = await res.json();
-
                 if (res.ok && data.answer) {
-                    responseText.innerText = cleanResponseText(data.answer);
+                    responseText.innerText = data.answer.replace(/\*\*/g, '');
                 } else {
-                    responseText.classList.add('error-text');
-                    responseText.innerText = "❌ هەڵەی سێرڤەر: " + (data.error || "نەتوانرا وەڵام وەربگیرێت.");
+                    responseText.innerText = '❌ هەڵە: ' + (data.error || 'وەڵام نەهاتەوە');
                 }
             } catch (err) {
-                clearTimeout(timeoutId);
-                responseText.classList.add('error-text');
-                if (err.name === 'AbortError') {
-                    responseText.innerText = "⏱️ کاتەکە تەواو بوو! ئینتەرنێتەکەت خاوە یان وێنەکە زۆر گەورەیە، دووبارە هەوڵبدەرەوە.";
-                } else {
-                    responseText.innerText = "❌ هەڵەی پەیوەندی بە سێرڤەرەوە: " + err.message;
-                }
+                responseText.innerText = '❌ هەڵەی پەیوەندی: ' + err.message;
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> شیکار بکە';
+                btn.disabled = false;
+                btn.innerText = '✨ شیکار بکە';
             }
         }
 
-        function copyResultText() {
-            const text = document.getElementById('responseText').innerText;
-            const copyBtn = document.getElementById('copyBtn');
-            if (!text) return;
-
-            navigator.clipboard.writeText(text).then(() => {
-                copyBtn.innerText = '✅ کۆپی کرا';
-                setTimeout(() => { copyBtn.innerText = 'کۆپیکردن'; }, 2000);
-            }).catch(() => {
-                alert('وەڵامەکە کۆپی کرا!');
-            });
+        function copyText() {
+            navigator.clipboard.writeText(document.getElementById('responseText').innerText)
+                .then(() => alert('کۆپی کرا!'));
         }
     </script>
 </body>
