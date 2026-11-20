@@ -22,16 +22,20 @@ app.use((req, res, next) => {
 // ڕێگەپێدان بە وەرگرتنی وێنەی قەبارە گەورە و فایلە ستاتیکەکان
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static(__dirname));
-app.use('/materials', express.static(path.join(__dirname, 'materials')));
+app.use(express.static(path.join(__dirname, 'www')));
+app.use('/materials', express.static(path.join(__dirname, 'www', 'materials')));
 
 // لاپەڕە سەرەکییەکان
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'www', 'index.html'));
 });
 
 app.get('/marketplace', (req, res) => {
-  res.sendFile(path.join(__dirname, 'marketplace.html'));
+  res.sendFile(path.join(__dirname, 'www', 'marketplace.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'www', 'admin.html'));
 });
 
 app.get('/admin', (req, res) => {
