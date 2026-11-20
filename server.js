@@ -8,14 +8,20 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-// ڕێگەپێدان بە وەرگرتنی وێنەی قەبارە گەورە و فایلە ستاتیکەکان
-app.use(express.json({ limit: '15mb' }));
+// ڕێگەپێدان بە CORS بۆ ئەپی مۆبایل (Capacitor) و وێب
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
     next();
 });
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// ڕێگەپێدان بە وەرگرتنی وێنەی قەبارە گەورە و فایلە ستاتیکەکان
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(__dirname));
 app.use('/materials', express.static(path.join(__dirname, 'materials')));
 
@@ -32,25 +38,36 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// ==========================================
+// --- بەشی شیکارکردنی پرسیاری قوتابیان (AI) ---
+// ==========================================
 app.post('/api/solve-question', async (req, res) => {
     try {
         const { questionText, imageBase64, subject } = req.body;
         const apiKey = process.env.OPENROUTER_API_KEY;
 
         if (!apiKey) {
-            return res.json({ success: true, answer: "هەڵە: کلیلی OPENROUTER_API_KEY لە Railway دانەنراوە!" });
+            return res.status(500).json({ error: "کلیلی OPENROUTER_API_KEY لە Railway دانەنراوە!" });
         }
 
-        const selectedModel = imageBase64 ? "google/gemini-2.0-flash-001" : "qwen/qwen-2.5-72b-instruct";
+        const hasImage = imageBase64 && typeof imageBase64 === 'string' && imageBase64.startsWith('data:image');
+        const hasText = questionText && typeof questionText === 'string' && questionText.trim().length > 0;
+
+        if (!hasImage && !hasText) {
+            return res.status(400).json({ error: "تکایە سەرەتا پرسیارێک بنووسە یان وێنەی پرسیارەکە دابنێ!" });
+        }
+
+        // بەکارهێنانی Gemini 2.5 Flash بۆ خوێندنەوەی وردی وێنە و زمانی کوردی
+        const selectedModel = "google/gemini-2.5-flash";
 
         let userContent;
-        if (imageBase64) {
+        if (hasImage) {
             userContent = [
                 {
                     type: "text",
-                    text: questionText 
-                        ? `ئەم پرسیارەی ناو وێنەکە بەم ڕوونکردنەوەیەوە شیکار بکە: ${questionText}` 
-                        : "پرسیارەکەی ناو ئەم وێنەیە بخوێنەرەوە و بە هەنگاوی زانستی شیکاری بکە:"
+                    text: hasText 
+                        ? `ئەم وێنەیە بە وردی بخوێنەرەوە و پرسیارەکەی ناوی شیکار بکە. تێبینی قوتابی: ${questionText.trim()}` 
+                        : "ئەم وێنەیە بە وردی بخوێنەرەوە، پرسیارەکەی ناوی بنووسەرەوە و بە هەنگاوی زانستی ڕوون شیکاری بکە:"
                 },
                 {
                     type: "image_url",
@@ -60,7 +77,7 @@ app.post('/api/solve-question', async (req, res) => {
                 }
             ];
         } else {
-            userContent = `ئەم پرسیارە شیکار بکە بە هەنگاوی زانستی:\n${questionText}`;
+            userContent = `ئەم پرسیارە شیکار بکە بە هەنگاوی زانستی ڕوون:\n${questionText.trim()}`;
         }
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -76,10 +93,11 @@ app.post('/api/solve-question', async (req, res) => {
                 messages: [
                     {
                         role: "system",
-                        content: `تۆ پرۆفیسۆری پسپۆڕی بیرکاری و زانستەکانیت لە سیستەمی Kurd AI (بابەت: ${subject || 'گشتی'}).
-ڕێنمایی توند بۆ زمان و شێواز:
-١. بە زمانی کوردی سۆرانی زۆر ڕێزمانی و ستاندارد بنووسە. وشەی نامۆ و وەرگێڕدراوی بێواتا بەکارمەهێنە.
-٢. ڕاستەوخۆ بەم شێوازە دەست پێ بکە:
+                        content: `تۆ مامۆستا و پرۆفیسۆری پسپۆڕیت لە مەنهەجی خوێندنی هەرێمی کوردستان لە سیستەمی Kurd AI (بابەت: ${subject || 'گشتی'}).
+ڕێنماییەکان:
+١. بە زمانی کوردی سۆرانی زۆر پاراو، ڕێزمانی و ستاندارد بنووسە.
+٢. ئەگەر وێنە نێردرابوو، سەرەتا دەق یان هاوکێشەی ناو وێنەکە بە ڕوونی بنووسەرەوە تا قوتابی دڵنیابێت لەوەی وێنەکەت خوێندووەتەوە.
+٣. ڕاستەوخۆ بەم شێوازە شیکاری بکە:
 پرسیارەکە: ...
 هەنگاو ١: ...
 هەنگاو ٢: ...
@@ -106,13 +124,15 @@ app.post('/api/solve-question', async (req, res) => {
 
             return res.json({ success: true, answer: cleanAnswer });
         } else if (data.error) {
-            return res.json({ success: true, answer: "هەڵەی OpenRouter: " + JSON.stringify(data.error) });
+            console.error("OpenRouter Error:", data.error);
+            return res.status(500).json({ error: "هەڵەی OpenRouter: " + (data.error.message || JSON.stringify(data.error)) });
         } else {
-            return res.json({ success: true, answer: "وەڵامی نەناسراو: " + JSON.stringify(data) });
+            return res.status(500).json({ error: "وەڵامی نەناسراو لە سێرڤەری AI وەرگیرا." });
         }
 
     } catch (error) {
-        return res.json({ success: true, answer: "هەڵەی سێرڤەر: " + error.message });
+        console.error("Server Solve Error:", error);
+        return res.status(500).json({ error: "هەڵەی سێرڤەر: " + error.message });
     }
 });
 

@@ -37,26 +37,29 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.2rem 2rem;
+            padding: 1rem 1.2rem;
             background-color: rgba(11, 19, 41, 0.95);
             border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
             z-index: 50;
+            gap: 10px;
         }
 
         .back-btn {
             background-color: transparent;
             color: var(--accent-color);
             border: 1px solid var(--accent-color);
-            padding: 0.5rem 1.2rem;
+            padding: 0.45rem 0.9rem;
             border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
+            font-size: 0.9rem;
             transition: 0.3s;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            white-space: nowrap;
         }
 
         .back-btn:hover {
@@ -65,17 +68,18 @@
         }
 
         .logo {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: var(--accent-color);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            white-space: nowrap;
         }
 
         .container {
             max-width: 1000px;
-            margin: 2rem auto;
+            margin: 1.5rem auto;
             padding: 0 1rem;
             width: 100%;
             flex: 1;
@@ -83,32 +87,31 @@
 
         .hero-title {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.8rem;
         }
 
         .hero-title h1 {
-            font-size: 2rem;
+            font-size: 1.7rem;
             color: #fff;
             margin-bottom: 0.5rem;
         }
 
         .hero-title p {
             color: var(--text-muted);
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
-        /* بەشی لێکۆڵینەوە و پرسیارکردن لە AI */
         .ai-box {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 1.8rem;
+            padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             margin-bottom: 2rem;
         }
 
         .ai-box h2 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 1.2rem;
             display: flex;
             align-items: center;
@@ -122,68 +125,78 @@
             gap: 1rem;
         }
 
-        /* وێنەگرتن و بارکردن */
-        .image-upload-wrapper {
+        /* دوگمەکانی کامێرا و گەلەری */
+        .media-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .media-btn {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             background-color: var(--input-bg);
-            border: 1.5px dashed var(--border-color);
-            padding: 1.2rem;
+            border: 1.5px dashed var(--accent-color);
+            color: #fff;
+            padding: 1rem;
             border-radius: 10px;
             cursor: pointer;
             transition: 0.2s;
-            user-select: none;
+            font-weight: bold;
+            font-size: 0.95rem;
+            text-align: center;
         }
 
-        .image-upload-wrapper:hover {
-            border-color: var(--accent-color);
-            background-color: rgba(255, 183, 3, 0.05);
+        .media-btn.gallery-btn {
+            border-color: var(--success-color);
         }
 
-        .image-upload-wrapper input[type="file"] {
-            display: none;
+        .media-btn:active {
+            transform: scale(0.97);
+            background-color: rgba(255, 183, 3, 0.1);
         }
 
         .preview-container {
             position: relative;
             display: none;
             width: fit-content;
-            margin: 0.5rem 0;
+            margin: 0.5rem auto;
         }
 
         .image-preview {
-            max-width: 180px;
-            max-height: 180px;
-            border-radius: 8px;
+            max-width: 220px;
+            max-height: 220px;
+            border-radius: 10px;
             object-fit: cover;
             border: 2px solid var(--accent-color);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             display: block;
         }
 
         .remove-img-btn {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -10px;
+            right: -10px;
             background-color: var(--danger-color);
             color: #fff;
             border: none;
-            width: 26px;
-            height: 26px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            font-size: 0.8rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            font-size: 0.9rem;
         }
 
         textarea {
             width: 100%;
-            height: 120px;
+            height: 110px;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -211,18 +224,20 @@
             background-color: var(--input-bg);
             color: #fff;
             border: 1px solid var(--border-color);
-            padding: 0.7rem 1.2rem;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
             outline: none;
             font-size: 0.95rem;
             cursor: pointer;
+            flex: 1;
+            min-width: 180px;
         }
 
         .btn-submit {
             background-color: var(--accent-color);
             color: #000;
             border: none;
-            padding: 0.75rem 2rem;
+            padding: 0.8rem 2rem;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: bold;
@@ -230,12 +245,10 @@
             transition: 0.2s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-        }
-
-        .btn-submit:hover {
-            opacity: 0.9;
-            transform: scale(0.99);
+            flex: 1;
+            min-width: 160px;
         }
 
         .btn-submit:disabled {
@@ -243,15 +256,13 @@
             cursor: not-allowed;
         }
 
-        /* دەرکەوتنی ئەنجام */
         .response-area {
             margin-top: 1.5rem;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 1.5rem;
+            padding: 1.3rem;
             display: none;
-            position: relative;
         }
 
         .response-header {
@@ -279,16 +290,10 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
-            transition: 0.2s;
-        }
-
-        .copy-btn:hover {
-            background-color: var(--accent-color);
-            color: #000;
         }
 
         .response-text {
-            line-height: 1.85;
+            line-height: 1.9;
             font-size: 1.05rem;
             color: #f1f5f9;
             white-space: pre-wrap;
@@ -300,13 +305,13 @@
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 1.8rem;
+            padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             margin-bottom: 2rem;
         }
 
         .materials-box h2 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 1.2rem;
             color: var(--accent-color);
             display: flex;
@@ -326,40 +331,31 @@
             outline: none;
         }
 
-        .search-bar:focus {
-            border-color: var(--accent-color);
-        }
-
         .materials-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.2rem;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
         }
 
         .material-card {
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 1.2rem;
+            padding: 1.1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: 0.2s;
-        }
-
-        .material-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-color);
+            gap: 10px;
         }
 
         .material-info h3 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             margin-bottom: 0.3rem;
             color: #fff;
         }
 
         .material-info p {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
         }
 
@@ -367,27 +363,23 @@
             background-color: var(--success-color);
             color: white;
             border: none;
-            padding: 0.55rem 1.1rem;
+            padding: 0.55rem 0.9rem;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: bold;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             text-decoration: none;
-            transition: 0.2s;
-        }
-
-        .download-btn:hover {
-            opacity: 0.9;
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-right"></i> گەڕانەوە بۆ سەرەکی</a>
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-right"></i> سەرەکی</a>
         <div class="logo">
             <span>بەشی قوتابیان - Kurd AI</span>
             <i class="fa-solid fa-graduation-cap"></i>
@@ -400,17 +392,26 @@
             <p>وێنەی پرسیارەکەت بگرە، وەڵام وەرگرە و مەلازیمەکان بە دەست بهێنە</p>
         </div>
 
-        <!-- بەشی وێنەگرتن و پرسیارکردن لە AI -->
         <div class="ai-box">
-            <h2><i class="fa-solid fa-robot"></i> پرسیارەکەت بنووسە یان وێنەکەی دابنێ</h2>
+            <h2><i class="fa-solid fa-robot"></i> پرسیارەکەت بنووسە یان وێنەکەی بگرە</h2>
             
             <div class="input-group">
-                <!-- بارکردنی وێنە -->
-                <label class="image-upload-wrapper" for="imageInput">
-                    <i class="fa-solid fa-camera" style="color: var(--accent-color); font-size: 1.6rem;"></i>
-                    <span id="uploadLabelText">وێنەگرتن یان بارکردنی وێنەی پرسیار (کامێرا / گەلەری)</span>
-                    <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
-                </label>
+                <!-- دوو دوگمەی جیاواز: کامێرا و گەلەری -->
+                <div class="media-buttons">
+                    <button type="button" class="media-btn" onclick="document.getElementById('cameraInput').click()">
+                        <i class="fa-solid fa-camera" style="color: var(--accent-color); font-size: 1.6rem;"></i>
+                        <span>وێنەگرتن بە کامێرا</span>
+                    </button>
+
+                    <button type="button" class="media-btn gallery-btn" onclick="document.getElementById('galleryInput').click()">
+                        <i class="fa-solid fa-images" style="color: var(--success-color); font-size: 1.6rem;"></i>
+                        <span>هەڵبژاردن لە گەلەری</span>
+                    </button>
+                </div>
+
+                <!-- ئینپوتە شاراوەکان -->
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelect(event)">
+                <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
 
                 <!-- پیشاندانی وێنە پێش ناردن -->
                 <div class="preview-container" id="previewContainer">
@@ -420,13 +421,13 @@
                     </button>
                 </div>
 
-                <textarea id="questionInput" placeholder="پرسیارەکەت لێرە بنووسە... (ئەگەر وێنەت داناوە دەتوانیت ڕوونکردنەوەی زیاتر بنووسیت یان بە بەتاڵی جێی بهێڵیت)"></textarea>
+                <textarea id="questionInput" placeholder="پرسیارەکەت لێرە بنووسە... (ئەگەر وێنەت داناوە دەتوانیت بە بەتاڵی جێی بهێڵیت یان تێبینی بنووسیت)"></textarea>
                 
                 <div class="actions">
                     <select id="subjectSelect" class="select-subject">
                         <option value="گشتی">بابەت: گشتی</option>
                         <option value="بیرکاری">بیرکاری</option>
-                        <option value="زانستی (فیزیا / کیمیا / زیندەزانی)">فیزیا / کیمیا / زیندەزانی</option>
+                        <option value="فیزیا / کیمیا / زیندەزانی">فیزیا / کیمیا / زیندەزانی</option>
                         <option value="زمانەکان (کوردی / ئینگلیزی / عەرەبی)">زمانەکان (کوردی، ئینگلیزی، عەرەبی)</option>
                         <option value="مێژوو و جوگرافیا">مێژوو و جوگرافیا</option>
                     </select>
@@ -447,42 +448,39 @@
             </div>
         </div>
 
-        <!-- بەشی مەلازیم و کتێبەکان -->
+        <!-- بەشی مەلازیم -->
         <div class="materials-box">
             <h2><i class="fa-solid fa-book"></i> مەکتبەی مەلازیم و کتێبەکانی پۆل (PDF)</h2>
             <input type="text" id="searchBar" class="search-bar" placeholder="بگەڕێ بۆ ناوی مەلازمە یان پۆل..." onkeyup="filterMaterials()">
 
             <div class="materials-grid" id="materialsGrid">
-                <!-- مەلازیمی ١ -->
                 <div class="material-card">
                     <div class="material-info">
                         <h3>مەلازیمی بیرکاری - پۆلی ١٢</h3>
                         <p>مامۆستا شێروان • زانستی و وێژەیی</p>
                     </div>
-<a href="/materials/math-12.jpg" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>                </div>
-                <!-- مەلازیمی ٢ -->
+                    <a href="https://kurd-domino-production.up.railway.app/materials/math-12.jpg" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                </div>
                 <div class="material-card">
                     <div class="material-info">
                         <h3>مەلازیمی ئینگلیزی (Sunrise) - پۆلی ١٢</h3>
                         <p>تەواوی بابەتەکان بە شیکارییەوە</p>
                     </div>
-                    <a href="/materials/english-12.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                    <a href="https://kurd-domino-production.up.railway.app/materials/english-12.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
                 </div>
-                <!-- مەلازیمی ٣ -->
                 <div class="material-card">
                     <div class="material-info">
                         <h3>کورتکراوەی مێژوو - پۆلی ١٢</h3>
                         <p>پوختەی هەموو بەشەکان لە ١٥ لاپەڕەدا</p>
                     </div>
-                    <a href="/materials/history-12.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                    <a href="https://kurd-domino-production.up.railway.app/materials/history-12.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
                 </div>
-                <!-- مەلازیمی ٤ -->
                 <div class="material-card">
                     <div class="material-info">
                         <h3>فیزیا پۆلی ١١</h3>
                         <p>شیکاری پرسیار و دەفتەری تاقیگە</p>
                     </div>
-                    <a href="/materials/physics-11.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
+                    <a href="https://kurd-domino-production.up.railway.app/materials/physics-11.pdf" class="download-btn" download><i class="fa-solid fa-download"></i> داگرتن</a>
                 </div>
             </div>
         </div>
@@ -490,38 +488,52 @@
 
     <script>
         let base64ImageData = null;
+        // ناونیشانی سێرڤەرەکەت لە Railway
+        const SERVER_URL = "https://kurd-domino-production.up.railway.app";
 
-        // کاتی هەڵبژاردنی وێنە
+        // وەرگرتن و بچووککردنەوەی وێنە (Compress) بۆ خێرا ناردن
         function handleImageSelect(event) {
             const file = event.target.files[0];
+            if (!file) return;
+
             const previewContainer = document.getElementById('previewContainer');
             const preview = document.getElementById('imagePreview');
-            const uploadText = document.getElementById('uploadLabelText');
 
-            if (file) {
-                uploadText.innerText = "وێنە هەڵبژێردرا: " + file.name;
-                preview.src = URL.createObjectURL(file);
-                previewContainer.style.display = 'block';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1024;
+                    let width = img.width;
+                    let height = img.height;
 
-                // گۆڕینی بۆ Base64
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    base64ImageData = e.target.result;
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // گۆڕین بۆ JPEG بە کوالێتی 80%
+                    base64ImageData = canvas.toDataURL('image/jpeg', 0.8);
+                    preview.src = base64ImageData;
+                    previewContainer.style.display = 'block';
                 };
-                reader.readAsDataURL(file);
-            }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
-        // سڕینەوەی وێنەی دەستنیشانکراو
+        // سڕینەوەی وێنە
         function clearSelectedImage() {
-            const imageInput = document.getElementById('imageInput');
-            const previewContainer = document.getElementById('previewContainer');
-            const uploadText = document.getElementById('uploadLabelText');
-            
-            imageInput.value = '';
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('galleryInput').value = '';
             base64ImageData = null;
-            previewContainer.style.display = 'none';
-            uploadText.innerText = 'وێنەگرتن یان بارکردنی وێنەی پرسیار (کامێرا / گەلەری)';
+            document.getElementById('previewContainer').style.display = 'none';
         }
 
         // گەڕان لە ناو مەلازیمەکان
@@ -530,15 +542,11 @@
             const cards = document.querySelectorAll('.material-card');
             cards.forEach(card => {
                 const text = card.textContent.toLowerCase();
-                if (text.includes(query)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+                card.style.display = text.includes(query) ? 'flex' : 'none';
             });
         }
 
-        // شیکارکردنی پرسیار
+        // شیکارکردنی پرسیار (وێنە و نووسین)
         async function solveQuestion() {
             const textInput = document.getElementById('questionInput');
             const subject = document.getElementById('subjectSelect').value;
@@ -549,19 +557,17 @@
             const textValue = textInput.value.trim();
 
             if (!textValue && !base64ImageData) {
-                alert('تکایە سەرەتا پرسیارێک بنووسە یان وێنەی پرسیارەکە دابنێ!');
+                alert('تکایە سەرەتا پرسیارێک بنووسە یان وێنەی پرسیارەکە بگرە!');
                 return;
             }
 
-            // چالاککردنی دۆخی چاوەڕوانی
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> کەمێک چاوەڕێ بکە...';
             resultBox.style.display = 'block';
-            responseText.innerHTML = 'خەریکی پشکنین و شیکارکردنی پرسیارەکەیە بە شێوەیەکی زانستی...';
+            responseText.innerText = 'خەریکی خوێندنەوە و شیکارکردنی پرسیارەکەیە بە وردی...';
 
             try {
-                // ناردنی داواکاری بۆ سێرڤەری Node.js بە JSON (شێوازی خێرا و سەربەخۆ لە پڕۆژەکەت)
-                const res = await fetch('/api/solve-question', {
+                const res = await fetch(`${SERVER_URL}/api/solve-question`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -571,28 +577,26 @@
                     })
                 });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    responseText.innerText = data.answer || data.message || "وەڵام وەرگیرا.";
+                const data = await res.json();
+
+                if (res.ok && data.answer) {
+                    responseText.innerText = data.answer;
                 } else {
-                    responseText.innerText = "ببورە، هەڵەیەک ڕوویدا لە کاتی وەرگرتنی وەڵام لە سێرڤەرەوە. تکایە پشکنین بۆ کۆدی server.js بکە.";
+                    responseText.innerText = "هەڵەی سێرڤەر: " + (data.error || data.message || "وەڵام وەرنەگیرا.");
                 }
             } catch (err) {
-                responseText.innerText = "پەیوەندی لەگەڵ سێرڤەر بەردەست نییە. دڵنیابە سێرڤەری پڕۆژەکەت (node server.js) کراوەتەوە.";
+                responseText.innerText = "پەیوەندی لەگەڵ سێرڤەر نییە! دڵنیابە ئینتەرنێتەکەت کاردەکات.";
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> شیکار بکە';
             }
         }
 
-        // کۆپیکردنی وەڵام
         function copyResultText() {
             const text = document.getElementById('responseText').innerText;
             if (!text) return;
             navigator.clipboard.writeText(text).then(() => {
                 alert('وەڵامەکە کۆپی کرا!');
-            }).catch(() => {
-                alert('کۆپی نەکرا، تکایە خۆت دیاری بکە و کۆپی بکە.');
             });
         }
     </script>
