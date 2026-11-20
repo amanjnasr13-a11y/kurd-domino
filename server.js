@@ -35,16 +35,44 @@ app.get('/marketplace', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'www', 'admin.html'));
-});
-
-app.get('/admin', (req, res) => {
+  const wwwAdmin = path.join(__dirname, 'www', 'admin.html');
+  if (fs.existsSync(wwwAdmin)) {
+    return res.sendFile(wwwAdmin);
+  }
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // ==========================================
 // --- بەشی شیکارکردنی پرسیاری قوتابیان (AI) ---
 // ==========================================
+async function callOpenRouter(apiKey, model, messages) {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': 'https://kurd-domino-production.up.railway.app',
+      'X-Title': 'Kurd AI Student Helper',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      temperature: 0.3,
+      max_tokens: 2048
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error?.message || `OpenRouter HTTP ${response.status}`);
+  }
+  const answer = data.choices?.[0]?.message?.content;
+  if (!answer) {
+    throw new Error('وەڵامەکە بە بەتاڵی گەڕایەوە.');
+  }
+  return answer;
+}
+
 app.post('/api/solve-question', async (req, res) => {
   try {
     const { questionText, imageBase64, subject } = req.body;
@@ -59,7 +87,12 @@ app.post('/api/solve-question', async (req, res) => {
     }
 
     const userContent = [];
-    if (questionText) {
+    if (questionText && imageBase64) {
+      userContent.push({
+        type: 'text',
+        text: `بابەت: ${subject || 'گشتی'}\nتێبینی قوتابی: ${questionText}\nتکایە وێنەکە بخوێنەرەوە و بە پێی تێبینی قوتابییەکە بە زمانی کوردی (سۆرانی) هەنگاو بە هەنگاو شیکاری بکە.`
+      });
+    } else if (questionText) {
       userContent.push({
         type: 'text',
         text: `بابەت: ${subject || 'گشتی'}\nپرسیار: ${questionText}\nتکایە بە زمانی کوردی (سۆرانی) و بە هەنگاوی ڕوون و زانستی وەڵام بدەرەوە.`
@@ -67,7 +100,7 @@ app.post('/api/solve-question', async (req, res) => {
     } else {
       userContent.push({
         type: 'text',
-        text: `بابەت: ${subject || 'گشتی'}\nتکایە نووسین یان هاوکێشەی ناو ئەم وێنەیە بخوێنەرەوە و بە زمانی کوردی (سۆرانی) هەنگاو بە هەنگاو شیکاری بکە.`
+        text: `بابەت: ${subject || 'گشتی'}\nتکایە نووسین یان هاوکێشەی ناو ئەم وێنەیە بە وردی بخوێنەرەوە و بە زمانی کوردی (سۆرانی) هەنگاو بە هەنگاو شیکاری بکە.`
       });
     }
 
@@ -78,32 +111,35 @@ app.post('/api/solve-question', async (req, res) => {
       });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+    const messages = [
+      {
+        role: 'system',
+        content: 'تۆ مامۆستایەکی زیرەکی کوردیت. پرسیارەکان و وێنەکان بە وردی دەخوێنیتەوە و بە کوردی سۆرانییەکی پاراو و هەنگاو بە هەنگاو شیکاریان دەکەیت.'
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'تۆ مامۆستایەکی زیرەکی کوردیت. پرسیارەکان و وێنەکان بە وردی دەخوێنیتەوە و بە کوردی سۆرانییەکی پاراو و هەنگاو بە هەنگاو شیکاریان دەکەیت.'
-          },
-          { role: 'user', content: userContent }
-        ]
-      })
-    });
+      { role: 'user', content: userContent }
+    ];
 
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(500).json({ error: data.error?.message || 'هەڵە لە OpenRouter ڕوویدا' });
+    // مۆدێلی سەرەکی و مۆدێلی یەدەگ بۆ دڵنیابوون لەوەی هەرگیز نەوەستێت
+    const models = [
+      'google/gemini-2.5-flash',
+      'google/gemini-2.0-flash-001'
+    ];
+
+    let lastError = null;
+    for (const model of models) {
+      try {
+        console.log(`🤖 ناردنی پرسیار بۆ مۆدێلی: ${model}`);
+        const answer = await callOpenRouter(apiKey, model, messages);
+        return res.json({ answer });
+      } catch (err) {
+        console.error(`❌ هەڵە لە مۆدێلی ${model}:`, err.message);
+        lastError = err;
+      }
     }
 
-    const answer = data.choices?.[0]?.message?.content;
-    res.json({ answer });
+    res.status(500).json({ error: lastError ? lastError.message : 'هەڵە لە پەیوەندی بە AI ڕوویدا' });
   } catch (err) {
+    console.error('❌ هەڵەی گشتی لە /api/solve-question:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -140,7 +176,7 @@ app.post('/api/marketplace/items', (req, res) => {
     const items = getMarketItems();
     const newItem = {
       id: Date.now(),
-      status: 'pending', // چاوەڕوانی ڕەزامەندیی ئەدمین دەکات
+      status: 'pending',
       createdAt: new Date().toISOString(),
       ...req.body
     };
@@ -494,6 +530,7 @@ io.on('connection', (socket) => {
       socket.to(data.roomId).emit('dama_receive_move', data.move);
     }
   });
+
   socket.on('join_game', ({ name, mode, roomType, customCode }) => {
     const selectedMode = (mode === 2) ? 2 : 4;
     const finalPlayerName = (name && name.trim()) ? name.trim() : 'یاریزان';
