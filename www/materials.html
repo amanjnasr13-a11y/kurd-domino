@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کتێب و مەلزەمەکان - Kurd AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #152238;
+            --accent-color: #ffb703;
+            --text-color: #ffffff;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
+            --success-color: #2a9d8f;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; padding-bottom: 3rem; }
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 1.5rem; background-color: #091024; border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-size: 1.15rem; font-weight: bold; color: var(--accent-color); }
+        .back-btn {
+            color: var(--accent-color); border: 1px solid var(--accent-color);
+            padding: 0.45rem 1rem; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;
+        }
+        .container { max-width: 850px; margin: 1.5rem auto; padding: 0 1rem; }
+        .file-card {
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 1.1rem 1.3rem; margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        }
+        .file-info { display: flex; align-items: center; gap: 12px; }
+        .file-icon {
+            width: 45px; height: 45px; border-radius: 10px;
+            background: rgba(230, 57, 70, 0.15); color: #e63946;
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+        }
+        .download-btn {
+            background-color: var(--success-color); color: #fff; text-decoration: none;
+            padding: 0.6rem 1.1rem; border-radius: 8px; font-weight: bold; font-size: 0.9rem; white-space: nowrap;
+        }
+        .empty-msg { text-align: center; color: var(--text-muted); padding: 3rem 1rem; background: var(--card-bg); border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">کتێب و مەلزەمەکان (PDF) 📚</div>
+        <a href="student.html" class="back-btn">گەڕانەوە <i class="fa-solid fa-arrow-left"></i></a>
+    </header>
+
+    <div class="container" id="filesList">
+        <div class="empty-msg">⏳ چاوەڕێ بکە، خەریکی هێنانی کتێبەکانە...</div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin.includes('railway.app') 
+            ? '' 
+            : 'https://kurd-domino-production.up.railway.app';
+
+        async function loadFiles() {
+            const listEl = document.getElementById('filesList');
+            try {
+                const res = await fetch(`${API_BASE}/api/materials-list`);
+                const files = await res.json();
+                if (!files || files.length === 0) {
+                    listEl.innerHTML = '<div class="empty-msg">هیچ کتێب یان مەلزەمەیەک دانەنراوە.</div>';
+                    return;
+                }
+                listEl.innerHTML = files.map(file => `
+                    <div class="file-card">
+                        <div class="file-info">
+                            <div class="file-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                            <div style="font-weight: bold; word-break: break-word;">${file.replace('.pdf', '').replace('.PDF', '')}</div>
+                        </div>
+                        <a href="${API_BASE}/materials/${encodeURIComponent(file)}" target="_blank" download class="download-btn">
+                            <i class="fa-solid fa-download"></i> دابەزاندن
+                        </a>
+                    </div>
+                `).join('');
+            } catch (err) {
+                listEl.innerHTML = '<div class="empty-msg">❌ هەڵەیەک ڕوویدا لە هێنانی فایلەکان.</div>';
+            }
+        }
+        loadFiles();
+    </script>
+</body>
+</html>

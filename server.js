@@ -73,6 +73,21 @@ async function callOpenRouter(apiKey, model, messages) {
   return answer;
 }
 
+// بەشی کتێب و مەلزەمەکان (PDF)
+const materialsDir = path.join(__dirname, 'materials');
+if (!fs.existsSync(materialsDir)) {
+  fs.mkdirSync(materialsDir, { recursive: true });
+}
+app.use('/materials', express.static(materialsDir));
+
+app.get('/api/materials-list', (req, res) => {
+  fs.readdir(materialsDir, (err, files) => {
+    if (err) return res.json([]);
+    const pdfs = files.filter(f => f.toLowerCase().endsWith('.pdf'));
+    res.json(pdfs);
+  });
+});
+
 app.post('/api/solve-question', async (req, res) => {
   try {
     const { questionText, imageBase64, subject } = req.body;
