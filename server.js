@@ -46,98 +46,66 @@ app.get('/admin', (req, res) => {
 // --- بەشی شیکارکردنی پرسیاری قوتابیان (AI) ---
 // ==========================================
 app.post('/api/solve-question', async (req, res) => {
-    try {
-        const { questionText, imageBase64, subject } = req.body;
-        const apiKey = process.env.OPENROUTER_API_KEY;
+  try {
+    const { questionText, imageBase64, subject } = req.body;
 
-        if (!apiKey) {
-            return res.status(500).json({ error: "کلیلی OPENROUTER_API_KEY لە Railway دانەنراوە!" });
-        }
-
-        const hasImage = imageBase64 && typeof imageBase64 === 'string' && imageBase64.startsWith('data:image');
-        const hasText = questionText && typeof questionText === 'string' && questionText.trim().length > 0;
-
-        if (!hasImage && !hasText) {
-            return res.status(400).json({ error: "تکایە سەرەتا پرسیارێک بنووسە یان وێنەی پرسیارەکە دابنێ!" });
-        }
-
-        // بەکارهێنانی Gemini 2.5 Flash بۆ خوێندنەوەی وردی وێنە و زمانی کوردی
-        const selectedModel = "google/gemini-2.5-flash";
-
-        let userContent;
-        if (hasImage) {
-            userContent = [
-                {
-                    type: "text",
-                    text: hasText 
-                        ? `ئەم وێنەیە بە وردی بخوێنەرەوە و پرسیارەکەی ناوی شیکار بکە. تێبینی قوتابی: ${questionText.trim()}` 
-                        : "ئەم وێنەیە بە وردی بخوێنەرەوە، پرسیارەکەی ناوی بنووسەرەوە و بە هەنگاوی زانستی ڕوون شیکاری بکە:"
-                },
-                {
-                    type: "image_url",
-                    image_url: {
-                        url: imageBase64
-                    }
-                }
-            ];
-        } else {
-            userContent = `ئەم پرسیارە شیکار بکە بە هەنگاوی زانستی ڕوون:\n${questionText.trim()}`;
-        }
-
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://kurd-domino-production.up.railway.app",
-                "X-Title": "Kurd AI"
-            },
-            body: JSON.stringify({
-                model: selectedModel,
-                messages: [
-                    {
-                        role: "system",
-                        content: `تۆ مامۆستا و پرۆفیسۆری پسپۆڕیت لە مەنهەجی خوێندنی هەرێمی کوردستان لە سیستەمی Kurd AI (بابەت: ${subject || 'گشتی'}).
-ڕێنماییەکان:
-١. بە زمانی کوردی سۆرانی زۆر پاراو، ڕێزمانی و ستاندارد بنووسە.
-٢. ئەگەر وێنە نێردرابوو، سەرەتا دەق یان هاوکێشەی ناو وێنەکە بە ڕوونی بنووسەرەوە تا قوتابی دڵنیابێت لەوەی وێنەکەت خوێندووەتەوە.
-٣. ڕاستەوخۆ بەم شێوازە شیکاری بکە:
-پرسیارەکە: ...
-هەنگاو ١: ...
-هەنگاو ٢: ...
-ئەنجامی کۆتایی: ...`
-                    },
-                    {
-                        role: "user",
-                        content: userContent
-                    }
-                ],
-                temperature: 0.1
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.choices && data.choices[0]?.message?.content) {
-            let cleanAnswer = data.choices[0].message.content;
-            cleanAnswer = cleanAnswer
-                .replace(/###/g, '')
-                .replace(/\*\*/g, '')
-                .replace(/[\u4e00-\u9fa5]/g, '')
-                .trim();
-
-            return res.json({ success: true, answer: cleanAnswer });
-        } else if (data.error) {
-            console.error("OpenRouter Error:", data.error);
-            return res.status(500).json({ error: "هەڵەی OpenRouter: " + (data.error.message || JSON.stringify(data.error)) });
-        } else {
-            return res.status(500).json({ error: "وەڵامی نەناسراو لە سێرڤەری AI وەرگیرا." });
-        }
-
-    } catch (error) {
-        console.error("Server Solve Error:", error);
-        return res.status(500).json({ error: "هەڵەی سێرڤەر: " + error.message });
+    if (!questionText && !imageBase64) {
+      return res.status(400).json({ error: 'تکایە پرسیار یان وێنە بنێرە.' });
     }
+
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'کلیلی OPENROUTER_API_KEY لە Railway دانەنراوە!' });
+    }
+
+    const userContent = [];
+    if (questionText) {
+      userContent.push({
+        type: 'text',
+        text: `بابەت: ${subject || 'گشتی'}\nپرسیار: ${questionText}\nتکایە بە زمانی کوردی (سۆرانی) و بە هەنگاوی ڕوون و زانستی وەڵام بدەرەوە.`
+      });
+    } else {
+      userContent.push({
+        type: 'text',
+        text: `بابەت: ${subject || 'گشتی'}\nتکایە نووسین یان هاوکێشەی ناو ئەم وێنەیە بخوێنەرەوە و بە زمانی کوردی (سۆرانی) هەنگاو بە هەنگاو شیکاری بکە.`
+      });
+    }
+
+    if (imageBase64) {
+      userContent.push({
+        type: 'image_url',
+        image_url: { url: imageBase64 }
+      });
+    }
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: 'تۆ مامۆستایەکی زیرەکی کوردیت. پرسیارەکان و وێنەکان بە وردی دەخوێنیتەوە و بە کوردی سۆرانییەکی پاراو و هەنگاو بە هەنگاو شیکاریان دەکەیت.'
+          },
+          { role: 'user', content: userContent }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(500).json({ error: data.error?.message || 'هەڵە لە OpenRouter ڕوویدا' });
+    }
+
+    const answer = data.choices?.[0]?.message?.content;
+    res.json({ answer });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ==========================================
