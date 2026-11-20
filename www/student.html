@@ -77,8 +77,7 @@
         .copy-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; }
         .response-text { line-height: 1.9; font-size: 1.05rem; color: #f1f5f9; white-space: pre-wrap; }
         
-        /* بەشی کتێب و تاقیکردنەوە */
-        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        /* بەشی کتێب و مەلزەمەکان */
         .tool-item {
             background-color: var(--input-bg); border: 1px solid var(--border-color);
             border-radius: 10px; padding: 1.1rem; text-decoration: none; color: #fff;
@@ -86,8 +85,8 @@
         }
         .tool-item:hover { border-color: var(--accent-color); transform: translateY(-2px); }
         .tool-icon {
-            width: 45px; height: 45px; border-radius: 10px; background: rgba(255, 183, 3, 0.15);
-            color: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+            width: 45px; height: 45px; border-radius: 10px; background: rgba(42, 157, 143, 0.15);
+            color: var(--success-color); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
         }
     </style>
 </head>
@@ -142,25 +141,16 @@
             </div>
         </div>
 
-        <!-- ٢. بەشی تاقیکردنەوە و مەلزەمەکان -->
+        <!-- ٢. بەشی کتێب و مەلزەمەکان -->
         <div class="section-card">
-            <div class="section-title"><i class="fa-solid fa-book-open"></i> تاقیکردنەوە و سەرچاوەکان</div>
-            <div class="tools-grid">
-                <a href="quiz.html" class="tool-item">
-                    <div class="tool-icon"><i class="fa-solid fa-list-check"></i></div>
-                    <div>
-                        <div style="font-weight: bold; margin-bottom: 3px;">تاقیکردنەوەی ئەلیکترۆنی</div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted);">خۆت تاقی بکەرەوە بە پرسیاری هەڵبژاردن</div>
-                    </div>
-                </a>
-                <a href="/materials/" target="_blank" class="tool-item">
-                    <div class="tool-icon" style="background: rgba(42, 157, 143, 0.15); color: var(--success-color);"><i class="fa-solid fa-file-pdf"></i></div>
-                    <div>
-                        <div style="font-weight: bold; margin-bottom: 3px;">کتێب و مەلزەمەکان (PDF)</div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted);">دابەزاندنی مەلزەمە و پرسیارە وزارییەکان</div>
-                    </div>
-                </a>
-            </div>
+            <div class="section-title"><i class="fa-solid fa-book-open"></i> سەرچاوەکان</div>
+            <a href="/materials/" target="_blank" class="tool-item">
+                <div class="tool-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 3px;">کتێب و مەلزەمەکان (PDF)</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">دابەزاندنی مەلزەمە و پرسیارە وزارییەکان</div>
+                </div>
+            </a>
         </div>
     </div>
 
