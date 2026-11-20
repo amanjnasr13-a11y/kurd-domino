@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl">
+<html lang="ku" dir="rtl" id="htmlTag">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,12 +20,14 @@
             flex-direction: column;
         }
 
-        /* بەشی ناڤباری سەرەوە */
+        /* ناڤبار */
         .navbar {
-            padding: 20px 40px;
+            padding: 18px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .logo-wrap {
@@ -49,12 +51,43 @@
             font-weight: bold;
         }
 
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* دوگمەی زمانەکان */
+        .lang-switcher {
+            display: flex;
+            background: #131c2e;
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 7px 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lang-btn.active {
+            background: #f59e0b;
+            color: #0b111e;
+        }
+
         .admin-btn {
             background: #131c2e;
             border: 1.5px solid #f59e0b;
             color: #f59e0b;
-            padding: 8px 18px;
-            font-size: 0.9rem;
+            padding: 7px 15px;
+            font-size: 0.85rem;
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
@@ -69,14 +102,14 @@
         /* بەشی ناوەڕاست */
         .main-content {
             max-width: 1150px;
-            margin: 35px auto 50px auto;
+            margin: 30px auto 50px auto;
             padding: 10px 20px;
             text-align: center;
             width: 100%;
         }
 
         .title {
-            font-size: 2.3rem;
+            font-size: 2.2rem;
             font-weight: 800;
             margin-bottom: 12px;
         }
@@ -84,10 +117,10 @@
         .subtitle {
             color: #94a3b8;
             font-size: 1rem;
-            margin-bottom: 45px;
+            margin-bottom: 40px;
         }
 
-        /* تۆڕی کارتەکان */
+        /* کارتەکان */
         .cards-container {
             display: flex;
             flex-wrap: wrap;
@@ -155,7 +188,7 @@
             border-radius: 16px;
             max-width: 750px;
             width: 100%;
-            height: 85vh;
+            height: 86vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -203,7 +236,6 @@
             font-size: 0.98rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            position: relative;
         }
 
         .msg.user {
@@ -211,7 +243,6 @@
             color: #0b111e;
             font-weight: 600;
             align-self: flex-start;
-            border-bottom-right-radius: 4px;
         }
 
         .msg.bot {
@@ -219,7 +250,6 @@
             border: 1px solid #1e293b;
             color: #f1f5f9;
             align-self: flex-end;
-            border-bottom-left-radius: 4px;
         }
 
         .msg-copy {
@@ -234,12 +264,42 @@
             cursor: pointer;
         }
 
+        .ai-preview-bar {
+            display: none;
+            background: #131c2e;
+            padding: 8px 14px;
+            border-top: 1px solid #1e293b;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-preview-bar img {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1.5px solid #f59e0b;
+        }
+
         .ai-input-area {
             background: #0b111e;
             padding: 12px;
             border-top: 1px solid #1e293b;
             display: flex;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        .ai-media-btn {
+            background: #1e293b;
+            color: #f59e0b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
 
         .ai-input-area textarea {
@@ -249,7 +309,7 @@
             border-radius: 10px;
             color: #fff;
             padding: 10px 12px;
-            font-size: 0.98rem;
+            font-size: 0.95rem;
             resize: none;
             height: 48px;
             outline: none;
@@ -260,9 +320,9 @@
             color: #0b111e;
             border: none;
             border-radius: 10px;
-            padding: 0 20px;
+            padding: 0 18px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
         }
 
@@ -270,14 +330,11 @@
             opacity: 0.5;
         }
 
-        /* پەنجەرەی مۆداڵی ئەدمین */
+        /* مۆداڵی ئەدمین */
         .admin-modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
@@ -325,7 +382,6 @@
         }
 
         .req-info {
-            text-align: right;
             line-height: 1.6;
             font-size: 0.9rem;
         }
@@ -340,36 +396,9 @@
             gap: 8px;
         }
 
-        .action-approve {
-            background: #10b981;
-            color: #ffffff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .action-reject {
-            background: #ef4444;
-            color: #ffffff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .call-link {
-            background: #3b82f6;
-            color: #ffffff;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            display: inline-block;
-        }
+        .action-approve { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .action-reject { background: #ef4444; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .call-link { background: #3b82f6; color: #fff; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; }
 
         @media (max-width: 900px) {
             .card { width: calc(50% - 20px); }
@@ -377,7 +406,7 @@
 
         @media (max-width: 580px) {
             .card { width: 100%; }
-            .navbar { padding: 15px 20px; }
+            .navbar { padding: 15px; justify-content: center; }
             .req-card { flex-direction: column; gap: 15px; text-align: center; }
             .ai-chat-box { height: 92vh; }
         }
@@ -404,58 +433,65 @@
                     <polygon points="353,147 318,182 327,191"/>
                 </g>
             </svg>
-            <div class="logo">Kurd AI - کورد ئەی ئای</div>
+            <div class="logo">Kurd AI</div>
         </div>
 
-        <button class="admin-btn" onclick="openAdmin()">کۆنتڕۆڵی بەڕێوەبەر (Admin)</button>
+        <div class="nav-controls">
+            <div class="lang-switcher">
+                <button class="lang-btn active" id="btn-ku" onclick="setLanguage('ku')">کوردی</button>
+                <button class="lang-btn" id="btn-ar" onclick="setLanguage('ar')">عربي</button>
+                <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">English</button>
+            </div>
+            <button class="admin-btn" id="adminBtnText" onclick="openAdmin()">کۆنتڕۆڵی بەڕێوەبەر</button>
+        </div>
     </header>
 
     <!-- ناوەڕۆک -->
     <main class="main-content">
-        <h1 class="title">بەخێربێیت بۆ سیستەمی Kurd AI</h1>
-        <p class="subtitle">زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت</p>
+        <h1 class="title" id="mainTitle">بەخێربێیت بۆ سیستەمی Kurd AI</h1>
+        <p class="subtitle" id="mainSubtitle">زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت</p>
 
         <div class="cards-container">
             <!-- ١. پرسیار بکە -->
             <div class="card" onclick="openAIChat()">
                 <div class="card-icon">✨</div>
-                <div class="card-title">پرسیار بکە (Kurd AI)</div>
-                <div class="card-desc">هەر پرسیارێکت هەیە لێرە بیپرسە</div>
+                <div class="card-title" id="c1Title">پرسیار بکە (Kurd AI)</div>
+                <div class="card-desc" id="c1Desc">هەر پرسیارێکت هەیە یان وێنەیەک بگرە لێرە بیپرسە</div>
             </div>
 
             <!-- ٢. تەکسی و گواستنەوە -->
             <a href="taxi.html" class="card">
                 <div class="card-icon">🚖</div>
-                <div class="card-title">تەکسی و گواستنەوە</div>
-                <div class="card-desc">نرخ و هێڵەکانی ناو شار و شارەکان</div>
+                <div class="card-title" id="c2Title">تەکسی و گواستنەوە</div>
+                <div class="card-desc" id="c2Desc">نرخ و هێڵەکانی ناو شار و شارەکان</div>
             </a>
 
             <!-- ٣. گەیمینگ -->
             <a href="games.html" class="card">
                 <div class="card-icon">🎮</div>
-                <div class="card-title">گه‌یمینگ و یارییه‌كان</div>
-                <div class="card-desc">خۆشترین یارییه‌كان</div>
+                <div class="card-title" id="c3Title">گەیمینگ و یارییەکان</div>
+                <div class="card-desc" id="c3Desc">خۆشترین یارییەکان</div>
             </a>
 
             <!-- ٤. بۆ قوتابیان -->
             <a href="student.html" class="card">
                 <div class="card-icon">🎓</div>
-                <div class="card-title">بۆ قوتابیان</div>
-                <div class="card-desc">شیکاری پرسیار، مەلازەمە و کورتکراوەی وانەکان</div>
+                <div class="card-title" id="c4Title">بۆ قوتابیان</div>
+                <div class="card-desc" id="c4Desc">شیکاری پرسیار، مەلزەمە و کورتکراوەی وانەکان</div>
             </a>
 
             <!-- ٥. کڕین و فرۆشتن -->
             <a href="marketplace.html" class="card">
                 <div class="card-icon">🏷️</div>
-                <div class="card-title">کڕین و فرۆشتنی دەستی دوو</div>
-                <div class="card-desc">کەرەستەی تازە + بەکارهاتوو</div>
+                <div class="card-title" id="c5Title">کڕین و فرۆشتنی دەستی دوو</div>
+                <div class="card-desc" id="c5Desc">کەرەستەی تازە + بەکارهاتوو</div>
             </a>
 
             <!-- ٦. پیشەوەرەکان -->
             <a href="professionals.html" class="card">
                 <div class="card-icon">🛠️</div>
-                <div class="card-title">پیشەوەرەکان</div>
-                <div class="card-desc">وەستا، کارەباچی، بۆریچی و چاککردنەوەی ماڵ</div>
+                <div class="card-title" id="c6Title">پیشەوەرەکان</div>
+                <div class="card-desc" id="c6Desc">وەستا، کارەباچی، بۆریچی و چاککردنەوەی ماڵ</div>
             </a>
         </div>
     </main>
@@ -464,19 +500,30 @@
     <div class="ai-modal" id="aiModal">
         <div class="ai-chat-box">
             <div class="ai-header">
-                <div style="font-weight: bold; color: #f59e0b; font-size: 1.1rem;">✨ یاریدەدەری زیرەکی Kurd AI</div>
+                <div style="font-weight: bold; color: #f59e0b; font-size: 1.05rem;" id="aiModalTitle">✨ یاریدەدەری زیرەکی Kurd AI</div>
                 <div class="ai-header-actions">
-                    <button class="clear-chat-btn" onclick="clearAIChat()">🗑️ گفتوگۆی نوێ</button>
+                    <button class="clear-chat-btn" id="aiClearBtn" onclick="clearAIChat()">🗑️ گفتوگۆی نوێ</button>
                     <button class="close-btn" onclick="closeAIChat()">&times;</button>
                 </div>
             </div>
 
             <div class="ai-messages" id="aiMessages">
-                <div class="msg bot">سڵاو! من <b>Kurd AI</b>ـم. هەر پرسیارێکت هەیە لە هەر بوارێکدا (زانست، تەکنەلۆژیا، مێژوو، وەرگێڕان، نووسینی بابەت، یان هەر شتێکی تر) لێم بپرسە، بە خۆشحاڵییەوە وەڵامت دەدەمەوە!</div>
+                <div class="msg bot" id="aiWelcomeMsg">سڵاو! من <b>Kurd AI</b>ـم. هەر پرسیارێکت هەیە بینووسە یان وێنەی هەر شتێک بگرە تا بە وردی هەموو زانیارییەکانت بۆ باس بکەم!</div>
+            </div>
+
+            <div class="ai-preview-bar" id="aiPreviewBar">
+                <img id="aiImgPreview" alt="Image">
+                <span style="font-size: 0.85rem; color: #cbd5e1; flex: 1;" id="aiImgReadyText">وێنەکە ئامادەیە بۆ ناردن...</span>
+                <button onclick="clearAIImage()" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer;">✕</button>
             </div>
 
             <div class="ai-input-area">
-                <textarea id="aiInput" placeholder="پرسیارەکەت لێرە بنووسە..." onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAIMessage(); }"></textarea>
+                <label for="aiCameraInput" class="ai-media-btn" title="Camera">📷</label>
+                <label for="aiGalleryInput" class="ai-media-btn" title="Gallery" style="color: #10b981;">🖼️</label>
+                <input type="file" id="aiCameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleAIImage(event)">
+                <input type="file" id="aiGalleryInput" accept="image/*" style="display: none;" onchange="handleAIImage(event)">
+
+                <textarea id="aiInput" placeholder="پرسیار بنووسە یان وێنەیەک بگرە..." onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAIMessage(); }"></textarea>
                 <button class="ai-send-btn" id="aiSendBtn" onclick="sendAIMessage()">ناردن</button>
             </div>
         </div>
@@ -504,7 +551,135 @@
             ? ''
             : 'https://kurd-domino-production.up.railway.app';
 
+        let currentLang = localStorage.getItem('kurdai_lang') || 'ku';
         let chatHistory = [];
+        let aiSelectedImage = null;
+
+        const translations = {
+            ku: {
+                dir: 'rtl',
+                adminBtn: 'کۆنتڕۆڵی بەڕێوەبەر',
+                mainTitle: 'بەخێربێیت بۆ سیستەمی Kurd AI',
+                mainSubtitle: 'زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت',
+                c1Title: 'پرسیار بکە (Kurd AI)',
+                c1Desc: 'هەر پرسیارێکت هەیە یان وێنەیەک بگرە لێرە بیپرسە',
+                c2Title: 'تەکسی و گواستنەوە',
+                c2Desc: 'نرخ و هێڵەکانی ناو شار و شارەکان',
+                c3Title: 'گەیمینگ و یارییەکان',
+                c3Desc: 'خۆشترین یارییەکان',
+                c4Title: 'بۆ قوتابیان',
+                c4Desc: 'شیکاری پرسیار، مەلزەمە و کورتکراوەی وانەکان',
+                c5Title: 'کڕین و فرۆشتنی دەستی دوو',
+                c5Desc: 'کەرەستەی تازە + بەکارهاتوو',
+                c6Title: 'پیشەوەرەکان',
+                c6Desc: 'وەستا، کارەباچی، بۆریچی و چاککردنەوەی ماڵ',
+                aiModalTitle: '✨ یاریدەدەری زیرەکی Kurd AI',
+                aiClearBtn: '🗑️ گفتوگۆی نوێ',
+                aiWelcome: 'سڵاو! من <b>Kurd AI</b>ـم. هەر پرسیارێکت هەیە بینووسە یان وێنەی هەر شتێک بگرە تا بە وردی هەموو زانیارییەکانت بۆ باس بکەم!',
+                aiImgReady: 'وێنەکە ئامادەیە بۆ ناردن...',
+                aiPlaceholder: 'پرسیار بنووسە یان وێنەیەک بگرە...',
+                aiSend: 'ناردن',
+                aiThinking: '⏳ خەریکی شیکردنەوە و نووسینی وەڵامە...',
+                aiCopy: '📋 کۆپیکردن',
+                aiCopied: '✅ کۆپی کرا',
+                aiImgSent: '📷 وێنەیەکم نارد (هەمووی بۆ باس بکە)'
+            },
+            ar: {
+                dir: 'rtl',
+                adminBtn: 'لوحة الإدارة',
+                mainTitle: 'مرحباً بك في نظام Kurd AI',
+                mainSubtitle: 'معظم احتياجاتك اليومية متوفرة هنا في مكان واحد',
+                c1Title: 'اسأل الذكاء الاصطناعي (Kurd AI)',
+                c1Desc: 'اكتب أي سؤال أو التقط صورة وسيتم شرحها لك بالكامل',
+                c2Title: 'التكسي والنقل',
+                c2Desc: 'أسعار وخطوط النقل داخل المدن وبين المحافظات',
+                c3Title: 'الألعاب والترفيه',
+                c3Desc: 'أمتع الألعاب الجماعية والفردية',
+                c4Title: 'قسم الطلاب',
+                c4Desc: 'حل الأسئلة والملخصات والكتب الدراسية',
+                c5Title: 'البيع والشراء المستعمل',
+                c5Desc: 'أغراض جديدة + مستعملة',
+                c6Title: 'الحرفيون والمهنيون',
+                c6Desc: 'كهربائي، سباك، وصيانة المنازل',
+                aiModalTitle: '✨ مساعد Kurd AI الذكي',
+                aiClearBtn: '🗑️ محادثة جديدة',
+                aiWelcome: 'مرحباً! أنا <b>Kurd AI</b>. اكتب أي سؤال أو التقط صورة لأي شيء وسأشرح لك كل التفاصيل بدقة!',
+                aiImgReady: 'الصورة جاهزة للإرسال...',
+                aiPlaceholder: 'اكتب سؤالك أو التقط صورة...',
+                aiSend: 'إرسال',
+                aiThinking: '⏳ جاري التحليل وكتابة الإجابة...',
+                aiCopy: '📋 نسخ',
+                aiCopied: '✅ تم النسخ',
+                aiImgSent: '📷 تم إرسال صورة (اشرحها بالتفصيل)'
+            },
+            en: {
+                dir: 'ltr',
+                adminBtn: 'Admin Panel',
+                mainTitle: 'Welcome to Kurd AI System',
+                mainSubtitle: 'All your daily needs and smart tools in one place',
+                c1Title: 'Ask Kurd AI',
+                c1Desc: 'Ask anything or snap a photo for detailed AI analysis',
+                c2Title: 'Taxi & Transport',
+                c2Desc: 'City and intercity fares and routes',
+                c3Title: 'Gaming & Fun',
+                c3Desc: 'Play exciting multiplayer and classic games',
+                c4Title: 'For Students',
+                c4Desc: 'AI homework solver, study guides, and PDF books',
+                c5Title: 'Second-Hand Marketplace',
+                c5Desc: 'Buy & sell new and used items',
+                c6Title: 'Professionals & Craftsmen',
+                c6Desc: 'Electricians, plumbers, and home repair experts',
+                aiModalTitle: '✨ Kurd AI Smart Assistant',
+                aiClearBtn: '🗑️ New Chat',
+                aiWelcome: 'Hello! I am <b>Kurd AI</b>. Ask me anything or capture a photo of any object and I will explain everything in detail!',
+                aiImgReady: 'Image ready to send...',
+                aiPlaceholder: 'Type a question or take a photo...',
+                aiSend: 'Send',
+                aiThinking: '⏳ Analyzing and writing response...',
+                aiCopy: '📋 Copy',
+                aiCopied: '✅ Copied',
+                aiImgSent: '📷 Sent an image (explain everything)'
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('kurdai_lang', lang);
+            const t = translations[lang] || translations.ku;
+
+            document.getElementById('htmlTag').lang = lang;
+            document.getElementById('htmlTag').dir = t.dir;
+
+            ['ku', 'ar', 'en'].forEach(code => {
+                document.getElementById('btn-' + code).classList.toggle('active', code === lang);
+            });
+
+            document.getElementById('adminBtnText').textContent = t.adminBtn;
+            document.getElementById('mainTitle').textContent = t.mainTitle;
+            document.getElementById('mainSubtitle').textContent = t.mainSubtitle;
+            document.getElementById('c1Title').textContent = t.c1Title;
+            document.getElementById('c1Desc').textContent = t.c1Desc;
+            document.getElementById('c2Title').textContent = t.c2Title;
+            document.getElementById('c2Desc').textContent = t.c2Desc;
+            document.getElementById('c3Title').textContent = t.c3Title;
+            document.getElementById('c3Desc').textContent = t.c3Desc;
+            document.getElementById('c4Title').textContent = t.c4Title;
+            document.getElementById('c4Desc').textContent = t.c4Desc;
+            document.getElementById('c5Title').textContent = t.c5Title;
+            document.getElementById('c5Desc').textContent = t.c5Desc;
+            document.getElementById('c6Title').textContent = t.c6Title;
+            document.getElementById('c6Desc').textContent = t.c6Desc;
+
+            document.getElementById('aiModalTitle').textContent = t.aiModalTitle;
+            document.getElementById('aiClearBtn').textContent = t.aiClearBtn;
+            document.getElementById('aiImgReadyText').textContent = t.aiImgReady;
+            document.getElementById('aiInput').placeholder = t.aiPlaceholder;
+            document.getElementById('aiSendBtn').textContent = t.aiSend;
+
+            if (chatHistory.length === 0) {
+                document.getElementById('aiMessages').innerHTML = `<div class="msg bot">${t.aiWelcome}</div>`;
+            }
+        }
 
         function openAIChat() {
             document.getElementById('aiModal').style.display = 'flex';
@@ -517,33 +692,72 @@
 
         function clearAIChat() {
             chatHistory = [];
-            document.getElementById('aiMessages').innerHTML = `
-                <div class="msg bot">سڵاو! گفتوگۆیەکی نوێمان دەست پێکرد. هەر پرسیارێکت هەیە بفەرموو!</div>
-            `;
+            clearAIImage();
+            const t = translations[currentLang] || translations.ku;
+            document.getElementById('aiMessages').innerHTML = `<div class="msg bot">${t.aiWelcome}</div>`;
+        }
+
+        function handleAIImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 900;
+                    let w = img.width, h = img.height;
+                    if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    aiSelectedImage = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('aiImgPreview').src = aiSelectedImage;
+                    document.getElementById('aiPreviewBar').style.display = 'flex';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearAIImage() {
+            aiSelectedImage = null;
+            document.getElementById('aiCameraInput').value = '';
+            document.getElementById('aiGalleryInput').value = '';
+            document.getElementById('aiPreviewBar').style.display = 'none';
         }
 
         async function sendAIMessage() {
             const input = document.getElementById('aiInput');
             const sendBtn = document.getElementById('aiSendBtn');
             const messagesBox = document.getElementById('aiMessages');
+            const t = translations[currentLang] || translations.ku;
             const text = input.value.trim();
+            const imageToSend = aiSelectedImage;
 
-            if (!text) return;
+            if (!text && !imageToSend) return;
 
-            // پیشاندانی پرسیاری بەکارهێنەر
             const userDiv = document.createElement('div');
             userDiv.className = 'msg user';
-            userDiv.textContent = text;
+            if (imageToSend) {
+                const imgEl = document.createElement('img');
+                imgEl.src = imageToSend;
+                imgEl.style.cssText = 'max-width: 200px; border-radius: 8px; display: block; margin-bottom: 6px;';
+                userDiv.appendChild(imgEl);
+            }
+            const pEl = document.createElement('div');
+            pEl.textContent = text || t.aiImgSent;
+            userDiv.appendChild(pEl);
             messagesBox.appendChild(userDiv);
 
             chatHistory.push({ role: 'user', content: text });
             input.value = '';
+            clearAIImage();
             sendBtn.disabled = true;
 
-            // پیشاندانی دۆخی چاوەڕوانی
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'msg bot';
-            loadingDiv.textContent = '⏳ خەریکی بیرکردنەوە و نووسینی وەڵامە...';
+            loadingDiv.textContent = t.aiThinking;
             messagesBox.appendChild(loadingDiv);
             messagesBox.scrollTop = messagesBox.scrollHeight;
 
@@ -551,7 +765,7 @@
                 const res = await fetch(`${API_BASE}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: chatHistory })
+                    body: JSON.stringify({ history: chatHistory, imageBase64: imageToSend, lang: currentLang })
                 });
                 const data = await res.json();
 
@@ -566,18 +780,18 @@
 
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'msg-copy';
-                    copyBtn.textContent = '📋 کۆپیکردن';
+                    copyBtn.textContent = t.aiCopy;
                     copyBtn.onclick = () => {
                         navigator.clipboard.writeText(cleanAnswer);
-                        copyBtn.textContent = '✅ کۆپی کرا';
-                        setTimeout(() => copyBtn.textContent = '📋 کۆپیکردن', 2000);
+                        copyBtn.textContent = t.aiCopied;
+                        setTimeout(() => copyBtn.textContent = t.aiCopy, 2000);
                     };
                     loadingDiv.appendChild(copyBtn);
                 } else {
-                    loadingDiv.textContent = '❌ هەڵە: ' + (data.error || 'وەڵام نەهاتەوە');
+                    loadingDiv.textContent = '❌ ' + (data.error || 'Error');
                 }
             } catch (err) {
-                loadingDiv.textContent = '❌ هەڵەی پەیوەندی بە سێرڤەرەوە: ' + err.message;
+                loadingDiv.textContent = '❌ Connection error: ' + err.message;
             } finally {
                 sendBtn.disabled = false;
                 messagesBox.scrollTop = messagesBox.scrollHeight;
@@ -603,12 +817,10 @@
         function renderRequests() {
             const list = document.getElementById('requestsList');
             let requests = JSON.parse(localStorage.getItem('taxi_requests')) || [];
-
             if (requests.length === 0) {
                 list.innerHTML = "<p style='text-align: center; color: #94a3b8; padding: 25px;'>هیچ داواکارییەکی نوێی شۆفێر نییە.</p>";
                 return;
             }
-
             list.innerHTML = requests.map(req => `
                 <div class="req-card">
                     <div class="req-info">
@@ -620,9 +832,7 @@
                     </div>
                     <div class="req-actions">
                         <a href="tel:${req.phone}" class="call-link">پەیوەندی 📞</a>
-                        ${req.status === 'pending' ? `
-                            <button class="action-approve" onclick="approveReq(${req.id})">قبوڵکردن</button>
-                        ` : ''}
+                        ${req.status === 'pending' ? `<button class="action-approve" onclick="approveReq(${req.id})">قبوڵکردن</button>` : ''}
                         <button class="action-reject" onclick="deleteReq(${req.id})">سڕینەوە</button>
                     </div>
                 </div>
@@ -634,7 +844,6 @@
             requests = requests.map(r => r.id === id ? { ...r, status: 'approved' } : r);
             localStorage.setItem('taxi_requests', JSON.stringify(requests));
             renderRequests();
-            alert("داواکاری شۆفێرەکە قبوڵ کرا و پەسەند کرا!");
         }
 
         function deleteReq(id) {
@@ -649,17 +858,15 @@
         function renderProRequests() {
             const container = document.getElementById('proRequestsList');
             let pros = JSON.parse(localStorage.getItem('kurdai_pros')) || [];
-
             if (pros.length === 0) {
                 container.innerHTML = '<p style="color: #94a3b8; padding: 10px;">هیچ داواکارییەکی پیشەوەران نییە.</p>';
                 return;
             }
-
             container.innerHTML = pros.map(p => `
                 <div style="background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <strong>${p.name}</strong> (${p.city}) - <span style="color:#f59e0b">${p.job}</span>
-                        <div style="font-size: 13px; color: #cbd5e1; margin-top: 4px;">مۆبایلی پیشەوەر: <span style="direction:ltr; display:inline-block;">${p.phone}</span></div>
+                        <div style="font-size: 13px; color: #cbd5e1; margin-top: 4px;">مۆبایل: <span style="direction:ltr; display:inline-block;">${p.phone}</span></div>
                         <div style="font-size: 12px; color: #94a3b8;">ئەزموون: ${p.bio || 'نەنووسراوە'}</div>
                         <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-top: 5px; display: inline-block; background: ${p.status === 'approved' ? '#22c55e' : p.status === 'rejected' ? '#ef4444' : '#eab308'}; color: #fff;">
                             ${p.status === 'approved' ? 'پەسەندکراوە' : p.status === 'rejected' ? 'ڕەتکراوەتەوە' : 'چاوەڕوانە'}
@@ -683,22 +890,18 @@
         async function loadAdminMarketItems() {
             const container = document.getElementById('adminMarketplaceList');
             if (!container) return;
-
             try {
                 const res = await fetch(`${API_BASE}/api/admin/marketplace/items`);
                 const items = await res.json();
                 const pendingItems = items.filter(i => i.status === 'pending');
-
                 if (pendingItems.length === 0) {
                     container.innerHTML = '<p style="color: #9ca3af; font-size: 13px;">هیچ کاڵایەکی نوێ لە چاوەڕوانیدا نییە.</p>';
                     return;
                 }
-
                 container.innerHTML = '';
                 pendingItems.forEach(item => {
                     const itemRow = document.createElement('div');
                     itemRow.style.cssText = 'background: #0b1320; border: 1px solid #374151; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px;';
-
                     itemRow.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <img src="${item.img}" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
@@ -733,6 +936,9 @@
             const data = await res.json();
             if (data.success) loadAdminMarketItems();
         }
+
+        // کارپێکردنی زمانە هەڵبژێردراوەکە لە سەرەتادا
+        setLanguage(currentLang);
     </script>
 </body>
 </html>

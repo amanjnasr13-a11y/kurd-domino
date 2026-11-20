@@ -88,12 +88,12 @@ app.get('/api/materials-list', (req, res) => {
   });
 });
 
-// بەشی چاتکردنی گشتی وەک Google Gemini (پرسیار بکە)
+// بەشی چاتکردنی گشتی بە هەرسێ زمان (کوردی، عەرەبی، ئینگلیزی) + شیکردنەوەی وێنە
 app.post('/api/chat', async (req, res) => {
   try {
-    const { history } = req.body;
-    if (!history || !Array.isArray(history) || history.length === 0) {
-      return res.status(400).json({ error: 'تکایە پرسیارەکەت بنووسە.' });
+    const { history, imageBase64, lang } = req.body;
+    if ((!history || history.length === 0) && !imageBase64) {
+      return res.status(400).json({ error: 'تکایە پرسیارەکەت بنووسە یان وێنەیەک دابنێ.' });
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -101,18 +101,49 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'کلیلی OPENROUTER_API_KEY لە سێرڤەر دانەنراوە!' });
     }
 
-    const messages = [
-      {
-        role: 'system',
-        content: `تۆ (Kurd AI - کورد ئەی ئای)ـیت، زیرەکترین یاریدەدەری دیجیتاڵی بە زمانی کوردیی سۆرانی، هاوشێوەی Google Gemini و ChatGPT.
-تۆ شارەزاییت لە هەموو بوارێکدا هەیە: زانست، مێژوو، تەکنەلۆژیا، بەرنامەسازی، تەندروستی، ئابووری، ئەدەب، نووسینی وتار و چیرۆک، وەرگێڕانی هەموو زمانەکان، و ئامۆژگاریی ڕۆژانە.
+    const langInstruction = lang === 'ar'
+      ? 'المستخدم يفضل اللغة العربية حالياً. أجب باللغة العربية الفصحى الواضحة والمنظمة (إلا إذا كتب المستخدم بلغة أخرى).'
+      : lang === 'en'
+      ? 'The user currently selected English. Respond in clear, well-structured English (unless the user writes in another language).'
+      : 'بەکارهێنەر زمانی کوردی هەڵبژاردووە. هەمیشە بە زمانی کوردیی سۆرانییەکی زۆر پاراو، ڕێکوپێک و سادە وەڵام بدەرەوە (مەگەر بەکارهێنەر بە عەرەبی یان ئینگلیزی پرسیار بکات، ئەوکات بە هەمان زمانی پرسیارەکە وەڵام بدەرەوە).';
+
+    const systemMsg = {
+      role: 'system',
+      content: `تۆ (Kurd AI - کورد ئەی ئای)ـیت، زیرەکترین یاریدەدەری دیجیتاڵی هاوشێوەی Google Gemini و ChatGPT.
+تۆ شارەزاییت لە هەموو بوارێکدا هەیە (زانست، تەکنەلۆژیا، مێژوو، تەندروستی، ئابووری، وەرگێڕان، و شیکردنەوەی وێنە).
+${langInstruction}
 یاساکانی وەڵامدانەوە:
-1. هەمیشە بە زمانی کوردیی سۆرانییەکی زۆر پاراو، ڕێکوپێک و سادە وەڵام بدەرەوە (مەگەر بەکارهێنەر داوای زمانێکی تر بکات وەک عەرەبی یان ئینگلیزی).
+1. ئەگەر بەکارهێنەر وێنەیەکی نارد، بە وردی هەموو شتێکی ناو وێنەکەی بۆ باس بکە و زانیاریی تەواوی لەسەر بدە.
 2. وەڵامەکانت بە شێوەی خاڵبەندی و ڕێکخراو بنووسە تا خوێندنەوەیان لەسەر مۆبایل زۆر ئاسان بێت.
 3. هێما تێکەڵەکانی LaTeX وەک ($ یان $$) بەکارمەهێنە تا نووسینەکە تێکنەچێت.`
-      },
-      ...history.slice(-12)
-    ];
+    };
+
+    const recentHistory = (history || []).slice(-10);
+    const messages = [systemMsg, ...recentHistory];
+
+    if (imageBase64) {
+      const lastMsg = messages[messages.length - 1];
+      const defaultImagePrompt = lang === 'ar'
+        ? 'اشرح لي كل شيء في هذه الصورة بالتفصيل.'
+        : lang === 'en'
+        ? 'Explain everything in this image in detail.'
+        : 'ئەم وێنەیەم بە وردی بۆ باس بکە و هەموو زانیارییەکی گرنگی تێدا ڕوون بکەرەوە.';
+
+      const userPrompt = (lastMsg && lastMsg.role === 'user' && lastMsg.content)
+        ? lastMsg.content
+        : defaultImagePrompt;
+
+      const contentParts = [
+        { type: 'text', text: userPrompt },
+        { type: 'image_url', image_url: { url: imageBase64 } }
+      ];
+
+      if (lastMsg && lastMsg.role === 'user') {
+        lastMsg.content = contentParts;
+      } else {
+        messages.push({ role: 'user', content: contentParts });
+      }
+    }
 
     const models = [
       'google/gemini-2.5-flash',
