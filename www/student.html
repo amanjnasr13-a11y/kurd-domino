@@ -11,16 +11,18 @@
             --card-bg: #152238;
             --accent-color: #ffb703;
             --text-color: #ffffff;
+            --text-muted: #94a3b8;
             --border-color: #1e293b;
             --input-bg: #0d1b2a;
             --success-color: #2a9d8f;
             --danger-color: #e63946;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; }
+        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; padding-bottom: 3rem; }
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 1.5rem; background-color: #091024; border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; z-index: 50;
         }
         .logo { font-size: 1.15rem; font-weight: bold; color: var(--accent-color); }
         .back-btn {
@@ -28,9 +30,13 @@
             padding: 0.45rem 1rem; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;
         }
         .container { max-width: 900px; margin: 1.5rem auto; padding: 0 1rem; }
-        .ai-box {
+        .section-card {
             background-color: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 14px; padding: 1.5rem;
+            border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.15rem; color: var(--accent-color); margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 8px;
         }
         .media-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
         .media-btn {
@@ -70,6 +76,19 @@
         }
         .copy-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; }
         .response-text { line-height: 1.9; font-size: 1.05rem; color: #f1f5f9; white-space: pre-wrap; }
+        
+        /* بەشی کتێب و تاقیکردنەوە */
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .tool-item {
+            background-color: var(--input-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 1.1rem; text-decoration: none; color: #fff;
+            display: flex; align-items: center; gap: 12px; transition: 0.2s;
+        }
+        .tool-item:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+        .tool-icon {
+            width: 45px; height: 45px; border-radius: 10px; background: rgba(255, 183, 3, 0.15);
+            color: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +98,10 @@
     </header>
 
     <div class="container">
-        <div class="ai-box">
+        <!-- ١. بەشی شیکارکردنی پرسیار بە AI -->
+        <div class="section-card">
+            <div class="section-title"><i class="fa-solid fa-robot"></i> یاریدەدەری زیرەک (وێنە بگرە یان پرسیار بنووسە)</div>
+            
             <div class="media-row">
                 <label for="cameraInput" class="media-btn">
                     <i class="fa-solid fa-camera" style="color: #ffb703; font-size: 1.5rem;"></i>
@@ -117,6 +139,27 @@
                     <button type="button" class="copy-btn" onclick="copyText()">کۆپیکردن</button>
                 </div>
                 <div class="response-text" id="responseText"></div>
+            </div>
+        </div>
+
+        <!-- ٢. بەشی تاقیکردنەوە و مەلزەمەکان -->
+        <div class="section-card">
+            <div class="section-title"><i class="fa-solid fa-book-open"></i> تاقیکردنەوە و سەرچاوەکان</div>
+            <div class="tools-grid">
+                <a href="quiz.html" class="tool-item">
+                    <div class="tool-icon"><i class="fa-solid fa-list-check"></i></div>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 3px;">تاقیکردنەوەی ئەلیکترۆنی</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">خۆت تاقی بکەرەوە بە پرسیاری هەڵبژاردن</div>
+                    </div>
+                </a>
+                <a href="/materials/" target="_blank" class="tool-item">
+                    <div class="tool-icon" style="background: rgba(42, 157, 143, 0.15); color: var(--success-color);"><i class="fa-solid fa-file-pdf"></i></div>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 3px;">کتێب و مەلزەمەکان (PDF)</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">دابەزاندنی مەلزەمە و پرسیارە وزارییەکان</div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -170,9 +213,9 @@
             }
 
             btn.disabled = true;
-            btn.innerText = '⏳ خەریکی خوێندنەوەی وێنەکەیە...';
+            btn.innerText = '⏳ خەریکی شیکارکردنە...';
             resultBox.style.display = 'block';
-            responseText.innerText = '⏳ تکایە چاوەڕێ بکە، زیرەکی دەستکرد خەریکی شیکارکردنی وێنەکەیە...';
+            responseText.innerText = '⏳ تکایە چاوەڕێ بکە، زیرەکی دەستکرد خەریکی شیکارکردنی پرسیارەکەیە...';
 
             try {
                 const res = await fetch(`${API_BASE}/api/solve-question`, {
@@ -182,7 +225,7 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.answer) {
-                    responseText.innerText = data.answer.replace(/\*\*/g, '');
+                    responseText.innerText = data.answer.replace(/\*\*/g, '').replace(/\$/g, '');
                 } else {
                     responseText.innerText = '❌ هەڵە: ' + (data.error || 'وەڵام نەهاتەوە');
                 }
