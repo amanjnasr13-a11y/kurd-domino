@@ -55,16 +55,13 @@ function parseBase64Image(dataUrl) {
 }
 
 async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch = false) {
-  const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
   let lastError = null;
 
   for (const model of models) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const bodyData = {
-        systemInstruction: {
-          parts: [{ text: systemInstruction }]
-        },
         contents: contents,
         generationConfig: {
           temperature: 0.4,
@@ -72,8 +69,18 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
         }
       };
 
-      if (useGoogleSearch) {
-        bodyData.tools = [{ googleSearch: {} }];
+      // مۆدێلی gemma پشتگیری systemInstruction ناکات، بۆیە تەنها بۆ gemini دایدەنێین
+      if (!model.includes('gemma')) {
+        bodyData.systemInstruction = { parts: [{ text: systemInstruction }] };
+        if (useGoogleSearch) {
+          bodyData.tools = [{ googleSearch: {} }];
+        }
+      } else {
+        // بۆ gemma ڕێنماییەکە دەخەینە سەرەتای پرسیارەکە
+        bodyData.contents = [
+          { role: 'user', parts: [{ text: `ڕێنمایی سیستەم:\n${systemInstruction}\n\n` }] },
+          ...contents
+        ];
       }
 
       const response = await fetch(url, {
@@ -98,7 +105,36 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
       lastError = err;
     }
   }
-  throw lastError || new Error('هەڵە لە پەیوەندی بە Google Gemini ڕوویدا');
+
+  // ئەگەر هەموو مۆدێلەکانی گۆگڵ قەرەباڵغ بوون، یەکسەر دەچێتە سەر OpenRouter وەک یەدەگ
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  if (openRouterKey) {
+    const orModels = ['google/gemma-3-27b-it:free', 'deepseek/deepseek-chat-v3-0324:free', 'mistralai/mistral-small-3.1-24b-instruct:free'];
+    const orMessages = [{ role: 'system', content: systemInstruction }];
+    for (const c of contents) {
+      const txt = c.parts?.map(p => p.text || '').join(' ').trim();
+      if (txt) orMessages.push({ role: c.role === 'model' ? 'assistant' : 'user', content: txt });
+    }
+
+    for (const orModel of orModels) {
+      try {
+        const resOr = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openRouterKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ model: orModel, messages: orMessages, max_tokens: 4096 })
+        });
+        const dataOr = await resOr.json();
+        const ansOr = dataOr.choices?.[0]?.message?.content;
+        if (resOr.ok && ansOr) return ansOr;
+        throw new Error(dataOr.error?.message || `HTTP ${resOr.status}`);
+      } catch (e) { console.error('❌ هەڵەی OpenRouter:', orModel, e.message); }
+    }
+  }
+
+  throw lastError || new Error('هەڵە لە پەیوەندی بە AI ڕوویدا');
 }
 
 // بەشی کتێب و مەلزەمەکان (PDF)
@@ -387,6 +423,66 @@ function getHandSum(hand) {
   }, 0);
 }
 
+// دۆزینەوەی خاوەنی گەورەترین جووت (لە 6-6 بۆ 0-0) یان گەورەترین پوول لە یەکەم گەڕدا
+function findFirstRoundStarter(players) {
+  for (let d = 6; d >= 0; d--) {
+    for (let pIdx = 0; pIdx < players.length; pIdx++) {
+      const hasDouble = players[pIdx].hand.some(t => {
+        const a = Number(t.a !== undefined ? t.a : (t.left !== undefined ? t.left : t[0]));
+        const b = Number(t.b !== undefined ? t.b : (t.right !== undefined ? t.right : t[1]));
+        return a === d && b === d;
+      });
+      if (hasDouble) {
+        return { starterIdx: pIdx, requiredTile: { a: d, b: d } };
+      }
+    }
+  }
+
+  // ئەگەر هیچ یاریزانێک جووتی نەبوو (لە ٢ نەفەریدا دەگونجێت)، گەورەترین پوول دەست پێدەکات
+  let bestIdx = 0;
+  let maxSum = -1;
+  let bestTile = null;
+  players.forEach((p, pIdx) => {
+    p.hand.forEach(t => {
+      const a = Number(t.a !== undefined ? t.a : (t.left !== undefined ? t.left : t[0]));
+      const b = Number(t.b !== undefined ? t.b : (t.right !== undefined ? t.right : t[1]));
+      if (a + b > maxSum) {
+        maxSum = a + b;
+        bestIdx = pIdx;
+        bestTile = { a, b };
+      }
+    });
+  });
+  return { starterIdx: bestIdx, requiredTile: bestTile };
+}
+
+function fillRoomWithBotsAndStart(room) {
+  if (!room || room.started) return;
+  clearInterval(room.waitInterval);
+  room.started = true;
+
+  const botNames = ['وەستا حەمە', 'وەستا سەردار', 'وەستا ڕێبوار'];
+  let botCounter = 0;
+
+  while (room.players.length < room.mode) {
+    const seat = room.players.length;
+    const team = (seat % 2 === 0) ? 'teamA' : 'teamB';
+    let bName = botNames[botCounter++] || `بۆت ${seat}`;
+    if (room.mode === 4 && seat === 2) bName += ' (شەریک)';
+
+    room.players.push({
+      id: 'bot_' + seat + '_' + Date.now(),
+      name: bName,
+      seat: seat,
+      team: team,
+      isBot: true,
+      hand: []
+    });
+  }
+
+  setupRound(room);
+}
+
 function setupRound(room) {
   const fullDeck = generateFullDeck();
   room.board = [];
@@ -405,31 +501,28 @@ function setupRound(room) {
   }
 
   const isFirstEverRound = (room.starterSeat === null || room.starterSeat === undefined);
+  let requiredFirstTile = null;
 
   if (!isFirstEverRound) {
     room.turnIdx = room.players.findIndex(p => p.seat === room.starterSeat);
     if (room.turnIdx === -1) room.turnIdx = 0;
   } else {
-    let foundIdx = 0;
-    room.players.forEach((p, pIdx) => {
-      const hasDoubleSix = p.hand.some(t => {
-        const a = Number(t.a !== undefined ? t.a : (t.left !== undefined ? t.left : t[0]));
-        const b = Number(t.b !== undefined ? t.b : (t.right !== undefined ? t.right : t[1]));
-        return (a === 6 && b === 6);
-      });
-      if (hasDoubleSix) foundIdx = pIdx;
-    });
-    room.turnIdx = foundIdx;
+    const starterInfo = findFirstRoundStarter(room.players);
+    room.turnIdx = starterInfo.starterIdx;
+    requiredFirstTile = starterInfo.requiredTile;
   }
 
+  room.requiredFirstTile = requiredFirstTile;
   const currentP = room.players[room.turnIdx];
 
   const handCounts = {};
+  const playerNames = [];
   room.players.forEach(p => {
     handCounts[p.seat] = p.hand.length;
+    playerNames[p.seat] = p.name;
   });
 
-  console.log(`\n🎲 گەڕی نوێ دەستیپێکرد | دەستپێکەر: [${currentP.name}]`);
+  console.log(`\n🎲 گەڕی نوێ دەستیپێکرد لە [${room.id}] | دەستپێکەر: [${currentP.name}]`);
 
   room.players.forEach(p => {
     if (!p.isBot) {
@@ -437,6 +530,7 @@ function setupRound(room) {
         roomId: room.id,
         mySeat: p.seat,
         myHand: p.hand,
+        playerNames: playerNames,
         turnSeat: currentP.seat,
         turnSocketId: currentP.id,
         turnName: currentP.name,
@@ -445,7 +539,8 @@ function setupRound(room) {
         board: room.board,
         teamScores: room.teamScores,
         mode: room.mode,
-        isFirstEverRound: isFirstEverRound
+        isFirstEverRound: isFirstEverRound,
+        requiredFirstTile: requiredFirstTile
       });
     }
   });
@@ -524,15 +619,15 @@ function checkIfBotTurn(room) {
         }
       }
     } else {
-      const isFirstEverRound = (room.starterSeat === null || room.starterSeat === undefined);
       let targetIdx = 0;
-      if (isFirstEverRound) {
-        let d6Idx = currentP.hand.findIndex(t => {
+      if (room.requiredFirstTile) {
+        const reqIdx = currentP.hand.findIndex(t => {
           const a = Number(t.a !== undefined ? t.a : (t.left !== undefined ? t.left : t[0]));
           const b = Number(t.b !== undefined ? t.b : (t.right !== undefined ? t.right : t[1]));
-          return a === 6 && b === 6;
+          return (a === room.requiredFirstTile.a && b === room.requiredFirstTile.b) ||
+                 (a === room.requiredFirstTile.b && b === room.requiredFirstTile.a);
         });
-        if (d6Idx !== -1) targetIdx = d6Idx;
+        if (reqIdx !== -1) targetIdx = reqIdx;
       }
 
       const t = currentP.hand[targetIdx];
@@ -544,6 +639,7 @@ function checkIfBotTurn(room) {
     if (playableMove) {
       currentP.hand.splice(playableMove.index, 1);
       room.consecutivePasses = 0;
+      room.requiredFirstTile = null;
 
       const newTileObj = {
         left: playableMove.placeLeft,
@@ -560,8 +656,6 @@ function checkIfBotTurn(room) {
         room.board.push(newTileObj);
       }
 
-      console.log(`🤖 بۆت [${currentP.name}] بەردی دانا: [${newTileObj.left}|${newTileObj.right}]`);
-
       if (currentP.hand.length === 0) {
         handleRoundWin(room, currentP, false);
         return;
@@ -576,7 +670,6 @@ function checkIfBotTurn(room) {
         return;
       }
 
-      console.log(`🤖 بۆت [${currentP.name}] پاسی لێدا (نییە)`);
       handlePass(room, currentP);
     }
   } catch (err) {
@@ -675,21 +768,33 @@ io.on('connection', (socket) => {
     }
   });
 
-  // سیستەمی یاریی دۆمینە
+  // سیستەمی یاریی دۆمینە (ئۆنلاین + چاوەڕوانیی هاوڕێ + بۆت)
   socket.on('join_game', ({ name, mode, roomType, customCode }) => {
     const selectedMode = (mode === 2) ? 2 : 4;
     const finalPlayerName = (name && name.trim()) ? name.trim() : 'یاریزان';
 
-    let roomId = (roomType === 'private' && customCode) 
-      ? ('priv_' + customCode) 
-      : ('pub_' + selectedMode + '_' + Math.random().toString(36).substring(2, 7).toUpperCase());
+    let room = null;
+    let roomId = '';
 
-    let room = rooms[roomId];
+    if (roomType === 'private' && customCode) {
+      roomId = customCode.trim().toUpperCase();
+      room = rooms[roomId];
+    } else {
+      // گەڕان بە دوای ژوورێکی گشتیی کراوە کە هێشتا چاوەڕێی یاریزانی ئۆنلاینە
+      room = Object.values(rooms).find(r => r.isPublic && r.mode === selectedMode && !r.started && r.players.length < r.mode);
+      if (room) {
+        roomId = room.id;
+      } else {
+        roomId = 'KURD-' + Math.floor(1000 + Math.random() * 9000);
+      }
+    }
 
     if (!room) {
       room = {
         id: roomId,
+        isPublic: (roomType !== 'private'),
         mode: selectedMode,
+        started: false,
         players: [],
         board: [],
         deck: [],
@@ -697,7 +802,9 @@ io.on('connection', (socket) => {
         teamScores: { teamA: 0, teamB: 0 },
         starterSeat: null,
         consecutivePasses: 0,
-        botTimeout: null
+        botTimeout: null,
+        waitInterval: null,
+        secondsLeft: 12
       };
 
       room.players.push({
@@ -709,40 +816,69 @@ io.on('connection', (socket) => {
         hand: []
       });
 
-      if (roomType === 'public') {
-        if (selectedMode === 4) {
-          room.players.push({ id: 'bot_1', name: 'وەستا حەمە', seat: 1, team: 'teamB', isBot: true, hand: [] });
-          room.players.push({ id: 'bot_2', name: 'وەستا سەردار (شەریک)', seat: 2, team: 'teamA', isBot: true, hand: [] });
-          room.players.push({ id: 'bot_3', name: 'وەستا ڕێبوار', seat: 3, team: 'teamB', isBot: true, hand: [] });
-        } else {
-          room.players.push({ id: 'bot_1', name: 'وەستا حەمە', seat: 1, team: 'teamB', isBot: true, hand: [] });
-        }
-      }
-
       rooms[roomId] = room;
       socket.roomId = roomId;
       socket.join(roomId);
 
-      setupRound(room);
-    } else {
-      const nextSeat = room.players.length;
-      if (nextSeat < room.mode) {
-        const team = (nextSeat % 2 === 0) ? 'teamA' : 'teamB';
-        room.players.push({
-          id: socket.id,
-          name: finalPlayerName,
-          seat: nextSeat,
-          team: team,
-          isBot: false,
-          hand: []
-        });
-        socket.roomId = roomId;
-        socket.join(roomId);
+      // ١٢ چرکە چاوەڕێ دەکات تا هاوڕێکانت یان یاریزانی جیهانی بێنە ژوورەوە، ئەگەر نەهاتن دەبێتە ڕۆبۆت
+      io.to(roomId).emit('waiting_players', {
+        roomId: room.id,
+        secondsLeft: room.secondsLeft,
+        currentCount: room.players.length,
+        maxPlayers: room.mode
+      });
 
-        if (room.players.length === room.mode) {
-          setupRound(room);
+      room.waitInterval = setInterval(() => {
+        if (room.started) {
+          clearInterval(room.waitInterval);
+          return;
         }
+        room.secondsLeft--;
+        if (room.secondsLeft <= 0) {
+          fillRoomWithBotsAndStart(room);
+        } else {
+          io.to(room.id).emit('waiting_players', {
+            roomId: room.id,
+            secondsLeft: room.secondsLeft,
+            currentCount: room.players.length,
+            maxPlayers: room.mode
+          });
+        }
+      }, 1000);
+    } else if (!room.started && room.players.length < room.mode) {
+      const nextSeat = room.players.length;
+      const team = (nextSeat % 2 === 0) ? 'teamA' : 'teamB';
+      room.players.push({
+        id: socket.id,
+        name: finalPlayerName,
+        seat: nextSeat,
+        team: team,
+        isBot: false,
+        hand: []
+      });
+      socket.roomId = roomId;
+      socket.join(roomId);
+
+      if (room.players.length === room.mode) {
+        clearInterval(room.waitInterval);
+        room.started = true;
+        setupRound(room);
+      } else {
+        io.to(roomId).emit('waiting_players', {
+          roomId: room.id,
+          secondsLeft: room.secondsLeft,
+          currentCount: room.players.length,
+          maxPlayers: room.mode
+        });
       }
+    }
+  });
+
+  // ئەگەر یاریزانەکە دوگمەی (یەکسەر دەستپێبکە لەگەڵ ڕۆبۆت)ی داگرت
+  socket.on('force_fill_bots', () => {
+    const room = rooms[socket.roomId];
+    if (room && !room.started) {
+      fillRoomWithBotsAndStart(room);
     }
   });
 
@@ -762,6 +898,7 @@ io.on('connection', (socket) => {
     if (!player) player = room.players[room.turnIdx];
 
     room.consecutivePasses = 0;
+    room.requiredFirstTile = null;
 
     if (boardChain && Array.isArray(boardChain)) {
       room.board = boardChain.map(t => {
@@ -774,8 +911,6 @@ io.on('connection', (socket) => {
     if (remainingHand && Array.isArray(remainingHand)) {
       player.hand = remainingHand;
     }
-
-    console.log(`👤 [${player.name}] بەردی دانا: [${tile ? (tile.a ?? tile[0]) : ''}|${tile ? (tile.b ?? tile[1]) : ''}]`);
 
     if (player.hand && player.hand.length === 0) {
       handleRoundWin(room, player, false);

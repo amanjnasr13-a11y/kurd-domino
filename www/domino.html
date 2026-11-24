@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>چایخانەی کۆردەواری (101) خاڵ</title>
-  <script src="/socket.io/socket.io.js">window.addEventListener('resize', renderBoard);
-  </script>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; }
     body { background-color: #070d14; color: #fff; overflow: hidden; height: 100vh; direction: rtl; }
@@ -16,7 +15,7 @@
     }
     .modal-box {
       background: #111a24; border: 2px solid #23354d; border-radius: 14px;
-      padding: 24px; width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      padding: 24px; width: 380px; max-width: 92%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
       position: relative;
     }
     .btn-corner-back {
@@ -44,6 +43,24 @@
       border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;
     }
 
+    /* شاشەی چاوەڕوانی ئۆنلاین */
+    #waitingOverlay {
+      display: none; position: fixed; inset: 0; background: rgba(5, 10, 18, 0.92);
+      z-index: 2500; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 20px;
+    }
+    .wait-card {
+      background: #111a24; border: 2px solid #f59e0b; border-radius: 16px; padding: 24px; max-width: 360px; width: 100%;
+    }
+    .wait-card h3 { color: #f59e0b; margin-bottom: 10px; font-size: 17px; }
+    .wait-card p { color: #cbd5e1; font-size: 13px; margin-bottom: 14px; line-height: 1.6; }
+    .wait-timer { font-size: 28px; font-weight: bold; color: #22c55e; margin-bottom: 14px; }
+    .btn-share-link {
+      background: #0284c7; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; margin-bottom: 8px; width: 100%;
+    }
+    .btn-start-bots {
+      background: #16a34a; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;
+    }
+
     #matchOverModal {
       display: none; position: fixed; inset: 0; background: rgba(5, 10, 18, 0.95);
       z-index: 3000; align-items: center; justify-content: center;
@@ -61,54 +78,60 @@
     }
 
     #gameContainer { display: none; height: 100vh; flex-direction: column; }
-    header { background: #080e15; padding: 3px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a2634; z-index: 50; flex-shrink: 0; }
-.btn-back-kurdai { background: #d97706; color: #fff; padding: 3px 8px; border-radius: 12px; text-decoration: none; font-size: 10px; font-weight: bold; border: 1px solid #b45309; }
-.header-center { display: flex; flex-direction: row; align-items: center; gap: 10px; }
-.room-badge { background: #111a24; border: 1px solid #f59e0b; color: #f59e0b; padding: 1px 7px; border-radius: 8px; font-size: 10px; }
-.scores-text { color: #38bdf8; font-weight: bold; font-size: 11px; }
-#tableArea { flex: 1; background: radial-gradient(circle, #0e4429 0%, #062315 100%); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; direction: ltr !important; }
-#boardChain { position: absolute; display: flex; align-items: center; justify-content: center; direction: ltr !important; transition: transform 0.2s ease-out; z-index: 10; margin-top: 26px; }
-.player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; background: rgba(11, 18, 27, 0.94); border: 1.5px solid #23354d; padding: 3px 6px; border-radius: 7px; min-width: 64px; max-width: 86px; transition: 0.3s; z-index: 30; direction: rtl; }
-.player-seat.active-turn { border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.8); }
-.timer-ring-box { position: relative; width: 24px; height: 24px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; }
-.timer-svg { position: absolute; inset: 0; transform: rotate(-90deg); width: 100%; height: 100%; }
-.timer-circle-bg { fill: none; stroke: #1e293b; stroke-width: 3.5; }
-.timer-circle-bar { fill: none; stroke: #22c55e; stroke-width: 3.5; stroke-dasharray: 94.25; stroke-dashoffset: 94.25; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
-.seat-count { position: relative; font-weight: bold; font-size: 10px; color: #f59e0b; z-index: 2; }
-.seat-name { font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 78px; }
-#seat-1 { right: 5px; top: 55%; transform: translateY(-50%); }
-#seat-2 { top: 4px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 6px; padding: 2px 8px; max-width: 165px; }
-#seat-2 .timer-ring-box { margin-bottom: 0; width: 20px; height: 20px; }
-#seat-2 .seat-name { max-width: 120px; font-size: 9.5px; }
-#seat-3 { left: 5px; top: 55%; transform: translateY(-50%); }
-#bottomRackArea { background: #080e15; padding: 3px 8px; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #1a2634; z-index: 40; direction: rtl; flex-shrink: 0; }
-.action-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-.action-bar .timer-ring-box { width: 22px; height: 22px; margin-bottom: 0; }
-.btn-action { background: #1e293b; color: #fff; border: 1px solid #475569; padding: 2px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 10px; }
-#btnPull { background: #d97706; border-color: #b45309; display: none; }
-.btn-mic { background: #334155; color: #94a3b8; border: 1px solid #475569; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; cursor: pointer; }
-.btn-mic.active { background: #16a34a; color: #fff; border-color: #22c55e; }
-#myRack { display: flex; gap: 5px; min-height: 54px; align-items: center; direction: ltr; max-width: 100%; overflow-x: auto; padding: 2px; }
-.domino-tile { background: radial-gradient(ellipse at top left, #ffffff 25%, #f8fafc 70%, #cbd5e1 100%); border: 1.5px solid #0f172a; border-radius: 3px; box-shadow: 1px 2px 5px rgba(0,0,0,0.75); position: relative; cursor: pointer; display: flex; flex-shrink: 0; transition: transform 0.15s; }
-.tile-rack { width: 28px; height: 54px; flex-direction: column; }
-.tile-rack .half-top { flex: 1; border-bottom: 1.5px solid #334155; }
-.tile-rack .half-bottom { flex: 1; }
-.tile-board-h { width: 46px; height: 23px; flex-direction: row; }
-.tile-board-h .half-left { flex: 1; border-right: 1.5px solid #334155; }
-.tile-board-h .half-right { flex: 1; }
-.tile-board-v { width: 23px; height: 46px; flex-direction: column; }
-.tile-board-v .half-top { flex: 1; border-bottom: 1.5px solid #334155; }
-.tile-board-v .half-bottom { flex: 1; }
-.brass-spinner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 4px; height: 4px; border-radius: 50%; background: #d97706; z-index: 3; pointer-events: none; }
-.domino-half { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 1.5px; align-items: center; justify-items: center; width: 100%; height: 100%; direction: ltr !important; }
-.pip { width: 4.2px; height: 4.2px; border-radius: 50%; }
-.pip-val-1 { background: #1d4ed8; }
-.pip-val-2 { background: #15803d; }
-.pip-val-3 { background: #b91c1c; }
-.pip-val-4 { background: #78350f; }
-.pip-val-5 { background: #6b21a8; }
-.pip-val-6 { background: #0f172a; }
-#sideChoiceModal {
+    header { background: #080e15; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a2634; z-index: 50; flex-shrink: 0; }
+    .btn-back-kurdai { background: #d97706; color: #fff; padding: 3px 8px; border-radius: 12px; text-decoration: none; font-size: 10px; font-weight: bold; border: 1px solid #b45309; }
+    .header-center { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+    .room-badge { background: #111a24; border: 1px solid #f59e0b; color: #f59e0b; padding: 1px 7px; border-radius: 8px; font-size: 10px; cursor: pointer; }
+    .scores-text { color: #38bdf8; font-weight: bold; font-size: 11px; }
+    .header-title { font-size: 12px; color: #f59e0b; font-weight: bold; }
+
+    #tableArea { flex: 1; background: radial-gradient(circle, #0e4429 0%, #062315 100%); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; direction: ltr !important; }
+    #boardChain { position: absolute; display: flex; align-items: center; justify-content: center; direction: ltr !important; transition: transform 0.2s ease-out; z-index: 10; margin-top: 14px; }
+    .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; background: rgba(11, 18, 27, 0.94); border: 1.5px solid #23354d; padding: 3px 6px; border-radius: 7px; min-width: 64px; max-width: 96px; transition: 0.3s; z-index: 30; direction: rtl; }
+    .player-seat.active-turn { border-color: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.9); }
+    .timer-ring-box { position: relative; width: 24px; height: 24px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; }
+    .timer-svg { position: absolute; inset: 0; transform: rotate(-90deg); width: 100%; height: 100%; }
+    .timer-circle-bg { fill: none; stroke: #1e293b; stroke-width: 3.5; }
+    .timer-circle-bar { fill: none; stroke: #22c55e; stroke-width: 3.5; stroke-dasharray: 94.25; stroke-dashoffset: 94.25; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+    .seat-count { position: relative; font-weight: bold; font-size: 10px; color: #f59e0b; z-index: 2; }
+    .seat-name { font-size: 9.5px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 88px; }
+
+    /* شوێنی دانیشتنەکان: راست (1)، سەرەوە بەرامبەر (2)، چەپ (3) */
+    #seat-1 { right: 6px; top: 52%; transform: translateY(-50%); }
+    #seat-2 { top: 6px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 6px; padding: 3px 10px; max-width: 185px; }
+    #seat-2 .timer-ring-box { margin-bottom: 0; width: 22px; height: 22px; }
+    #seat-2 .seat-name { max-width: 135px; font-size: 10.5px; font-weight: bold; }
+    #seat-3 { left: 6px; top: 52%; transform: translateY(-50%); }
+
+    #bottomRackArea { background: #080e15; padding: 4px 8px; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #1a2634; z-index: 40; direction: rtl; flex-shrink: 0; }
+    .action-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .action-bar .timer-ring-box { width: 22px; height: 22px; margin-bottom: 0; }
+    .btn-action { background: #1e293b; color: #fff; border: 1px solid #475569; padding: 3px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 10.5px; }
+    #btnPull { background: #d97706; border-color: #b45309; display: none; }
+    .btn-mic { background: #334155; color: #94a3b8; border: 1px solid #475569; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; cursor: pointer; }
+    .btn-mic.active { background: #16a34a; color: #fff; border-color: #22c55e; }
+    #myRack { display: flex; gap: 5px; min-height: 54px; align-items: center; direction: ltr; max-width: 100%; overflow-x: auto; padding: 2px; }
+    .domino-tile { background: radial-gradient(ellipse at top left, #ffffff 25%, #f8fafc 70%, #cbd5e1 100%); border: 1.5px solid #0f172a; border-radius: 3px; box-shadow: 1px 2px 5px rgba(0,0,0,0.75); position: relative; cursor: pointer; display: flex; flex-shrink: 0; transition: transform 0.15s; }
+    .tile-rack { width: 28px; height: 54px; flex-direction: column; }
+    .tile-rack .half-top { flex: 1; border-bottom: 1.5px solid #334155; }
+    .tile-rack .half-bottom { flex: 1; }
+    .tile-board-h { width: 46px; height: 23px; flex-direction: row; }
+    .tile-board-h .half-left { flex: 1; border-right: 1.5px solid #334155; }
+    .tile-board-h .half-right { flex: 1; }
+    .tile-board-v { width: 23px; height: 46px; flex-direction: column; }
+    .tile-board-v .half-top { flex: 1; border-bottom: 1.5px solid #334155; }
+    .tile-board-v .half-bottom { flex: 1; }
+    .brass-spinner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 4px; height: 4px; border-radius: 50%; background: #d97706; z-index: 3; pointer-events: none; }
+    .domino-half { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 1.5px; align-items: center; justify-items: center; width: 100%; height: 100%; direction: ltr !important; }
+    .pip { width: 4.2px; height: 4.2px; border-radius: 50%; }
+    .pip-val-1 { background: #1d4ed8; }
+    .pip-val-2 { background: #15803d; }
+    .pip-val-3 { background: #b91c1c; }
+    .pip-val-4 { background: #78350f; }
+    .pip-val-5 { background: #6b21a8; }
+    .pip-val-6 { background: #0f172a; }
+
+    #sideChoiceModal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
       z-index: 2000; align-items: center; justify-content: center; direction: rtl;
     }
@@ -137,7 +160,7 @@
       </div>
 
       <div class="room-type-toggle">
-        <button id="tabPublic" class="btn-tab active" onclick="setRoomType('public')">ژووری گشتی (بۆت/خەڵک)</button>
+        <button id="tabPublic" class="btn-tab active" onclick="setRoomType('public')">🌍 ژووری گشتی (ئۆنلاین + بۆت)</button>
         <button id="tabPrivate" class="btn-tab" onclick="setRoomType('private')">🔒 ژووری تایبەت بە هاوڕێ</button>
       </div>
 
@@ -146,6 +169,17 @@
       </div>
 
       <button class="btn-enter" onclick="startGame()">چوونە ناو مێزی دۆمینە ⬅</button>
+    </div>
+  </div>
+
+  <!-- شاشەی چاوەڕوانی بۆ هاتنی هاوڕێکانت پێش ئەوەی ببێتە ڕۆبۆت -->
+  <div id="waitingOverlay">
+    <div class="wait-card">
+      <h3>⏳ چاوەڕێی هاتنی یاریزانی ئۆنلاینین...</h3>
+      <p id="waitRoomInfo">ژوور ئامادەیە! لینکەکە بنێرە بۆ هاوڕێکەت تا بێتە بەرامبەرت، ئەگەر کەس نەهات خۆکارانە دەبێتە ڕۆبۆت.</p>
+      <div class="wait-timer" id="waitCountdown">12</div>
+      <button class="btn-share-link" onclick="copyInviteLink()">📋 کۆپیکردنی لینکی یاری بۆ هاوڕێکەت</button>
+      <button class="btn-start-bots" onclick="forceStartWithBots()">🤖 یەکسەر دەستپێبکە لەگەڵ ڕۆبۆت</button>
     </div>
   </div>
 
@@ -171,13 +205,14 @@
     <header>
       <a href="index.html" class="btn-back-kurdai">گەڕانەوە بۆ یارییەکان</a>
       <div class="header-center">
-        <div class="room-badge" id="roomDisplay">ژوور: pub_4_...</div>
-        <div class="scores-text" id="scoreDisplay">تیمی ئێمە: ٠ | تیمی ئەوان: ٠</div>
+        <div class="room-badge" id="roomDisplay" onclick="copyInviteLink()" title="کلیک بکە بۆ کۆپیکردنی لینک">ژوور: #101 📋</div>
+        <div class="scores-text" id="scoreDisplay">ئێمە: ٠ | ئەوان: ٠</div>
       </div>
       <div class="header-title">چایخانەی کۆردەواری (101) خاڵ</div>
     </header>
 
     <div id="tableArea">
+      <!-- دەستە ڕاست (تەنها لە ٤ نەفەری) -->
       <div id="seat-1" class="player-seat">
         <div class="timer-ring-box">
           <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
@@ -189,6 +224,7 @@
         <div id="name-1" class="seat-name">وەستا حەمە</div>
       </div>
 
+      <!-- سەرەوە بەرامبەر (لە ٢ نەفەری ڕکابەرەکەت لێرەیە، لە ٤ نەفەری شەریکەکەت لێرەیە) -->
       <div id="seat-2" class="player-seat">
         <div class="timer-ring-box">
           <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
@@ -197,9 +233,10 @@
           </svg>
           <span id="count-2" class="seat-count">7</span>
         </div>
-        <div id="name-2" class="seat-name">وەستا سەردار (شەریک)</div>
+        <div id="name-2" class="seat-name">وەستا سەردار</div>
       </div>
 
+      <!-- دەستە چەپ (تەنها لە ٤ نەفەری) -->
       <div id="seat-3" class="player-seat">
         <div class="timer-ring-box">
           <svg class="timer-svg" width="38" height="38" viewBox="0 0 36 36">
@@ -241,12 +278,52 @@
     let boardChain = [];
     let isMyTurn = false;
     let isFirstEverRound = true;
+    let requiredFirstTile = null; // جووتە گەورەکەی دەستپێک
     let isGameFinished = false;
     let timerInterval = null;
+    let currentRoomId = '';
     const TURN_SECONDS = 15;
     const FULL_CIRCUMFERENCE = 94.25;
 
     let pendingChoice = null;
+
+    // خوێندنەوەی لینک ئەگەر هاوڕێکەت بە لینکی بانگهێشت هاتبێتە ژوورەوە
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlRoom = params.get('room');
+      const urlMode = params.get('mode');
+      if (urlMode === '2' || urlMode === '4') {
+        setMode(Number(urlMode));
+      }
+      if (urlRoom) {
+        setRoomType('private');
+        document.getElementById('customRoomCode').value = urlRoom.toUpperCase();
+      }
+    });
+
+    function copyInviteLink() {
+      const code = currentRoomId || document.getElementById('customRoomCode').value.trim().toUpperCase();
+      const baseUrl = window.location.origin + window.location.pathname;
+      const inviteUrl = code ? `${baseUrl}?mode=${selectedMode}&room=${code}` : `${baseUrl}?mode=${selectedMode}`;
+      navigator.clipboard.writeText(inviteUrl).then(() => {
+        alert('✅ لینکی یارییەکە کۆپی کرا! ئێستا بینێرە بۆ هاوڕێکەت تا ڕاستەوخۆ بێتە بەرامبەرت:\n' + inviteUrl);
+      }).catch(() => {
+        prompt('ئەم لینکە کۆپی بکە و بینێرە بۆ هاوڕێکەت:', inviteUrl);
+      });
+    }
+
+    function forceStartWithBots() {
+      socket.emit('force_fill_bots');
+    }
+
+    // گۆڕینی ئیندێکسی سێرڤەر بۆ شوێنی بینراوی سەر شاشە تا هەمیشە تۆ لە خوارەوە بیت (0) و لە ٢ نەفەری ڕکابەرەکەت لە سەرەوە بێت (2)
+    function mapSeatToVisual(serverSeat) {
+      if (selectedMode === 2) {
+        return (serverSeat === mySeat) ? 0 : 2;
+      } else {
+        return (serverSeat - mySeat + 4) % 4;
+      }
+    }
 
     let audioCtx = null;
     function getAudioCtx() {
@@ -286,27 +363,13 @@
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.35);
-
-        const snap = ctx.createOscillator();
-        const snapGain = ctx.createGain();
-        snap.type = 'triangle';
-        snap.frequency.setValueAtTime(800, ctx.currentTime);
-        snap.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.1);
-        snapGain.gain.setValueAtTime(1.2, ctx.currentTime);
-        snapGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-        snap.connect(snapGain);
-        snapGain.connect(ctx.destination);
-        snap.start();
-        snap.stop(ctx.currentTime + 0.1);
       } catch (e) {}
     }
 
-    // دەنگی دڵنیایی «نییە» بۆ سەرجەم مۆبایل و براوسەرەکان بەبێ پشت بەستن بە پاکێجی ویندۆز
     function speakNiye() {
       try {
         const ctx = getAudioCtx();
         if (ctx) {
-          // تەقەی کەمەرەیی تیژ لە کاتی پاسدا
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sawtooth';
@@ -319,14 +382,10 @@
           osc.start();
           osc.stop(ctx.currentTime + 0.18);
         }
-
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
           const utter = new SpeechSynthesisUtterance("نیە");
           utter.lang = 'ar';
-          utter.rate = 1.0;
-          utter.pitch = 1.0;
-          utter.volume = 1.0;
           window.speechSynthesis.speak(utter);
         }
       } catch (e) {}
@@ -361,13 +420,9 @@
       const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
       peerConnections[socketId] = pc;
       localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
       pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          socket.emit('voice_signal', { to: socketId, candidate: event.candidate });
-        }
+        if (event.candidate) socket.emit('voice_signal', { to: socketId, candidate: event.candidate });
       };
-
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       socket.emit('voice_signal', { to: socketId, sdp: offer });
@@ -379,20 +434,15 @@
         pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
         peerConnections[from] = pc;
         if (localStream) localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
         pc.ontrack = (event) => {
           const remoteAudio = new Audio();
           remoteAudio.srcObject = event.streams[0];
           remoteAudio.play();
         };
-
         pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            socket.emit('voice_signal', { to: from, candidate: event.candidate });
-          }
+          if (event.candidate) socket.emit('voice_signal', { to: from, candidate: event.candidate });
         };
       }
-
       if (sdp) {
         await pc.setRemoteDescription(new RTCSessionDescription(sdp));
         if (sdp.type === 'offer') {
@@ -457,7 +507,6 @@
       }
 
       getAudioCtx();
-
       const customCode = document.getElementById('customRoomCode').value.trim().toUpperCase();
 
       socket.emit('join_game', {
@@ -469,21 +518,51 @@
 
       document.getElementById('startModal').style.display = 'none';
       document.getElementById('gameContainer').style.display = 'flex';
+      document.getElementById('waitingOverlay').style.display = 'flex';
 
       if (selectedMode === 2) {
-        document.getElementById('seat-2').style.display = 'none';
+        // لە ٢ نەفەری تەنها سەرەوە (seat-2) بەرامبەرت دەبێت و لای ڕاست و چەپ دەشاردرێنەوە
+        document.getElementById('seat-1').style.display = 'none';
         document.getElementById('seat-3').style.display = 'none';
-        document.getElementById('name-1').innerText = 'وەستا حەمە';
+        document.getElementById('seat-2').style.display = 'flex';
         document.getElementById('btnPull').style.display = 'inline-block';
+      } else {
+        document.getElementById('seat-1').style.display = 'flex';
+        document.getElementById('seat-2').style.display = 'flex';
+        document.getElementById('seat-3').style.display = 'flex';
+        document.getElementById('btnPull').style.display = 'none';
       }
     }
 
+    socket.on('waiting_players', (data) => {
+      currentRoomId = data.roomId;
+      document.getElementById('waitingOverlay').style.display = 'flex';
+      document.getElementById('waitCountdown').innerText = data.secondsLeft;
+      document.getElementById('waitRoomInfo').innerText = `ژووری #${data.roomId} (${data.currentCount}/${data.maxPlayers} یاریزان) - چاوەڕێی هاتنی یاریزانی ئۆنلاینین...`;
+    });
+
     socket.on('game_live', (data) => {
+      document.getElementById('waitingOverlay').style.display = 'none';
       mySeat = data.mySeat;
       myHand = data.myHand;
       boardChain = data.board || [];
       isFirstEverRound = data.isFirstEverRound;
-      document.getElementById('roomDisplay').innerText = `ژوور: #${data.roomId || '101'}`;
+      requiredFirstTile = data.requiredFirstTile || null;
+      currentRoomId = data.roomId || '101';
+
+      document.getElementById('roomDisplay').innerText = `ژوور: #${currentRoomId} 📋`;
+
+      // نوێکردنەوەی ناوی یاریزانەکان لە شوێنی دروستدا
+      if (data.playerNames) {
+        for (let s = 0; s < data.playerNames.length; s++) {
+          const vSeat = mapSeatToVisual(s);
+          if (vSeat !== 0) {
+            const nameEl = document.getElementById(`name-${vSeat}`);
+            if (nameEl) nameEl.innerText = data.playerNames[s];
+          }
+        }
+      }
+
       updateScores(data.teamScores);
       updateHandCounts(data.handCounts);
       renderBoard();
@@ -499,6 +578,7 @@
       if (isGameFinished) return;
       playClackSound();
       boardChain = data.board || [];
+      requiredFirstTile = null;
       renderBoard();
       updateHandCounts(data.handCounts);
       updateScores(data.teamScores);
@@ -515,24 +595,28 @@
 
     function updateHandCounts(counts) {
       if (!counts) return;
-      for (let i = 0; i < 4; i++) {
-        const el = document.getElementById(`count-${i}`);
-        if (el && counts[i] !== undefined) el.innerText = counts[i];
+      for (let s = 0; s < counts.length; s++) {
+        const vSeat = mapSeatToVisual(s);
+        const el = document.getElementById(`count-${vSeat}`);
+        if (el && counts[s] !== undefined) el.innerText = counts[s];
       }
     }
 
     function updateScores(scores) {
       if (!scores) return;
-      document.getElementById('scoreDisplay').innerText = `تیمی ئێمە: ${scores.teamA} | تیمی ئەوان: ${scores.teamB}`;
+      const myScore = (mySeat % 2 === 0) ? scores.teamA : scores.teamB;
+      const oppScore = (mySeat % 2 === 0) ? scores.teamB : scores.teamA;
+      document.getElementById('scoreDisplay').innerText = `ئێمە: ${myScore} | ئەوان: ${oppScore}`;
     }
 
     function setupTurnTimer(turnSeat) {
       if (isGameFinished) return;
       isMyTurn = (turnSeat === mySeat);
+      const visualTurnSeat = mapSeatToVisual(turnSeat);
 
       for (let s = 1; s <= 3; s++) {
         const seatBox = document.getElementById(`seat-${s}`);
-        if (seatBox) seatBox.classList.toggle('active-turn', turnSeat === s);
+        if (seatBox) seatBox.classList.toggle('active-turn', visualTurnSeat === s);
       }
 
       for (let s = 0; s <= 3; s++) {
@@ -545,7 +629,7 @@
 
       clearInterval(timerInterval);
       let timeLeft = TURN_SECONDS;
-      const activeBar = document.getElementById(`timer-bar-${turnSeat}`);
+      const activeBar = document.getElementById(`timer-bar-${visualTurnSeat}`);
 
       function tick() {
         if (activeBar) {
@@ -569,19 +653,22 @@
       document.getElementById('sideChoiceModal').style.display = 'none';
 
       if (boardChain.length === 0) {
-        if (isFirstEverRound) {
-          const d6Idx = myHand.findIndex(t => (t.a === 6 && t.b === 6) || (t[0] === 6 && t[1] === 6));
-          if (d6Idx !== -1) {
-            commitMove(d6Idx, [{ left: 6, right: 6, a: 6, b: 6 }]);
+        if (isFirstEverRound && requiredFirstTile) {
+          const reqIdx = myHand.findIndex(t => {
+            const ta = Number(t.a !== undefined ? t.a : t[0]);
+            const tb = Number(t.b !== undefined ? t.b : t[1]);
+            return (ta === requiredFirstTile.a && tb === requiredFirstTile.b) || (ta === requiredFirstTile.b && tb === requiredFirstTile.a);
+          });
+          if (reqIdx !== -1) {
+            commitMove(reqIdx, [{ left: requiredFirstTile.a, right: requiredFirstTile.b, a: requiredFirstTile.a, b: requiredFirstTile.b }]);
             return;
           }
-        } else {
-          const t = myHand[0];
-          const a = Number(t.a !== undefined ? t.a : t[0]);
-          const b = Number(t.b !== undefined ? t.b : t[1]);
-          commitMove(0, [{ left: a, right: b, a: a, b: b }]);
-          return;
         }
+        const t = myHand[0];
+        const a = Number(t.a !== undefined ? t.a : t[0]);
+        const b = Number(t.b !== undefined ? t.b : t[1]);
+        commitMove(0, [{ left: a, right: b, a: a, b: b }]);
+        return;
       } else {
         const leftEnd = Number(boardChain[0].left);
         const rightEnd = Number(boardChain[boardChain.length - 1].right);
@@ -628,7 +715,7 @@
       });
 
       const tableArea = document.getElementById('tableArea');
-      const maxAllowedWidth = tableArea.clientWidth - 205;
+      const maxAllowedWidth = tableArea.clientWidth - (selectedMode === 2 ? 40 : 205);
       const chainWidth = container.scrollWidth;
 
       if (chainWidth > maxAllowedWidth && maxAllowedWidth > 100) {
@@ -665,9 +752,10 @@
       if (!isMyTurn || isGameFinished) return;
 
       if (boardChain.length === 0) {
-        if (isFirstEverRound) {
-          if (a !== 6 || b !== 6) {
-            alert('دەبێت بەردی دوو شەش دابنێیت بۆ دەستپێکردنی یەکەم یاری!');
+        if (isFirstEverRound && requiredFirstTile) {
+          const isMatch = (a === requiredFirstTile.a && b === requiredFirstTile.b) || (a === requiredFirstTile.b && b === requiredFirstTile.a);
+          if (!isMatch) {
+            alert(`دەبێت گەورەترین جووت (${requiredFirstTile.a}-${requiredFirstTile.b}) دابنێیت بۆ دەستپێکردن!`);
             return;
           }
         }
@@ -721,7 +809,7 @@
     function commitMove(index, updatedBoard) {
       const played = myHand.splice(index, 1)[0];
       
-      if ((played.a === 6 && played.b === 6) || (played[0] === 6 && played[1] === 6)) {
+      if (played.a === played.b) {
         playHeavySlamSound();
       } else {
         playClackSound();
@@ -772,14 +860,16 @@
         const title = document.getElementById('matchWinnerTitle');
         const desc = document.getElementById('matchWinnerDesc');
 
-        if (data.winningTeam === 'teamA') {
-          title.innerText = '🏆 پیرۆزە! تیمی ئێمە بردییەوە';
+        const amIWinner = (mySeat % 2 === 0 && data.winningTeam === 'teamA') || (mySeat % 2 === 1 && data.winningTeam === 'teamB');
+
+        if (amIWinner) {
+          title.innerText = '🏆 پیرۆزە! تۆ بردتەوە';
           title.style.color = '#22c55e';
-          desc.innerText = `تیمی ئێمە گەیشتە ${data.teamScores.teamA} خاڵ و بەسەرکەوتوویی یارییەکەی بردەوە!`;
+          desc.innerText = `گەیشتیتە ١٠١ خاڵ و بەسەرکەوتوویی یارییەکەت بردەوە!`;
         } else {
-          title.innerText = '💔 تیمی ئەوان بردیانەوە';
+          title.innerText = '💔 ڕکابەرەکەت بردییەوە';
           title.style.color = '#ef4444';
-          desc.innerText = `تیمی ئەوان گەیشتە ${data.teamScores.teamB} خاڵ و یارییەکەیان بردەوە.`;
+          desc.innerText = `ڕکابەرەکەت گەیشتە ١٠١ خاڵ و یارییەکەی بردەوە.`;
         }
         modal.style.display = 'flex';
         return;
@@ -787,9 +877,8 @@
 
       alert(`گەڕ کۆتایی پێهات!\nشێواز: ${data.isLock ? 'قەپات' : 'دۆمینە'}\nبراوە: ${data.winnerName}\nخاڵی زیادکراو: +${data.gainedPoints}`);
     });
-  window.addEventListener('resize', renderBoard);
+
+    window.addEventListener('resize', renderBoard);
   </script>
 </body>
 </html>
-
-
