@@ -595,10 +595,11 @@
 
     function updateHandCounts(counts) {
       if (!counts) return;
-      for (let s = 0; s < counts.length; s++) {
+      for (const sKey in counts) {
+        const s = Number(sKey);
         const vSeat = mapSeatToVisual(s);
         const el = document.getElementById(`count-${vSeat}`);
-        if (el && counts[s] !== undefined) el.innerText = counts[s];
+        if (el && counts[sKey] !== undefined) el.innerText = counts[sKey];
       }
     }
 
