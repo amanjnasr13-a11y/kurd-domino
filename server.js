@@ -43,40 +43,62 @@ app.get('/admin', (req, res) => {
 });
 
 // ==========================================
-// --- بەشی زیرەکی دەستکرد (OpenRouter AI) ---
+// --- بەشی زیرەکی دەستکرد (Google Gemini AI) ---
 // ==========================================
-async function callOpenRouter(apiKey, model, messages, useWeb = false) {
-  const bodyData = {
-    model: model,
-    messages: messages,
-    temperature: 0.4,
-    max_tokens: 2048
-  };
-
-  if (useWeb) {
-    bodyData.plugins = [{ id: 'web', max_results: 5 }];
+function parseBase64Image(dataUrl) {
+  if (!dataUrl) return null;
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (match) {
+    return { mimeType: match[1], data: match[2] };
   }
+  return { mimeType: 'image/jpeg', data: dataUrl };
+}
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'HTTP-Referer': 'https://kurd-domino-production.up.railway.app',
-      'X-Title': 'Kurd AI Assistant',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(bodyData)
-  });
+async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch = false) {
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  let lastError = null;
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error?.message || `OpenRouter HTTP ${response.status}`);
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const bodyData = {
+        systemInstruction: {
+          parts: [{ text: systemInstruction }]
+        },
+        contents: contents,
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 8192
+        }
+      };
+
+      if (useGoogleSearch) {
+        bodyData.tools = [{ googleSearch: {} }];
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Gemini HTTP ${response.status}`);
+      }
+
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      const answer = parts.map(p => p.text || '').join('').trim();
+      if (!answer) {
+        throw new Error('وەڵامەکە بە بەتاڵی گەڕایەوە.');
+      }
+      return answer;
+    } catch (err) {
+      console.error(`❌ هەڵە لە مۆدێلی ${model}:`, err.message);
+      lastError = err;
+    }
   }
-  const answer = data.choices?.[0]?.message?.content;
-  if (!answer) {
-    throw new Error('وەڵامەکە بە بەتاڵی گەڕایەوە.');
-  }
-  return answer;
+  throw lastError || new Error('هەڵە لە پەیوەندی بە Google Gemini ڕوویدا');
 }
 
 // بەشی کتێب و مەلزەمەکان (PDF)
@@ -94,7 +116,7 @@ app.get('/api/materials-list', (req, res) => {
   });
 });
 
-// بەشی چاتکردنی گشتی (Kurd AI) بە گەڕانی ئینتەرنێتی زیندوو + کات + کەشوهەوا + هەرسێ زمان + وێنە
+// بەشی چاتکردنی گشتی (Kurd AI) بە Google Gemini + گەڕانی زیندووی گۆگڵ + کات + کەشوهەوا + هەرسێ زمان + وێنە
 app.post('/api/chat', async (req, res) => {
   try {
     const { history, imageBase64, lang } = req.body;
@@ -102,9 +124,9 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'تکایە پرسیارەکەت بنووسە یان وێنەیەک دابنێ.' });
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'کلیلی OPENROUTER_API_KEY لە سێرڤەر دانەنراوە!' });
+      return res.status(500).json({ error: 'کلیلی GEMINI_API_KEY لە سێرڤەری Railway دانەنراوە!' });
     }
 
     const kurdistanTime = new Date().toLocaleString('en-US', {
@@ -113,7 +135,7 @@ app.post('/api/chat', async (req, res) => {
       timeStyle: 'short'
     });
 
-    const recentHistory = (history || []).slice(-10);
+    const recentHistory = (history || []).slice(-12);
     const rawUserText = (recentHistory[recentHistory.length - 1]?.content || '');
     const normalizedText = rawUserText.replace(/ك/g, 'ک').replace(/ي/g, 'ی').trim();
 
@@ -141,83 +163,82 @@ app.post('/api/chat', async (req, res) => {
 یاسای زێڕین: هەمیشە سەیری زمانی دوایین پرسیاری بەکارهێنەر بکە:
 - ئەگەر بە عەرەبی نووسی، تەواوی وەڵامەکە تەنها بە عەرەبی بنووسە و هیچ وشەیەکی کوردی تێکەڵ مەکە.
 - ئەگەر بە ئینگلیزی نووسی، تەواوی وەڵامەکە تەنها بە ئینگلیزی بنووسە.
-- ئەگەر بە کوردی نووسی (یان تەنها وێنەی نارد کاتێک زمانی چاتەکە کوردییە)، بە کوردیی سۆرانیی پاراو وەڵام بدەرەوە. (زمانی هەڵبژێردراوی چاتەکە: ${lang || 'ku'}).`;
+- ئەگەر بە کوردی نووسی (یان تەنها وێنەی نارد کاتێک زمانی چاتەکە کوردییە)، بە کوردیی سۆرانیی پاراو، تەواو و ورد وەڵام بدەرەوە. (زمانی هەڵبژێردراوی چاتەکە: ${lang || 'ku'}).`;
 
-    const systemMsg = {
-      role: 'system',
-      content: `تۆ (Kurd AI - کورد ئەی ئای)ـیت، زیرەکترین یاریدەدەری دیجیتاڵی هاوشێوەی Google Gemini.
-تۆ بە ئینتەرنێتەوە بەستراویتەتەوە و زانیاریی زیندووی ئەمڕۆت لەبەردەستە (نرخی دۆلار و دراوەکان لە هەرێمی کوردستان و عێراق، نرخی زێڕ، کەشوهەوا، هەواڵەکان، ئەنجامی یارییەکان، و هەموو زانیارییەکی جیهانی).
+    const systemInstruction = `تۆ (Kurd AI - کورد ئەی ئای)ـیت، زیرەکترین یاریدەدەری دیجیتاڵی هاوشێوەی Google Gemini.
+تۆ بە گەڕانی زیندووی گۆگڵ (Google Search)ـەوە بەستراویتەتەوە و زانیاریی زیندووی ئەمڕۆت لەبەردەستە (نرخی دۆلار و دراوەکان لە هەرێمی کوردستان و عێراق، نرخی زێڕ، کەشوهەوا، هەواڵەکان، ئەنجامی یارییەکان، و هەموو زانیارییەکی جیهانی).
 قەدەغەیە بە هیچ شێوەیەک بڵێیت "من مۆدێلێکی زمانم و دەستم بە زانیاریی ڕاستەوخۆ ناگات" یان "ناتوانم نرخی دراو و کەشوهەوا بزانم"!
 کات و بەرواری ڕاستەقینەی ئێستا لە کوردستان و عێراق: ${kurdistanTime}.${liveWeatherInfo}
 ${langInstruction}
 یاساکانی وەڵامدانەوە:
-1. ئەگەر بەکارهێنەر تەنها سڵاوی کرد (وەک "سڵاو" یان "مرحبا" یان "Hello")، وەک هاوڕێیەکی زیرەک بە گەرمی سڵاوی لێ بکەرەوە و بڵێ چۆن دەتوانیت یارمەتی بدەیت (لەم کاتەدا بەدوای مانای وشەی سڵاودا مەگەڕێ).
-2. بۆ هەموو پرسیارێکی تر (نرخی ١٠٠ دۆلار بە دینار لە بازاڕی هەولێر و سلێمانی، نرخی مسقاڵی زێڕ، کەشوهەوا، هەواڵ، یان هەر زانیارییەکی تر)، ڕاستەوخۆ لە ئەنجامەکانی گەڕانی ئینتەرنێت و زانیارییەکانت وەڵامێکی ورد و ڕوون بدەرەوە.
-3. ئەگەر وێنەیەکی نارد، بە وردی هەموو شتێکی ناو وێنەکەی بۆ باس بکە.
-4. هێما تێکەڵەکانی LaTeX وەک ($ یان $$) و لینکی ئینتەرنێت (http یان https) و ناوی ماڵپەڕەکان لەناو کەوانەدا مەنووسە.`
-    };
+1. وەڵامەکانت با تەواو، ڕێکخراو، ورد و پڕ زانیاری بن و هەرگیز لە نیوەدا مەیانبڕە.
+2. ئەگەر بەکارهێنەر تەنها سڵاوی کرد (وەک "سڵاو" یان "مرحبا" یان "Hello")، وەک هاوڕێیەکی زیرەک بە گەرمی سڵاوی لێ بکەرەوە و بڵێ چۆن دەتوانیت یارمەتی بدەیت.
+3. بۆ هەموو پرسیارێکی تر (نرخی ١٠٠ دۆلار بە دینار لە بازاڕی هەولێر و سلێمانی، نرخی مسقاڵی زێڕ، کەشوهەوا، هەواڵ، یان هەر زانیارییەکی تر)، گەڕانی گۆگڵ بەکاربهێنە و وەڵامێکی ورد و ڕوون بدەرەوە.
+4. ئەگەر وێنەیەکی نارد، بە وردی هەموو شتێکی ناو وێنەکەی بۆ باس بکە.
+5. هێما تێکەڵەکانی LaTeX وەک ($ یان $$) و لینکی درێژی ئینتەرنێت (http یان https) مەنووسە.`;
 
-    const messages = [systemMsg, ...recentHistory];
+    const contents = [];
+    for (const msg of recentHistory) {
+      const role = msg.role === 'assistant' ? 'model' : 'user';
+      const text = typeof msg.content === 'string' ? msg.content : '';
+      if (text) {
+        contents.push({ role, parts: [{ text }] });
+      }
+    }
 
     if (imageBase64) {
-      const lastMsg = messages[messages.length - 1];
+      const parsedImg = parseBase64Image(imageBase64);
       const defaultImagePrompt = lang === 'ar'
         ? 'اشرح لي كل شيء في هذه الصورة بالتفصيل.'
         : lang === 'en'
         ? 'Explain everything in this image in detail.'
         : 'ئەم وێنەیەم بە وردی بۆ باس بکە و هەموو زانیارییەکی گرنگی تێدا ڕوون بکەرەوە.';
 
-      const userPrompt = (lastMsg && lastMsg.role === 'user' && lastMsg.content)
-        ? lastMsg.content
-        : defaultImagePrompt;
-
-      const contentParts = [
-        { type: 'text', text: userPrompt },
-        { type: 'image_url', image_url: { url: imageBase64 } }
-      ];
-
-      if (lastMsg && lastMsg.role === 'user') {
-        lastMsg.content = contentParts;
-      } else {
-        messages.push({ role: 'user', content: contentParts });
-      }
-    }
-
-    // ئەگەر تەنها سڵاوێکی سادە بوو، گەڕانی ئینتەرنێتی ناوێت؛ بۆ هەموو شتێکی تر گەڕانی زیندوو چالاکە
-    const isGreetingOnly = /^(سڵاو|سلاو|چۆنیت|باشیت|مرحبا|هلا|السلام عليكم|hi|hello|hey)[\s!؟?]*$/i.test(normalizedText);
-    const useWebSearch = !isGreetingOnly && !imageBase64;
-
-    const models = [
-  'google/gemini-2.0-flash-exp:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'qwen/qwen-2.5-72b-instruct:free'
-];
-
-    let lastError = null;
-    for (const model of models) {
-      try {
-        let answer = await callOpenRouter(apiKey, model, messages, useWebSearch);
-        answer = answer.replace(/\[([^\]]+)\]\(https?:\/\/[^\)]+\)/g, '$1').replace(/https?:\/\/\S+/g, '').replace(/\[[^\]]+\.(com|org|net|io|co|iq)\]/gi, '');
-        return res.json({ answer });
-      } catch (err) {
-        if (useWebSearch) {
-          try {
-            let fallbackAnswer = await callOpenRouter(apiKey, model, messages, false);
-            return res.json({ answer: fallbackAnswer });
-          } catch (e2) {
-            lastError = e2;
-          }
-        } else {
-          lastError = err;
+      const lastContent = contents[contents.length - 1];
+      if (lastContent && lastContent.role === 'user') {
+        if (!lastContent.parts[0]?.text) {
+          lastContent.parts[0] = { text: defaultImagePrompt };
         }
+        lastContent.parts.push({
+          inlineData: { mimeType: parsedImg.mimeType, data: parsedImg.data }
+        });
+      } else {
+        contents.push({
+          role: 'user',
+          parts: [
+            { text: defaultImagePrompt },
+            { inlineData: { mimeType: parsedImg.mimeType, data: parsedImg.data } }
+          ]
+        });
       }
     }
-    throw lastError || new Error('وەڵام نەهاتەوە');
+
+    const isGreetingOnly = !imageBase64 && /^(سڵاو|سلاو|چۆنیت|باشیت|مرحبا|هلا|السلام عليكم|hi|hello|hey)[\s!؟?]*$/i.test(normalizedText);
+    const useGoogleSearch = !isGreetingOnly;
+
+    let answer;
+    try {
+      answer = await callGemini(apiKey, systemInstruction, contents, useGoogleSearch);
+    } catch (err) {
+      if (useGoogleSearch) {
+        answer = await callGemini(apiKey, systemInstruction, contents, false);
+      } else {
+        throw err;
+      }
+    }
+
+    answer = answer
+      .replace(/\[([^\]]+)\]\(https?:\/\/[^\)]+\)/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\[[^\]]+\.(com|org|net|io|co|iq)\]/gi, '');
+
+    return res.json({ answer });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// بەشی قوتابیان (شیکارکردنی پرسیار و وێنە بە Google Gemini)
 app.post('/api/solve-question', async (req, res) => {
   try {
     const { questionText, imageBase64, subject } = req.body;
@@ -226,40 +247,34 @@ app.post('/api/solve-question', async (req, res) => {
       return res.status(400).json({ error: 'تکایە پرسیار یان وێنە بنێرە.' });
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'کلیلی OPENROUTER_API_KEY لە Railway دانەنراوە!' });
+      return res.status(500).json({ error: 'کلیلی GEMINI_API_KEY لە Railway دانەنراوە!' });
     }
 
-    const userContent = [];
+    const parts = [];
     if (questionText && imageBase64) {
-      userContent.push({
-        type: 'text',
+      parts.push({
         text: `بابەت: ${subject || 'گشتی'}\nتێبینی قوتابی: ${questionText}\nتکایە وێنەکە بخوێنەرەوە و بە پێی تێبینی قوتابییەکە بە زمانی کوردی (سۆرانی) هەنگاو بە هەنگاو شیکاری بکە.`
       });
     } else if (questionText) {
-      userContent.push({
-        type: 'text',
+      parts.push({
         text: `بابەت: ${subject || 'گشتی'}\nپرسیار: ${questionText}\nتکایە بە زمانی کوردی (سۆرانی) و بە هەنگاوی ڕوون و زانستی وەڵام بدەرەوە.`
       });
     } else {
-      userContent.push({
-        type: 'text',
+      parts.push({
         text: `بابەت: ${subject || 'گشتی'}\nتکایە نووسین یان هاوکێشەی ناو ئەم وێنەیە بە وردی بخوێنەرەوە و بە زمانی کوردی (سۆرانی) هەنگاو بە هەنگاو شیکاری بکە.`
       });
     }
 
     if (imageBase64) {
-      userContent.push({
-        type: 'image_url',
-        image_url: { url: imageBase64 }
+      const parsedImg = parseBase64Image(imageBase64);
+      parts.push({
+        inlineData: { mimeType: parsedImg.mimeType, data: parsedImg.data }
       });
     }
 
-    const messages = [
-      {
-        role: 'system',
-        content: `تۆ مامۆستایەکی زیرەکی پسپۆڕیت لە هەرێمی کوردستان کە بە تەواوی شارەزای هەرسێ زمانی (کوردی، عەرەبی، و ئینگلیزی)ـیت لە بیرکاری، فیزیا، کیمیا، و هەموو وانەکاندا.
+    const systemInstruction = `تۆ مامۆستایەکی زیرەکی پسپۆڕیت لە هەرێمی کوردستان کە بە تەواوی شارەزای هەرسێ زمانی (کوردی، عەرەبی، و ئینگلیزی)ـیت لە بیرکاری، فیزیا، کیمیا، و هەموو وانەکاندا.
 
 یاسا زۆر گرنگەکان بۆ شیکارکردنی وێنە و نووسین:
 ١. ناسینەوەی هەرسێ زمانەکە بە وردی:
@@ -268,31 +283,12 @@ app.post('/api/solve-question', async (req, res) => {
 - ئەگەر پرسیارەکە وانەی زمانەوانی (کوردی، عەرەبی، یان ئینگلیزی) بوو، بە پێی یاساکانی ئەو زمانە وەڵامی بدەرەوە.
 
 ٢. شێوازی نووسینی وەڵام:
-- هەموو ڕوونکردنەوە و هەنگاوەکان بە زمانی کوردیی سۆرانییەکی پاراو و سادە بنووسە تا قوتابی بە ئاسانی لێی تێبگات.
-- بە هیچ شێوەیەک هێما تێکەڵەکانی LaTeX وەک ($ یان $$ یان \\omega یان \\times یان \\frac) بەکارمەهێنە؛ لە جیاتی ئەوانە نیشانەی ئاسایی وەک (× ، ÷ ، + ، - ، =) بنووسە تا لە شاشەی مۆبایل بە جوانی و بێ تێکچوون دەربکەوێت.`
-      },
-      { role: 'user', content: userContent }
-    ];
+- هەموو ڕوونکردنەوە و هەنگاوەکان بە زمانی کوردیی سۆرانییەکی پاراو، تەواو و سادە بنووسە تا قوتابی بە ئاسانی لێی تێبگات.
+- بە هیچ شێوەیەک هێما تێکەڵەکانی LaTeX وەک ($ یان $$ یان \\omega یان \\times یان \\frac) بەکارمەهێنە؛ لە جیاتی ئەوانە نیشانەی ئاسایی وەک (× ، ÷ ، + ، - ، =) بنووسە تا لە شاشەی مۆبایل بە جوانی و بێ تێکچوون دەربکەوێت.`;
 
-    const models = [
-  'google/gemini-2.0-flash-exp:free',
-  'meta-llama/llama-3.2-11b-vision-instruct:free',
-  'qwen/qwen-2.5-vl-7b-instruct:free'
-];
-
-    let lastError = null;
-    for (const model of models) {
-      try {
-        console.log(`🤖 ناردنی پرسیار بۆ مۆدێلی: ${model}`);
-        const answer = await callOpenRouter(apiKey, model, messages, false);
-        return res.json({ answer });
-      } catch (err) {
-        console.error(`❌ هەڵە لە مۆدێلی ${model}:`, err.message);
-        lastError = err;
-      }
-    }
-
-    res.status(500).json({ error: lastError ? lastError.message : 'هەڵە لە پەیوەندی بە AI ڕوویدا' });
+    const contents = [{ role: 'user', parts }];
+    const answer = await callGemini(apiKey, systemInstruction, contents, false);
+    return res.json({ answer });
   } catch (err) {
     console.error('❌ هەڵەی گشتی لە /api/solve-question:', err);
     res.status(500).json({ error: err.message });
