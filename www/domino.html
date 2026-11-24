@@ -537,8 +537,13 @@
     socket.on('waiting_players', (data) => {
       currentRoomId = data.roomId;
       document.getElementById('waitingOverlay').style.display = 'flex';
-      document.getElementById('waitCountdown').innerText = data.secondsLeft;
-      document.getElementById('waitRoomInfo').innerText = `ژووری #${data.roomId} (${data.currentCount}/${data.maxPlayers} یاریزان) - چاوەڕێی هاتنی یاریزانی ئۆنلاینین...`;
+      if (data.isPrivate || data.secondsLeft < 0) {
+        document.getElementById('waitCountdown').innerText = '∞';
+        document.getElementById('waitRoomInfo').innerText = `ژووری تایبەت #${data.roomId} (${data.currentCount}/${data.maxPlayers} یاریزان) - چاوەڕێی هاتنی هاوڕێکانت دەکات...`;
+      } else {
+        document.getElementById('waitCountdown').innerText = data.secondsLeft;
+        document.getElementById('waitRoomInfo').innerText = `ژووری گشتی #${data.roomId} (${data.currentCount}/${data.maxPlayers} یاریزان) - چاوەڕێی یاریزانی ئۆنلاینین...`;
+      }
     });
 
     socket.on('game_live', (data) => {

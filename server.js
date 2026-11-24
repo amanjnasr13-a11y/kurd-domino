@@ -768,15 +768,16 @@ io.on('connection', (socket) => {
     }
   });
 
-  // سیستەمی یاریی دۆمینە (ئۆنلاین + چاوەڕوانیی هاوڕێ + بۆت)
+  // سیستەمی یاریی دۆمینە (ئۆنلاین + چاوەڕوانیی بێسنوور بۆ هاوڕێ + بۆت)
   socket.on('join_game', ({ name, mode, roomType, customCode }) => {
     const selectedMode = (mode === 2) ? 2 : 4;
     const finalPlayerName = (name && name.trim()) ? name.trim() : 'یاریزان';
+    const isPrivateRoom = (roomType === 'private');
 
     let room = null;
     let roomId = '';
 
-    if (roomType === 'private' && customCode) {
+    if (isPrivateRoom && customCode) {
       roomId = customCode.trim().toUpperCase();
       room = rooms[roomId];
     } else {
@@ -792,7 +793,7 @@ io.on('connection', (socket) => {
     if (!room) {
       room = {
         id: roomId,
-        isPublic: (roomType !== 'private'),
+        isPublic: !isPrivateRoom,
         mode: selectedMode,
         started: false,
         players: [],
@@ -804,7 +805,7 @@ io.on('connection', (socket) => {
         consecutivePasses: 0,
         botTimeout: null,
         waitInterval: null,
-        secondsLeft: 12
+        secondsLeft: isPrivateRoom ? -1 : 30
       };
 
       room.players.push({
@@ -820,31 +821,35 @@ io.on('connection', (socket) => {
       socket.roomId = roomId;
       socket.join(roomId);
 
-      // ١٢ چرکە چاوەڕێ دەکات تا هاوڕێکانت یان یاریزانی جیهانی بێنە ژوورەوە، ئەگەر نەهاتن دەبێتە ڕۆبۆت
       io.to(roomId).emit('waiting_players', {
         roomId: room.id,
         secondsLeft: room.secondsLeft,
         currentCount: room.players.length,
-        maxPlayers: room.mode
+        maxPlayers: room.mode,
+        isPrivate: isPrivateRoom
       });
 
-      room.waitInterval = setInterval(() => {
-        if (room.started) {
-          clearInterval(room.waitInterval);
-          return;
-        }
-        room.secondsLeft--;
-        if (room.secondsLeft <= 0) {
-          fillRoomWithBotsAndStart(room);
-        } else {
-          io.to(room.id).emit('waiting_players', {
-            roomId: room.id,
-            secondsLeft: room.secondsLeft,
-            currentCount: room.players.length,
-            maxPlayers: room.mode
-          });
-        }
-      }, 1000);
+      // تەنها بۆ ژووری گشتی دوای ٣٠ چرکە ڕۆبۆت دادەنێت؛ ژووری تایبەت چاوەڕێی هاوڕێکانت دەکات
+      if (!isPrivateRoom) {
+        room.waitInterval = setInterval(() => {
+          if (room.started) {
+            clearInterval(room.waitInterval);
+            return;
+          }
+          room.secondsLeft--;
+          if (room.secondsLeft <= 0) {
+            fillRoomWithBotsAndStart(room);
+          } else {
+            io.to(room.id).emit('waiting_players', {
+              roomId: room.id,
+              secondsLeft: room.secondsLeft,
+              currentCount: room.players.length,
+              maxPlayers: room.mode,
+              isPrivate: false
+            });
+          }
+        }, 1000);
+      }
     } else if (!room.started && room.players.length < room.mode) {
       const nextSeat = room.players.length;
       const team = (nextSeat % 2 === 0) ? 'teamA' : 'teamB';
@@ -868,7 +873,8 @@ io.on('connection', (socket) => {
           roomId: room.id,
           secondsLeft: room.secondsLeft,
           currentCount: room.players.length,
-          maxPlayers: room.mode
+          maxPlayers: room.mode,
+          isPrivate: !room.isPublic
         });
       }
     }
