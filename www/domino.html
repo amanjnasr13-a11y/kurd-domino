@@ -201,6 +201,14 @@
     </div>
   </div>
 
+  <div id="roundResultModal" style="display: none; position: fixed; inset: 0; background: rgba(5, 10, 18, 0.85); z-index: 2800; align-items: center; justify-content: center; direction: rtl;">
+    <div class="match-over-box" style="padding: 24px; max-width: 340px; width: 90%;">
+      <h2 style="color: #f59e0b; margin-bottom: 12px; font-size: 20px;">گەڕ کۆتایی پێهات!</h2>
+      <p id="roundResultText" style="font-size: 15px; color: #fff; margin-bottom: 20px; line-height: 1.8;"></p>
+      <button class="btn-restart" onclick="confirmNextRound()" style="width: 100%; font-size: 16px;">OK</button>
+    </div>
+  </div>
+
   <div id="gameContainer">
     <header>
       <a href="index.html" class="btn-back-kurdai">گەڕانەوە بۆ یارییەکان</a>
@@ -568,6 +576,7 @@
 
     socket.on('game_live', (data) => {
       document.getElementById('waitingOverlay').style.display = 'none';
+      document.getElementById('roundResultModal').style.display = 'none';
       mySeat = data.mySeat;
       myHand = data.myHand;
       boardChain = data.board || [];
@@ -938,8 +947,18 @@
         return;
       }
 
-      alert(`گەڕ کۆتایی پێهات!\nشێواز: ${data.isLock ? 'قەپات' : 'دۆمینە'}\nبراوە: ${data.winnerName}\nخاڵی زیادکراو: +${data.gainedPoints}`);
+      document.getElementById('roundResultText').innerHTML = `
+        شێواز: <b>${data.isLock ? 'قەپات' : 'دۆمینە'}</b><br>
+        براوە: <b style="color:#22c55e;">${data.winnerName}</b><br>
+        خاڵی زیادکراو: <b style="color:#38bdf8;">+${data.gainedPoints}</b>
+      `;
+      document.getElementById('roundResultModal').style.display = 'flex';
     });
+
+    function confirmNextRound() {
+      document.getElementById('roundResultModal').style.display = 'none';
+      socket.emit('ready_next_round');
+    }
 
     socket.on('connect', () => {
       if (currentRoomId && myName) {

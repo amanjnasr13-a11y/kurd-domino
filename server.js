@@ -517,6 +517,8 @@ function setupRound(room) {
   room.consecutivePasses = 0;
   clearTimeout(room.botTimeout);
   clearTimeout(room.serverGuardTimeout);
+  clearTimeout(room.nextRoundTimeout);
+  room.nextRoundTimeout = null;
 
   room.players.forEach((p, idx) => {
     p.hand = fullDeck.slice(idx * 7, (idx + 1) * 7);
@@ -744,6 +746,7 @@ function handleLockedGame(room) {
 function handleRoundWin(room, winner, isLock) {
   clearTimeout(room.botTimeout);
   clearTimeout(room.serverGuardTimeout);
+  clearTimeout(room.nextRoundTimeout);
   room.starterSeat = winner.seat;
   let totalScoreGained = 0;
 
@@ -770,9 +773,10 @@ function handleRoundWin(room, winner, isLock) {
 
   if (isMatchOver) return;
 
-  setTimeout(() => {
+  room.nextRoundTimeout = setTimeout(() => {
+    room.nextRoundTimeout = null;
     setupRound(room);
-  }, 4000);
+  }, 15000);
 }
 
 io.on('connection', (socket) => {
@@ -844,6 +848,7 @@ io.on('connection', (socket) => {
         consecutivePasses: 0,
         botTimeout: null,
         serverGuardTimeout: null,
+        nextRoundTimeout: null,
         waitInterval: null,
         secondsLeft: isPrivateRoom ? -1 : 30
       };
@@ -929,6 +934,17 @@ io.on('connection', (socket) => {
     const room = rooms[socket.roomId];
     if (room && !room.started) {
       fillRoomWithBotsAndStart(room);
+    }
+  });
+
+  // هەر یاریزانێک کلیک لە OK بکات دوای کۆتایی گەڕ، یەکسەر گەڕی نوێ لای هەموویان دەست پێدەکات
+  socket.on('ready_next_round', () => {
+    const room = rooms[socket.roomId];
+    if (!room || !room.started) return;
+    if (room.nextRoundTimeout) {
+      clearTimeout(room.nextRoundTimeout);
+      room.nextRoundTimeout = null;
+      setupRound(room);
     }
   });
 
