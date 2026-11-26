@@ -456,6 +456,23 @@ function findFirstRoundStarter(players) {
   return { starterIdx: bestIdx, requiredTile: bestTile };
 }
 
+function startServerTurnGuard(room) {
+  clearTimeout(room.serverGuardTimeout);
+  if (!room || !room.players || room.players.length === 0) return;
+  const currentP = room.players[room.turnIdx];
+  if (!currentP || currentP.isBot) return;
+
+  room.serverGuardTimeout = setTimeout(() => {
+    if (!room || !room.players) return;
+    const p = room.players[room.turnIdx];
+    if (!p || p.id !== currentP.id) return;
+
+    p.isBot = true;
+    checkIfBotTurn(room);
+    p.isBot = false;
+  }, 18000);
+}
+
 function fillRoomWithBotsAndStart(room) {
   if (!room || room.started) return;
   clearInterval(room.waitInterval);
@@ -489,6 +506,7 @@ function setupRound(room) {
   room.deck = [];
   room.consecutivePasses = 0;
   clearTimeout(room.botTimeout);
+  clearTimeout(room.serverGuardTimeout);
 
   room.players.forEach((p, idx) => {
     p.hand = fullDeck.slice(idx * 7, (idx + 1) * 7);
@@ -547,12 +565,15 @@ function setupRound(room) {
 
   if (currentP.isBot) {
     room.botTimeout = setTimeout(() => checkIfBotTurn(room), 1500);
+  } else {
+    startServerTurnGuard(room);
   }
 }
 
 function advanceTurn(room, playedSeat = null) {
   if (!room || !room.players || room.players.length === 0) return;
   clearTimeout(room.botTimeout);
+  clearTimeout(room.serverGuardTimeout);
 
   room.turnIdx = (room.turnIdx + 1) % room.players.length;
   const currentP = room.players[room.turnIdx];
@@ -575,6 +596,8 @@ function advanceTurn(room, playedSeat = null) {
 
   if (currentP.isBot) {
     room.botTimeout = setTimeout(() => checkIfBotTurn(room), 1500);
+  } else {
+    startServerTurnGuard(room);
   }
 }
 
@@ -666,6 +689,10 @@ function checkIfBotTurn(room) {
       if (room.mode === 2 && room.deck && room.deck.length > 0) {
         const pulled = room.deck.pop();
         currentP.hand.push(pulled);
+        io.to(room.id).emit('deck_update', {
+          boneyardCount: room.deck.length,
+          handCounts: { [currentP.seat]: currentP.hand.length }
+        });
         room.botTimeout = setTimeout(() => checkIfBotTurn(room), 1000);
         return;
       }
@@ -705,6 +732,8 @@ function handleLockedGame(room) {
 }
 
 function handleRoundWin(room, winner, isLock) {
+  clearTimeout(room.botTimeout);
+  clearTimeout(room.serverGuardTimeout);
   room.starterSeat = winner.seat;
   let totalScoreGained = 0;
 
@@ -804,6 +833,7 @@ io.on('connection', (socket) => {
         starterSeat: null,
         consecutivePasses: 0,
         botTimeout: null,
+        serverGuardTimeout: null,
         waitInterval: null,
         secondsLeft: isPrivateRoom ? -1 : 30
       };
@@ -902,6 +932,7 @@ io.on('connection', (socket) => {
 
     let player = room.players.find(p => p.id === socket.id);
     if (!player) player = room.players[room.turnIdx];
+    if (room.players[room.turnIdx] && room.players[room.turnIdx].id !== player.id) return;
 
     room.consecutivePasses = 0;
     room.requiredFirstTile = null;
@@ -933,24 +964,46 @@ io.on('connection', (socket) => {
       return;
     }
     const player = room.players.find(p => p.id === socket.id);
+    if (!player || room.players[room.turnIdx]?.id !== player.id) return;
     handlePass(room, player);
   });
 
   socket.on('request_pull', () => {
     const room = rooms[socket.roomId];
-    if (!room || !room.deck || room.deck.length === 0) return;
+    if (!room) return;
 
     const currentP = room.players[room.turnIdx];
-    if (currentP.id !== socket.id) return;
+    if (!currentP || currentP.id !== socket.id) return;
+
+    if (!room.deck || room.deck.length === 0) {
+      socket.emit('receive_pulled', { pulled: null, boneyardCount: 0 });
+      return;
+    }
 
     const pulled = room.deck.pop();
     currentP.hand.push(pulled);
+
+    // نوێکردنەوەی پاسەوانیی سێرڤەر لە دوای هەر سەحبکردنێک
+    startServerTurnGuard(room);
 
     socket.emit('receive_pulled', { pulled, boneyardCount: room.deck.length });
     io.to(room.id).emit('deck_update', {
       boneyardCount: room.deck.length,
       handCounts: { [currentP.seat]: currentP.hand.length }
     });
+  });
+
+  socket.on('disconnect', () => {
+    const room = rooms[socket.roomId];
+    if (!room || !room.started) return;
+    const player = room.players.find(p => p.id === socket.id);
+    if (player) {
+      player.isBot = true;
+      if (room.players[room.turnIdx]?.id === socket.id) {
+        clearTimeout(room.serverGuardTimeout);
+        room.botTimeout = setTimeout(() => checkIfBotTurn(room), 1000);
+      }
+    }
   });
 });
 

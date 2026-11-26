@@ -277,8 +277,9 @@
     let myHand = [];
     let boardChain = [];
     let isMyTurn = false;
+    let isActionLocked = false;
     let isFirstEverRound = true;
-    let requiredFirstTile = null; // جووتە گەورەکەی دەستپێک
+    let requiredFirstTile = null;
     let isGameFinished = false;
     let timerInterval = null;
     let currentRoomId = '';
@@ -646,6 +647,7 @@
     function setupTurnTimer(turnSeat) {
       if (isGameFinished) return;
       isMyTurn = (turnSeat === mySeat);
+      isActionLocked = false;
       const visualTurnSeat = mapSeatToVisual(turnSeat);
 
       for (let s = 1; s <= 3; s++) {
@@ -674,7 +676,7 @@
 
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
-          if (isMyTurn) autoPlayRandomTile();
+          if (isMyTurn && !isActionLocked) autoPlayRandomTile();
         }
         timeLeft--;
       }
@@ -683,7 +685,7 @@
     }
 
     function autoPlayRandomTile() {
-      if (!isMyTurn || isGameFinished) return;
+      if (!isMyTurn || isGameFinished || isActionLocked) return;
       document.getElementById('sideChoiceModal').style.display = 'none';
 
       if (boardChain.length === 0) {
@@ -787,7 +789,7 @@
     }
 
     function tryPlayTile(index, a, b) {
-      if (!isMyTurn || isGameFinished) return;
+      if (!isMyTurn || isGameFinished || isActionLocked) return;
 
       if (boardChain.length === 0) {
         if (isFirstEverRound && requiredFirstTile) {
@@ -825,27 +827,35 @@
     }
 
     function executeSidePlay(index, a, b, side) {
+      if (isActionLocked) return;
       const leftEnd = Number(boardChain[0].left);
       const rightEnd = Number(boardChain[boardChain.length - 1].right);
+      const nextBoard = [...boardChain];
 
       if (side === 'left') {
         if (b === leftEnd) {
-          boardChain.unshift({ left: a, right: b, a: a, b: b });
+          nextBoard.unshift({ left: a, right: b, a: a, b: b });
         } else {
-          boardChain.unshift({ left: b, right: a, a: b, b: a });
+          nextBoard.unshift({ left: b, right: a, a: b, b: a });
         }
       } else {
         if (a === rightEnd) {
-          boardChain.push({ left: a, right: b, a: a, b: b });
+          nextBoard.push({ left: a, right: b, a: a, b: b });
         } else {
-          boardChain.push({ left: b, right: a, a: b, b: a });
+          nextBoard.push({ left: b, right: a, a: b, b: a });
         }
       }
-      commitMove(index, boardChain);
+      commitMove(index, nextBoard);
     }
 
     function commitMove(index, updatedBoard) {
+      if (isActionLocked) return;
+      isActionLocked = true;
+      isMyTurn = false;
+      clearInterval(timerInterval);
+
       const played = myHand.splice(index, 1)[0];
+      if (!played) return;
       
       if (played.a === played.b) {
         playHeavySlamSound();
@@ -853,8 +863,6 @@
         playClackSound();
       }
 
-      clearInterval(timerInterval);
-      isMyTurn = false;
       boardChain = updatedBoard;
       renderRack();
       renderBoard();
@@ -868,11 +876,12 @@
     }
 
     function onPass() {
-      if (!isMyTurn || isGameFinished) return;
+      if (!isMyTurn || isGameFinished || isActionLocked) return;
       if (selectedMode === 2 && Number(document.getElementById('pullCount').innerText || 0) > 0) {
         alert('هێشتا پوول ماوە لە بازاڕدا! دەبێت سەحبکردن بکەیت.');
         return;
       }
+      isActionLocked = true;
       speakNiye();
       clearInterval(timerInterval);
       isMyTurn = false;
@@ -880,19 +889,25 @@
     }
 
     function onPull() {
-      if (!isMyTurn || isGameFinished) return;
+      if (!isMyTurn || isGameFinished || isActionLocked) return;
+      isActionLocked = true;
       socket.emit('request_pull');
     }
 
     socket.on('receive_pulled', (data) => {
-      myHand.push(data.pulled);
-      renderRack();
+      isActionLocked = false;
+      if (data.pulled) {
+        myHand.push(data.pulled);
+        renderRack();
+      }
       document.getElementById('pullCount').innerText = data.boneyardCount;
       updatePassButtonVisibility(data.boneyardCount);
+      setupTurnTimer(mySeat);
     });
 
     socket.on('round_finished', (data) => {
       clearInterval(timerInterval);
+      isActionLocked = false;
       document.getElementById('sideChoiceModal').style.display = 'none';
       updateScores(data.teamScores);
       playHeavySlamSound();
