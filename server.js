@@ -929,6 +929,9 @@ io.on('connection', (socket) => {
   socket.on('player_pass', () => {
     const room = rooms[socket.roomId];
     if (!room) return;
+    if (room.mode === 2 && room.deck && room.deck.length > 0) {
+      return;
+    }
     const player = room.players.find(p => p.id === socket.id);
     handlePass(room, player);
   });

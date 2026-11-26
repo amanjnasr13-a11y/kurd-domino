@@ -496,6 +496,24 @@
       document.getElementById('privateCodeBox').style.display = (t === 'private') ? 'block' : 'none';
     }
 
+    function updatePassButtonVisibility(boneyardCount) {
+      const btnPass = document.getElementById('btnPass');
+      const btnPull = document.getElementById('btnPull');
+      if (!btnPass) return;
+      if (selectedMode === 2) {
+        if (boneyardCount > 0) {
+          btnPass.style.display = 'none';
+          if (btnPull) btnPull.style.display = 'inline-block';
+        } else {
+          btnPass.style.display = 'inline-block';
+          if (btnPull) btnPull.style.display = 'none';
+        }
+      } else {
+        btnPass.style.display = 'inline-block';
+        if (btnPull) btnPull.style.display = 'none';
+      }
+    }
+
     function startGame() {
       const nameInput = document.getElementById('playerName');
       myName = nameInput.value.trim();
@@ -525,12 +543,12 @@
         document.getElementById('seat-1').style.display = 'none';
         document.getElementById('seat-3').style.display = 'none';
         document.getElementById('seat-2').style.display = 'flex';
-        document.getElementById('btnPull').style.display = 'inline-block';
+        updatePassButtonVisibility(14);
       } else {
         document.getElementById('seat-1').style.display = 'flex';
         document.getElementById('seat-2').style.display = 'flex';
         document.getElementById('seat-3').style.display = 'flex';
-        document.getElementById('btnPull').style.display = 'none';
+        updatePassButtonVisibility(0);
       }
     }
 
@@ -577,6 +595,7 @@
       if (selectedMode === 2) {
         document.getElementById('pullCount').innerText = data.boneyardCount || 0;
       }
+      updatePassButtonVisibility(data.boneyardCount || 0);
     });
 
     socket.on('turn_advanced', (data) => {
@@ -592,6 +611,15 @@
       if (selectedMode === 2) {
         document.getElementById('pullCount').innerText = data.boneyardCount || 0;
       }
+      updatePassButtonVisibility(data.boneyardCount || 0);
+    });
+
+    socket.on('deck_update', (data) => {
+      if (selectedMode === 2) {
+        document.getElementById('pullCount').innerText = data.boneyardCount || 0;
+      }
+      updatePassButtonVisibility(data.boneyardCount || 0);
+      if (data.handCounts) updateHandCounts(data.handCounts);
     });
 
     socket.on('player_said_pass', () => {
@@ -692,6 +720,10 @@
             return;
           }
         }
+      }
+      if (selectedMode === 2 && Number(document.getElementById('pullCount').innerText || 0) > 0) {
+        onPull();
+        return;
       }
       onPass();
     }
@@ -837,6 +869,10 @@
 
     function onPass() {
       if (!isMyTurn || isGameFinished) return;
+      if (selectedMode === 2 && Number(document.getElementById('pullCount').innerText || 0) > 0) {
+        alert('هێشتا پوول ماوە لە بازاڕدا! دەبێت سەحبکردن بکەیت.');
+        return;
+      }
       speakNiye();
       clearInterval(timerInterval);
       isMyTurn = false;
@@ -852,6 +888,7 @@
       myHand.push(data.pulled);
       renderRack();
       document.getElementById('pullCount').innerText = data.boneyardCount;
+      updatePassButtonVisibility(data.boneyardCount);
     });
 
     socket.on('round_finished', (data) => {
