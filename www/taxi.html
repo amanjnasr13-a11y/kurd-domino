@@ -18,9 +18,9 @@
 
         :root {
             --bg-dark: #070d17;
-            --bg-card: rgba(15, 23, 42, 0.94);
-            --bg-input: rgba(7, 13, 23, 0.92);
-            --border-subtle: rgba(148, 163, 184, 0.18);
+            --bg-card: rgba(15, 23, 42, 0.96);
+            --bg-input: #0b1322;
+            --border-subtle: rgba(148, 163, 184, 0.2);
             --accent-gold: #f59e0b;
             --accent-emerald: #10b981;
             --accent-sky: #38bdf8;
@@ -44,7 +44,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-subtle);
-            background: rgba(7, 13, 23, 0.92);
+            background: rgba(7, 13, 23, 0.95);
             backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
@@ -66,7 +66,7 @@
             text-decoration: none;
         }
 
-        .container { max-width: 660px; margin: 14px auto 0 auto; padding: 0 12px; }
+        .container { max-width: 660px; margin: 12px auto 0 auto; padding: 0 12px; }
 
         .service-tabs {
             display: grid;
@@ -96,6 +96,7 @@
             color: #ffffff;
         }
 
+        /* Clean Map Container */
         .map-wrapper {
             position: relative;
             border-radius: 18px;
@@ -105,48 +106,10 @@
             box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
         }
 
-        #liveMap { width: 100%; height: 265px; z-index: 1; }
-
-        .map-mode-bar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            z-index: 500;
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .pin-select-btn {
-            flex: 1;
-            min-width: 115px;
-            background: rgba(7, 13, 23, 0.92);
-            border: 1.5px solid var(--border-subtle);
-            color: var(--text-main);
-            padding: 7px 10px;
-            border-radius: 10px;
-            font-size: 0.76rem;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .pin-select-btn.active-pickup { border-color: var(--accent-gold); color: var(--accent-gold); }
-        .pin-select-btn.active-dropoff { border-color: var(--accent-emerald); color: var(--accent-emerald); }
-
-        .gps-locate-btn {
-            background: rgba(56, 189, 248, 0.92);
-            color: #070d17;
-            border: none;
-            padding: 7px 11px;
-            border-radius: 10px;
-            font-size: 0.76rem;
-            font-weight: 800;
-            cursor: pointer;
-        }
+        #liveMap { width: 100%; height: 245px; z-index: 1; }
 
         .map-hint-bar {
-            background: rgba(7, 13, 23, 0.94);
+            background: rgba(7, 13, 23, 0.95);
             padding: 8px 12px;
             font-size: 0.78rem;
             color: #e2e8f0;
@@ -163,6 +126,138 @@
             padding: 16px;
         }
 
+        /* Careem-Style Connected Location Inputs */
+        .route-inputs-box {
+            background: rgba(7, 13, 23, 0.72);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        .loc-field-wrap {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .loc-field-wrap:last-child {
+            margin-bottom: 0;
+        }
+
+        .loc-label {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot-pickup {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            display: inline-block;
+        }
+
+        .dot-dropoff {
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            background: var(--accent-emerald);
+            display: inline-block;
+        }
+
+        .input-with-action {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 11px;
+            padding: 3px 6px;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-with-action.focused-pickup { border-color: var(--accent-gold); }
+        .input-with-action.focused-dropoff { border-color: var(--accent-emerald); }
+
+        .input-with-action input {
+            background: transparent;
+            border: none;
+            padding: 8px 8px;
+            color: var(--text-main);
+            font-size: 0.88rem;
+            outline: none;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .inside-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 9px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 4px;
+        }
+
+        .btn-gps-inside {
+            background: rgba(56, 189, 248, 0.18);
+            color: var(--accent-sky);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .btn-pin-inside {
+            background: rgba(245, 158, 11, 0.16);
+            color: var(--accent-gold);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .btn-pin-inside.dropoff {
+            background: rgba(16, 185, 129, 0.16);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        /* Autocomplete Dropdown Results */
+        .suggestions-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #0d1628;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 12px;
+            margin-top: 4px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 1200;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75);
+        }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background: rgba(245, 158, 11, 0.14); }
+        .sug-title { font-size: 0.86rem; font-weight: 800; color: #ffffff; }
+        .sug-sub { font-size: 0.72rem; color: var(--text-muted); }
+
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -174,7 +269,7 @@
         .form-group.full { grid-column: span 2; }
         .form-group label { font-size: 0.76rem; color: var(--text-muted); font-weight: 700; }
 
-        input {
+        .std-input {
             background: var(--bg-input);
             border: 1.5px solid var(--border-subtle);
             border-radius: 10px;
@@ -185,7 +280,7 @@
             width: 100%;
         }
 
-        input:focus { border-color: var(--accent-gold); }
+        .std-input:focus { border-color: var(--accent-gold); }
 
         .single-taxi-badge {
             background: rgba(245, 158, 11, 0.14);
@@ -343,48 +438,67 @@
             </button>
         </div>
 
+        <!-- Clean Live Map -->
         <div class="map-wrapper">
-            <div class="map-mode-bar">
-                <button type="button" class="pin-select-btn active-pickup" id="btnSetPickup" onclick="setActivePinMode('pickup')">
-                    📍 شوێنی خۆم دابنێ
-                </button>
-                <button type="button" class="pin-select-btn" id="btnSetDropoff" onclick="setActivePinMode('dropoff')">
-                    🏁 شوێنی مەبەست دابنێ
-                </button>
-                <button type="button" class="gps-locate-btn" onclick="locateMeGPS()">📡 GPS</button>
-            </div>
-
             <div id="liveMap"></div>
-
             <div class="map-hint-bar">
-                <span id="mapInstruction">کلیک لەسەر نەخشە بکە بۆ دیاریکردنی شوێنی هەڵگرتن</span>
+                <span id="mapInstruction">ناوی شوێن بنووسە یان کلیک لەسەر نەخشە بکە</span>
                 <span id="liveKmBadge" style="color:#f59e0b; font-weight:800;">0.0 کم</span>
             </div>
         </div>
 
         <section class="panel-card">
             <form id="orderForm" onsubmit="acceptAndSendOrder(event)">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>لۆکەیشنی هەڵگرتن (خۆت / نێرەر):</label>
-                        <input type="text" id="pickupText" value="هەولێر - کەسنەزان" required>
+                <!-- Careem-Style Pickup & Dropoff Inputs with Inside GPS & Autocomplete -->
+                <div class="route-inputs-box">
+                    <!-- Pickup Input -->
+                    <div class="loc-field-wrap">
+                        <div class="loc-label">
+                            <span class="dot-pickup"></span>
+                            <span>لۆکەیشنی هەڵگرتن (خۆت / نێرەر):</span>
+                        </div>
+                        <div class="input-with-action focused-pickup" id="pickupBoxWrap">
+                            <input type="text" id="pickupText" placeholder="ناوی گەڕەک، مۆڵ، یان شەقام بنووسە..."
+                                   onfocus="setActivePinMode('pickup')"
+                                   oninput="handleLocationSearch('pickup', this.value)" required>
+                            <button type="button" class="inside-btn btn-gps-inside" onclick="locateMeGPS()" title="دیاریکردنی شوێنی ئێستام">
+                                📡 GPS
+                            </button>
+                            <button type="button" class="inside-btn btn-pin-inside" onclick="focusMapForPin('pickup')" title="هەڵبژاردن لەسەر نەخشە">
+                                📍 نەخشە
+                            </button>
+                        </div>
+                        <div class="suggestions-dropdown" id="pickupSuggestions"></div>
                     </div>
-                    <div class="form-group">
-                        <label>لۆکەیشنی گەیشتن (مەبەست / وەرگر):</label>
-                        <input type="text" id="dropoffText" value="هەولێر - بنەسڵاوە" required>
+
+                    <!-- Dropoff Input -->
+                    <div class="loc-field-wrap">
+                        <div class="loc-label">
+                            <span class="dot-dropoff"></span>
+                            <span>لۆکەیشنی گەیشتن (مەبەست / وەرگر):</span>
+                        </div>
+                        <div class="input-with-action" id="dropoffBoxWrap">
+                            <input type="text" id="dropoffText" placeholder="بۆ کوێ دەچیت؟ (بۆ نموونە: دریم ستی، عەنکاوە، ماجدی مۆڵ...)"
+                                   onfocus="setActivePinMode('dropoff')"
+                                   oninput="handleLocationSearch('dropoff', this.value)" required>
+                            <button type="button" class="inside-btn btn-pin-inside dropoff" onclick="focusMapForPin('dropoff')" title="هەڵبژاردن لەسەر نەخشە">
+                                🏁 نەخشە
+                            </button>
+                        </div>
+                        <div class="suggestions-dropdown" id="dropoffSuggestions"></div>
                     </div>
                 </div>
 
-                <!-- Passenger Taxi (Only Standard Taxi) -->
+                <!-- Passenger Taxi -->
                 <div class="extra-fields active" id="fields-taxi">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>ناوی سەرنشین:</label>
-                            <input type="text" id="passengerName" placeholder="ناوت بنووسە...">
+                            <input type="text" class="std-input" id="passengerName" placeholder="ناوت بنووسە...">
                         </div>
                         <div class="form-group">
                             <label>ژمارەی مۆبایل:</label>
-                            <input type="tel" id="passengerPhone" placeholder="0750 000 0000">
+                            <input type="tel" class="std-input" id="passengerPhone" placeholder="0750 000 0000">
                         </div>
                     </div>
 
@@ -400,20 +514,20 @@
                     </div>
                 </div>
 
-                <!-- Cargo Delivery Tiers -->
+                <!-- Cargo Delivery -->
                 <div class="extra-fields" id="fields-delivery">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>مۆبایلی نێرەر:</label>
-                            <input type="tel" id="senderPhone" placeholder="0750 000 0000">
+                            <input type="tel" class="std-input" id="senderPhone" placeholder="0750 000 0000">
                         </div>
                         <div class="form-group">
                             <label>مۆبایلی وەرگر:</label>
-                            <input type="tel" id="receiverPhone" placeholder="0770 000 0000">
+                            <input type="tel" class="std-input" id="receiverPhone" placeholder="0770 000 0000">
                         </div>
                         <div class="form-group full">
                             <label>جۆری کاڵا / پۆستە:</label>
-                            <input type="text" id="cargoDesc" placeholder="بۆ نموونە: پاکێت، خواردن، کارتۆن...">
+                            <input type="text" class="std-input" id="cargoDesc" placeholder="بۆ نموونە: پاکێت، خواردن، کارتۆن...">
                         </div>
                     </div>
 
@@ -440,10 +554,10 @@
                 <div class="price-offer-sheet">
                     <div class="offer-top">
                         <div>
-                            <div class="offer-distance" id="offerDistanceText">دووری: 9.2 کم • کات: ~15 خولەک (تەکسی)</div>
+                            <div class="offer-distance" id="offerDistanceText">دووری: 0.0 کم • کات: ~0 خولەک</div>
                             <div class="fare-breakdown" id="fareBreakdownText">دەستپێک: 2,000 + 750/کم + 100/خولەک</div>
                         </div>
-                        <div class="offer-amount" id="offerPriceText">10,500 د.ع</div>
+                        <div class="offer-amount" id="offerPriceText">3,000 د.ع</div>
                     </div>
 
                     <div class="offer-actions">
@@ -477,6 +591,42 @@
         let activePinMode = 'pickup';
         let activeOrderId = null;
         let selectedCargoKey = 'moto';
+        let searchTimer = null;
+
+        // شوێنە گرنگ و بچووکەکانی هەولێر و کوردستان بۆ گەڕانی خێرا و بێ دواکەوتن
+        const KURDISTAN_PLACES = [
+            { name: 'دریم ستی (Dream City)', sub: 'هەولێر - شەقامی ٦٠ مەتری / کۆیە', lat: 36.1912, lng: 43.9805 },
+            { name: 'ئیمپایەر وۆرڵد (Empire World)', sub: 'هەولێر - شەقامی ١٠٠ مەتری', lat: 36.1995, lng: 43.9722 },
+            { name: 'گوندی ئینگلیزی (English Village)', sub: 'هەولێر - شەقامی گولان', lat: 36.1955, lng: 43.9708 },
+            { name: 'ماجدی مۆڵ (Majidi Mall)', sub: 'هەولێر - ڕێگای کۆیە / کەسنەزان', lat: 36.1852, lng: 44.0725 },
+            { name: 'فامیلی مۆڵ (Family Mall)', sub: 'هەولێر - شەقامی ١٠٠ مەتری', lat: 36.1788, lng: 44.0342 },
+            { name: 'تەبایی مۆڵ (Tablo Mall)', sub: 'هەولێر - شەقامی ١٠٠ مەتری', lat: 36.1705, lng: 43.9985 },
+            { name: 'فڕۆکەخانەی نێودەوڵەتی هەولێر', sub: 'هەولێر - عەنکاوە', lat: 36.2375, lng: 43.9632 },
+            { name: 'عەنکاوە (Ankawa)', sub: 'هەولێر - ناوەندی عەنکاوە', lat: 36.2248, lng: 43.9942 },
+            { name: 'کەسنەزان (Kasnazan)', sub: 'هەولێر - ڕێگای کۆیە', lat: 36.2045, lng: 44.1422 },
+            { name: 'بنەسڵاوە (Bnaslawa)', sub: 'هەولێر - دەشتی هەولێر', lat: 36.1355, lng: 44.0865 },
+            { name: 'قەڵای هەولێر و بازاڕی گەورە', sub: 'هەولێر - سەنتەری شار', lat: 36.1911, lng: 44.0092 },
+            { name: 'پارکی سامی عەبدولڕەحمان', sub: 'هەولێر - شەقامی ٦٠ مەتری', lat: 36.1902, lng: 43.9875 },
+            { name: 'ناز ستی (Naz City)', sub: 'هەولێر - شەقامی گولان', lat: 36.2015, lng: 43.9868 },
+            { name: 'ئیتاڵیان ڤیلج ١ (Italian Village 1)', sub: 'هەولێر - شەقامی ١٠٠ مەتری', lat: 36.1948, lng: 43.9645 },
+            { name: 'ئیتاڵیان ڤیلج ٢ (Italian Village 2)', sub: 'هەولێر - ڕێگای مەسیف', lat: 36.2325, lng: 44.0412 },
+            { name: 'ڤیتاڵ ڤیلج (Vital Village)', sub: 'هەولێر - شەقامی ١٢٠ مەتری', lat: 36.2285, lng: 44.0285 },
+            { name: 'شەقامی ئیسکان (Iskan)', sub: 'هەولێر - ئیسکان', lat: 36.1835, lng: 44.0185 },
+            { name: 'شۆڕش (Shorsh)', sub: 'هەولێر - شۆڕش', lat: 36.2065, lng: 44.0285 },
+            { name: 'بەختیاری (Bakhtiari)', sub: 'هەولێر - بەختیاری', lat: 36.1965, lng: 43.9912 },
+            { name: 'زانیاری (Zanyari)', sub: 'هەولێر - گەڕەکی زانیاری', lat: 36.1872, lng: 43.9965 },
+            { name: 'نەخۆشخانەی پار (PAR Hospital)', sub: 'هەولێر - شەقامی ٦٠ مەتری', lat: 36.1935, lng: 43.9972 },
+            { name: 'نەخۆشخانەی CMC', sub: 'هەولێر - ڕێگای کۆیە', lat: 36.1862, lng: 44.0512 },
+            { name: 'نەخۆشخانەی ڕزگاری', sub: 'هەولێر - شەقامی ٦٠ مەتری', lat: 36.1825, lng: 44.0065 },
+            { name: 'زانکۆی سەڵاحەدین - کۆلێژی ئەندازیاری', sub: 'هەولێر - ڕێگای کەرکووک', lat: 36.1435, lng: 44.0125 },
+            { name: 'هەولێری نوێ (New Erbil)', sub: 'هەولێر - هەولێری نوێ', lat: 36.1785, lng: 44.0625 },
+            { name: 'ڕۆشنبیری (Roshnbiri)', sub: 'هەولێر - گەڕەکی ڕۆشنبیری', lat: 36.1422, lng: 44.0415 },
+            { name: 'باداوە (Badawa)', sub: 'هەولێر - باداوە', lat: 36.1685, lng: 44.0245 },
+            { name: 'تەیراوە (Tayrawa)', sub: 'هەولێر - تەیراوە', lat: 36.1765, lng: 44.0075 },
+            { name: 'شەقامی سالم / سەهۆڵەکە', sub: 'سلێمانی - ناوەندی شار', lat: 35.5568, lng: 45.4351 },
+            { name: 'فامیلی مۆڵ سلێمانی', sub: 'سلێمانی - شەقامی بازنەیی مەلیک مەحمود', lat: 35.5522, lng: 45.4585 },
+            { name: 'دهۆک مۆڵ / ناوەندی دهۆک', sub: 'دهۆک - سەنتەری شار', lat: 36.8665, lng: 42.9885 }
+        ];
 
         let ratesTable = {
             taxi: {
@@ -490,17 +640,19 @@
         };
 
         let pickupCoords = [36.2045, 44.1422];
-        let dropoffCoords = [36.1355, 44.0865];
+        let dropoffCoords = [36.1912, 43.9805];
+        let realRoadKm = null;
+        let realRoadMins = null;
 
-        const map = L.map('liveMap').setView([36.185, 44.08], 12);
+        const map = L.map('liveMap').setView([36.1911, 44.0092], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        const pickupMarker = L.marker(pickupCoords, { draggable: true }).addTo(map).bindPopup('📍 شوێنی هەڵگرتن').openPopup();
+        const pickupMarker = L.marker(pickupCoords, { draggable: true }).addTo(map).bindPopup('📍 شوێنی هەڵگرتن');
         const dropoffMarker = L.marker(dropoffCoords, { draggable: true }).addTo(map).bindPopup('🏁 شوێنی مەبەست');
-        const routeLine = L.polyline([pickupCoords, dropoffCoords], { color: '#f59e0b', weight: 4, dashArray: '8, 8' }).addTo(map);
+        const routeLine = L.polyline([pickupCoords, dropoffCoords], { color: '#f59e0b', weight: 5 }).addTo(map);
 
         function applyRatesToCards() {
             const taxiRate = ratesTable.taxi?.standard || ratesTable.taxi?.economy;
@@ -515,7 +667,7 @@
                     document.getElementById(`sub-delivery-${k}`).innerText = `${Number(item.perKm).toLocaleString()} د.ع / کم`;
                 }
             });
-            recalculateRouteAndFare();
+            updateFareDisplay();
         }
 
         async function loadServerRates() {
@@ -535,61 +687,209 @@
 
         function setActivePinMode(mode) {
             activePinMode = mode;
-            document.getElementById('btnSetPickup').classList.toggle('active-pickup', mode === 'pickup');
-            document.getElementById('btnSetDropoff').classList.toggle('active-dropoff', mode === 'dropoff');
+            document.getElementById('pickupBoxWrap').classList.toggle('focused-pickup', mode === 'pickup');
+            document.getElementById('dropoffBoxWrap').classList.toggle('focused-dropoff', mode === 'dropoff');
             document.getElementById('mapInstruction').innerText = mode === 'pickup'
-                ? 'کلیک لەسەر نەخشە بکە بۆ دانانی شوێنی خۆت'
-                : 'کلیک لەسەر نەخشە بکە بۆ دانانی شوێنی مەبەست';
+                ? 'شوێنی هەڵگرتن هەڵبژێرە یان کلیک لەسەر نەخشە بکە'
+                : 'شوێنی مەبەست هەڵبژێرە یان کلیک لەسەر نەخشە بکە';
+        }
+
+        function focusMapForPin(mode) {
+            setActivePinMode(mode);
+            document.getElementById('liveMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // گەڕانی خێرا و ورد لە ناو شوێنەکانی کوردستان + Photon OpenStreetMap API
+        function handleLocationSearch(target, query) {
+            setActivePinMode(target);
+            const dropEl = document.getElementById(target === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions');
+            const q = query.trim().toLowerCase();
+
+            if (!q) {
+                dropEl.style.display = 'none';
+                return;
+            }
+
+            // ١. گەڕان لە لیستی شوێنە ناسراو و بچووکەکانی کوردستان
+            const localMatches = KURDISTAN_PLACES.filter(p =>
+                p.name.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q)
+            ).slice(0, 6);
+
+            renderSuggestions(target, localMatches);
+
+            // ٢. گەڕانی زیندوو لە OpenStreetMap / Photon بۆ هەر کۆڵان و شوێنێکی بچووکی تر لە عێراق و کوردستان
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(async () => {
+                try {
+                    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=36.1911&lon=44.0092&limit=6`;
+                    const res = await fetch(url);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const remoteMatches = (data.features || [])
+                        .filter(f => {
+                            const cc = (f.properties?.countrycode || '').toUpperCase();
+                            return !cc || cc === 'IQ';
+                        })
+                        .map(f => {
+                            const props = f.properties || {};
+                            const title = props.name || props.street || props.district || query;
+                            const parts = [props.district, props.city || props.state].filter(Boolean);
+                            return {
+                                name: title,
+                                sub: parts.join(' - ') || 'هەرێمی کوردستان',
+                                lat: f.geometry.coordinates[1],
+                                lng: f.geometry.coordinates[0]
+                            };
+                        });
+
+                    const combined = [...localMatches];
+                    remoteMatches.forEach(rm => {
+                        if (!combined.some(c => Math.abs(c.lat - rm.lat) < 0.002 && Math.abs(c.lng - rm.lng) < 0.002)) {
+                            combined.push(rm);
+                        }
+                    });
+                    renderSuggestions(target, combined.slice(0, 7));
+                } catch (e) {}
+            }, 300);
+        }
+
+        function renderSuggestions(target, list) {
+            const dropEl = document.getElementById(target === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions');
+            if (!list || list.length === 0) {
+                dropEl.style.display = 'none';
+                return;
+            }
+            dropEl.innerHTML = list.map((item, idx) => `
+                <div class="suggestion-item" onclick='selectPlaceSuggestion("${target}", ${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                    <div class="sug-title">📍 ${item.name}</div>
+                    <div class="sug-sub">${item.sub}</div>
+                </div>
+            `).join('');
+            dropEl.style.display = 'block';
+        }
+
+        function selectPlaceSuggestion(target, place) {
+            const inputEl = document.getElementById(target === 'pickup' ? 'pickupText' : 'dropoffText');
+            const dropEl = document.getElementById(target === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions');
+
+            inputEl.value = place.name;
+            dropEl.style.display = 'none';
+
+            if (target === 'pickup') {
+                pickupCoords = [Number(place.lat), Number(place.lng)];
+                pickupMarker.setLatLng(pickupCoords).bindPopup(`📍 ${place.name}`).openPopup();
+                setActivePinMode('dropoff');
+            } else {
+                dropoffCoords = [Number(place.lat), Number(place.lng)];
+                dropoffMarker.setLatLng(dropoffCoords).bindPopup(`🏁 ${place.name}`).openPopup();
+            }
+
+            fetchRealStreetRoute();
+        }
+
+        // گۆڕینی GPS بۆ ناوی گەڕەک و شەقامی ڕاستەقینە (Reverse Geocoding)
+        async function reverseGeocodeName(lat, lng, targetInputId, fallbackPrefix) {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=ku,ar,en`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const addr = data.address || {};
+                    const road = addr.road || addr.neighbourhood || addr.suburb || addr.quarter || '';
+                    const city = addr.city || addr.town || addr.village || 'هەولێر';
+                    const readable = [city, road].filter(Boolean).join(' - ');
+                    if (readable) {
+                        document.getElementById(targetInputId).value = readable;
+                        return;
+                    }
+                }
+            } catch (e) {}
+            document.getElementById(targetInputId).value = `${fallbackPrefix} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
         }
 
         map.on('click', (e) => {
             const lat = Number(e.latlng.lat.toFixed(5));
             const lng = Number(e.latlng.lng.toFixed(5));
+            document.getElementById('pickupSuggestions').style.display = 'none';
+            document.getElementById('dropoffSuggestions').style.display = 'none';
+
             if (activePinMode === 'pickup') {
                 pickupCoords = [lat, lng];
                 pickupMarker.setLatLng(pickupCoords).bindPopup('📍 شوێنی هەڵگرتن').openPopup();
-                document.getElementById('pickupText').value = `لۆکەیشنی هەڵگرتن (${lat}, ${lng})`;
+                reverseGeocodeName(lat, lng, 'pickupText', 'شوێنی هەڵگرتن');
                 setActivePinMode('dropoff');
             } else {
                 dropoffCoords = [lat, lng];
                 dropoffMarker.setLatLng(dropoffCoords).bindPopup('🏁 شوێنی مەبەست').openPopup();
-                document.getElementById('dropoffText').value = `لۆکەیشنی مەبەست (${lat}, ${lng})`;
+                reverseGeocodeName(lat, lng, 'dropoffText', 'شوێنی مەبەست');
             }
-            recalculateRouteAndFare();
+            fetchRealStreetRoute();
         });
 
         pickupMarker.on('dragend', () => {
             const pos = pickupMarker.getLatLng();
             pickupCoords = [Number(pos.lat.toFixed(5)), Number(pos.lng.toFixed(5))];
-            document.getElementById('pickupText').value = `لۆکەیشنی هەڵگرتن (${pickupCoords[0]}, ${pickupCoords[1]})`;
-            recalculateRouteAndFare();
+            reverseGeocodeName(pickupCoords[0], pickupCoords[1], 'pickupText', 'شوێنی هەڵگرتن');
+            fetchRealStreetRoute();
         });
 
         dropoffMarker.on('dragend', () => {
             const pos = dropoffMarker.getLatLng();
             dropoffCoords = [Number(pos.lat.toFixed(5)), Number(pos.lng.toFixed(5))];
-            document.getElementById('dropoffText').value = `لۆکەیشنی مەبەست (${dropoffCoords[0]}, ${dropoffCoords[1]})`;
-            recalculateRouteAndFare();
+            reverseGeocodeName(dropoffCoords[0], dropoffCoords[1], 'dropoffText', 'شوێنی مەبەست');
+            fetchRealStreetRoute();
         });
 
         function locateMeGPS() {
             if (!navigator.geolocation) return alert('GPS لەم ئامێرەدا چالاک نییە');
+            document.getElementById('pickupText').value = 'دۆزینەوەی شوێنەکەت...';
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const lat = Number(pos.coords.latitude.toFixed(5));
                     const lng = Number(pos.coords.longitude.toFixed(5));
                     pickupCoords = [lat, lng];
                     pickupMarker.setLatLng(pickupCoords).bindPopup('📍 شوێنی ئێستای تۆ').openPopup();
-                    map.setView(pickupCoords, 14);
-                    document.getElementById('pickupText').value = `GPSـی من (${lat}, ${lng})`;
+                    map.setView(pickupCoords, 15);
+                    reverseGeocodeName(lat, lng, 'pickupText', 'شوێنی ئێستام');
                     setActivePinMode('dropoff');
-                    recalculateRouteAndFare();
+                    fetchRealStreetRoute();
                 },
-                () => alert('تکایە ڕێگەپێدانی GPS بکەرەوە یان لەسەر نەخشە کلیک بکە.')
+                () => {
+                    document.getElementById('pickupText').value = '';
+                    alert('تکایە ڕێگەپێدانی GPS لە مۆبایلەکەت بکەرەوە یان ناوی شوێنەکەت بنووسە.');
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
             );
         }
 
-        function calcDistanceKm(c1, c2) {
+        // کێشانی ڕێگای ڕاستەقینەی سەر شەقام (OSRM) هاوشێوەی کەریم و ئوبەر
+        async function fetchRealStreetRoute() {
+            try {
+                const url = `https://router.project-osrm.org/route/v1/driving/${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}?overview=full&geometries=geojson`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    const route = data.routes && data.routes[0];
+                    if (route) {
+                        const latLngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                        routeLine.setLatLngs(latLngs);
+                        map.fitBounds(routeLine.getBounds(), { padding: [35, 35] });
+                        realRoadKm = Number(Math.max(1.0, route.distance / 1000).toFixed(1));
+                        realRoadMins = Math.max(3, Math.round(route.duration / 60));
+                        updateFareDisplay();
+                        return;
+                    }
+                }
+            } catch (e) {}
+
+            // Fallback ئەگەر OSRM وەڵامی نەدایەوە
+            routeLine.setLatLngs([pickupCoords, dropoffCoords]);
+            map.fitBounds(routeLine.getBounds(), { padding: [35, 35] });
+            realRoadKm = null;
+            realRoadMins = null;
+            updateFareDisplay();
+        }
+
+        function fallbackDistanceKm(c1, c2) {
             const R = 6371;
             const dLat = (c2[0] - c1[0]) * Math.PI / 180;
             const dLon = (c2[1] - c1[1]) * Math.PI / 180;
@@ -597,17 +897,16 @@
                       Math.cos(c1[0] * Math.PI / 180) * Math.cos(c2[0] * Math.PI / 180) *
                       Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const straightKm = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-            return Number(Math.max(1.0, straightKm * 1.25).toFixed(1));
+            return Number(Math.max(1.0, straightKm * 1.28).toFixed(1));
         }
 
         function formatIQD(val) {
             return (Math.round(val / 250) * 250).toLocaleString('en-US') + ' د.ع';
         }
 
-        function recalculateRouteAndFare() {
-            routeLine.setLatLngs([pickupCoords, dropoffCoords]);
-            const km = calcDistanceKm(pickupCoords, dropoffCoords);
-            const mins = Math.max(4, Math.round(km * 1.6));
+        function updateFareDisplay() {
+            const km = realRoadKm !== null ? realRoadKm : fallbackDistanceKm(pickupCoords, dropoffCoords);
+            const mins = realRoadMins !== null ? realRoadMins : Math.max(4, Math.round(km * 1.7));
 
             const r = currentMode === 'taxi'
                 ? (ratesTable.taxi?.standard || ratesTable.taxi?.economy)
@@ -617,7 +916,7 @@
             const finalFare = Math.max(Number(r.minFare), rawFare);
 
             document.getElementById('liveKmBadge').innerText = `${km} کم`;
-            document.getElementById('offerDistanceText').innerText = `دووری: ${km} کم • کات: ~${mins} خولەک (${r.label})`;
+            document.getElementById('offerDistanceText').innerText = `دووری سەر شەقام: ${km} کم • کات: ~${mins} خولەک (${r.label})`;
             document.getElementById('fareBreakdownText').innerText =
                 `دەستپێک: ${Number(r.base).toLocaleString()} + ${Number(r.perKm).toLocaleString()}/کم + ${Number(r.perMin).toLocaleString()}/خولەک`;
             document.getElementById('offerPriceText').innerText = formatIQD(finalFare);
@@ -629,20 +928,29 @@
             document.getElementById('tab-delivery').classList.toggle('active', mode === 'delivery');
             document.getElementById('fields-taxi').classList.toggle('active', mode === 'taxi');
             document.getElementById('fields-delivery').classList.toggle('active', mode === 'delivery');
-            recalculateRouteAndFare();
+            updateFareDisplay();
         }
 
         function selectCargoKey(key, el) {
             document.querySelectorAll('#cargoTiers .tier-card').forEach(c => c.classList.remove('selected'));
             el.classList.add('selected');
             selectedCargoKey = key;
-            recalculateRouteAndFare();
+            updateFareDisplay();
         }
 
         function resetLocations() {
+            document.getElementById('pickupText').value = '';
+            document.getElementById('dropoffText').value = '';
             document.getElementById('activeTripCard').style.display = 'none';
             setActivePinMode('pickup');
         }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.loc-field-wrap')) {
+                document.getElementById('pickupSuggestions').style.display = 'none';
+                document.getElementById('dropoffSuggestions').style.display = 'none';
+            }
+        });
 
         async function acceptAndSendOrder(e) {
             e.preventDefault();
@@ -654,6 +962,8 @@
             const r = currentMode === 'taxi'
                 ? (ratesTable.taxi?.standard || ratesTable.taxi?.economy)
                 : ratesTable.delivery[selectedCargoKey];
+
+            if (!pickup || !dropoff) return alert('تکایە هەردوو لۆکەیشنی هەڵگرتن و گەیشتن دیاری بکە.');
 
             if (currentMode === 'taxi') {
                 const name = document.getElementById('passengerName').value.trim();
@@ -708,6 +1018,7 @@
 
         loadServerRates();
         applyRatesToCards();
+        fetchRealStreetRoute();
     </script>
 </body>
 </html>
