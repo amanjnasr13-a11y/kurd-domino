@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kurd AI - تەکسی سەرنشین و گەیاندنی کاڵا</title>
+    <title>Kurd AI - تەکسی و گەیاندنی کاڵا</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,11 +18,10 @@
 
         :root {
             --bg-dark: #070d17;
-            --bg-card: rgba(15, 23, 42, 0.88);
-            --bg-input: rgba(7, 13, 23, 0.9);
-            --border-subtle: rgba(148, 163, 184, 0.16);
+            --bg-card: rgba(15, 23, 42, 0.94);
+            --bg-input: rgba(7, 13, 23, 0.92);
+            --border-subtle: rgba(148, 163, 184, 0.18);
             --accent-gold: #f59e0b;
-            --accent-gold-hover: #d97706;
             --accent-emerald: #10b981;
             --accent-sky: #38bdf8;
             --text-main: #f8fafc;
@@ -34,561 +36,277 @@
             overflow-y: auto;
         }
 
-        body {
-            background-image:
-                radial-gradient(circle at 15% 10%, rgba(245, 158, 11, 0.12), transparent 36%),
-                radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.1), transparent 38%),
-                linear-gradient(180deg, #070d17 0%, #0b1322 100%);
-            padding-bottom: 64px;
-        }
+        body { padding-bottom: 65px; }
 
-        /* Navbar */
         .navbar {
-            padding: 14px 24px;
+            padding: 12px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-subtle);
-            background: rgba(7, 13, 23, 0.82);
-            backdrop-filter: blur(14px);
+            background: rgba(7, 13, 23, 0.92);
+            backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
-            z-index: 200;
+            z-index: 1000;
         }
 
-        .logo-wrap {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            text-decoration: none;
-        }
-
-        .kurdish-flag {
-            width: 36px;
-            height: 24px;
-            border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
-            flex-shrink: 0;
-        }
-
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .logo-title {
-            color: var(--accent-gold);
-            font-size: 1.15rem;
-            font-weight: 800;
-            line-height: 1.1;
-        }
-
-        .logo-sub {
-            color: var(--text-muted);
-            font-size: 0.72rem;
-            margin-top: 2px;
-        }
+        .logo-wrap { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+        .kurdish-flag { width: 34px; height: 22px; border-radius: 4px; overflow: hidden; }
+        .logo-title { color: var(--accent-gold); font-size: 1.15rem; font-weight: 800; }
 
         .back-btn {
-            background: rgba(30, 41, 59, 0.75);
+            background: rgba(30, 41, 59, 0.85);
             border: 1px solid var(--border-subtle);
             color: var(--text-main);
-            padding: 7px 14px;
+            padding: 6px 14px;
             font-size: 0.82rem;
             font-weight: 700;
             border-radius: 999px;
             text-decoration: none;
-            transition: all 0.2s ease;
         }
 
-        .back-btn:hover {
-            border-color: var(--accent-gold);
-            color: var(--accent-gold);
-        }
+        .container { max-width: 660px; margin: 14px auto 0 auto; padding: 0 12px; }
 
-        .container {
-            max-width: 960px;
-            margin: 22px auto 0 auto;
-            padding: 0 16px;
-        }
-
-        /* Hero & Mode Switcher */
-        .hero-card {
-            background: linear-gradient(135deg, rgba(17, 26, 46, 0.94), rgba(12, 19, 34, 0.94));
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 22px;
-            margin-bottom: 18px;
-            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
-        }
-
-        .hero-top {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 18px;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(245, 158, 11, 0.14);
-            border: 1px solid rgba(245, 158, 11, 0.35);
-            color: var(--accent-gold);
-            font-size: 0.76rem;
-            font-weight: 700;
-            padding: 5px 12px;
-            border-radius: 999px;
-            margin-bottom: 8px;
-        }
-
-        .hero-title {
-            font-size: 1.55rem;
-            font-weight: 800;
-            letter-spacing: -0.2px;
-        }
-
-        .hero-desc {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            margin-top: 4px;
-            line-height: 1.55;
-        }
-
-        .city-selector-box {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            min-width: 170px;
-        }
-
-        .city-selector-box label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        /* 3 Main Tabs: Passenger Taxi | Cargo Delivery | Driver Join */
         .service-tabs {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+            margin-bottom: 12px;
         }
 
         .service-tab {
-            background: rgba(15, 23, 42, 0.75);
+            background: var(--bg-card);
             border: 1.5px solid var(--border-subtle);
             border-radius: 14px;
-            padding: 13px 12px;
+            padding: 11px;
             color: var(--text-muted);
-            font-size: 0.88rem;
-            font-weight: 700;
+            font-size: 0.92rem;
+            font-weight: 800;
             cursor: pointer;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 5px;
-            transition: all 0.2s ease;
-        }
-
-        .service-tab .tab-icon {
-            font-size: 1.35rem;
+            justify-content: center;
+            gap: 8px;
         }
 
         .service-tab.active {
-            background: linear-gradient(145deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.08));
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.08));
             border-color: var(--accent-gold);
             color: #ffffff;
-            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.16);
         }
 
-        /* Interactive Grid */
-        .workspace-grid {
-            display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 18px;
-            align-items: start;
+        .map-wrapper {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1.5px solid var(--border-subtle);
+            margin-bottom: 12px;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+        }
+
+        #liveMap { width: 100%; height: 265px; z-index: 1; }
+
+        .map-mode-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 500;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pin-select-btn {
+            flex: 1;
+            min-width: 115px;
+            background: rgba(7, 13, 23, 0.92);
+            border: 1.5px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 7px 10px;
+            border-radius: 10px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .pin-select-btn.active-pickup { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .pin-select-btn.active-dropoff { border-color: var(--accent-emerald); color: var(--accent-emerald); }
+
+        .gps-locate-btn {
+            background: rgba(56, 189, 248, 0.92);
+            color: #070d17;
+            border: none;
+            padding: 7px 11px;
+            border-radius: 10px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .map-hint-bar {
+            background: rgba(7, 13, 23, 0.94);
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-subtle);
         }
 
         .panel-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
             border-radius: 18px;
-            padding: 20px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
+            padding: 16px;
         }
 
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .panel-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-pill {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--accent-emerald);
-            background: rgba(16, 185, 129, 0.14);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            padding: 3px 9px;
-            border-radius: 999px;
-        }
-
-        /* Map Canvas Card */
-        .map-stage {
-            position: relative;
-            height: 225px;
-            border-radius: 14px;
-            overflow: hidden;
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            background:
-                linear-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px),
-                radial-gradient(circle at 30% 40%, rgba(16, 185, 129, 0.16), transparent 45%),
-                radial-gradient(circle at 75% 65%, rgba(245, 158, 11, 0.15), transparent 45%),
-                #091324;
-            background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
-            margin-bottom: 14px;
-        }
-
-        .map-road {
-            position: absolute;
-            background: rgba(148, 163, 184, 0.18);
-            border-radius: 99px;
-        }
-
-        .road-h1 { top: 34%; left: -5%; right: -5%; height: 6px; transform: rotate(-3deg); }
-        .road-h2 { top: 68%; left: -5%; right: -5%; height: 8px; transform: rotate(2deg); }
-        .road-v1 { left: 28%; top: -5%; bottom: -5%; width: 6px; transform: rotate(5deg); }
-        .road-v2 { left: 72%; top: -5%; bottom: -5%; width: 7px; transform: rotate(-4deg); }
-
-        .map-route-line {
-            position: absolute;
-            top: 34%;
-            left: 28%;
-            width: 44%;
-            height: 34%;
-            border-top: 3px dashed var(--accent-gold);
-            border-right: 3px dashed var(--accent-emerald);
-            border-top-right-radius: 26px;
-            opacity: 0.9;
-            pointer-events: none;
-        }
-
-        .pin {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            padding: 5px 10px;
-            border-radius: 999px;
-            font-size: 0.74rem;
-            font-weight: 800;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
-            white-space: nowrap;
-        }
-
-        .pin-pickup {
-            top: 34%;
-            left: 28%;
-            background: var(--accent-gold);
-            color: #070d17;
-        }
-
-        .pin-dropoff {
-            top: 68%;
-            left: 72%;
-            background: var(--accent-emerald);
-            color: #070d17;
-        }
-
-        .map-footer-bar {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            background: rgba(7, 13, 23, 0.85);
-            border: 1px solid var(--border-subtle);
-            backdrop-filter: blur(8px);
-            padding: 7px 12px;
-            border-radius: 10px;
-            font-size: 0.78rem;
-        }
-
-        .gps-btn {
-            background: rgba(56, 189, 248, 0.16);
-            border: 1px solid rgba(56, 189, 248, 0.45);
-            color: var(--accent-sky);
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        /* Form Inputs */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 14px;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { font-size: 0.76rem; color: var(--text-muted); font-weight: 700; }
 
-        .form-group.full {
-            grid-column: span 2;
-        }
-
-        .form-group label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        input, select, textarea {
+        input {
             background: var(--bg-input);
             border: 1.5px solid var(--border-subtle);
             border-radius: 10px;
-            padding: 10px 12px;
+            padding: 10px 11px;
             color: var(--text-main);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             outline: none;
             width: 100%;
-            transition: border-color 0.2s ease;
         }
 
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent-gold);
+        input:focus { border-color: var(--accent-gold); }
+
+        .single-taxi-badge {
+            background: rgba(245, 158, 11, 0.14);
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 11px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
         }
 
-        /* Vehicle / Cargo Options */
         .tier-list {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 9px;
-            margin-bottom: 16px;
+            gap: 8px;
+            margin-bottom: 14px;
         }
 
         .tier-card {
-            background: rgba(11, 19, 34, 0.85);
+            background: rgba(11, 19, 34, 0.9);
             border: 1.5px solid var(--border-subtle);
             border-radius: 12px;
-            padding: 10px 8px;
+            padding: 9px 6px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .tier-card.selected {
             border-color: var(--accent-gold);
-            background: rgba(245, 158, 11, 0.14);
+            background: rgba(245, 158, 11, 0.16);
         }
 
-        .tier-name {
-            font-size: 0.82rem;
-            font-weight: 800;
-            margin-top: 4px;
-        }
+        .tier-name { font-size: 0.79rem; font-weight: 800; margin-top: 2px; }
+        .tier-sub { font-size: 0.68rem; color: var(--accent-emerald); font-weight: 700; margin-top: 2px; }
 
-        .tier-sub {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* Fare Estimate Box */
-        .fare-box {
-            background: rgba(7, 13, 23, 0.85);
-            border: 1px dashed rgba(245, 158, 11, 0.45);
-            border-radius: 12px;
-            padding: 12px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .fare-label {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .fare-meta {
-            font-size: 0.76rem;
-            color: var(--accent-emerald);
-            font-weight: 700;
-            margin-top: 2px;
-        }
-
-        .fare-price {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--accent-gold);
-        }
-
-        .primary-btn {
-            width: 100%;
-            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-hover));
-            color: #070d17;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 0.95rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.2s ease;
-        }
-
-        .primary-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 22px rgba(245, 158, 11, 0.3);
-        }
-
-        .secondary-btn {
-            width: 100%;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            color: var(--accent-emerald);
-            border-radius: 10px;
-            padding: 9px 12px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            cursor: pointer;
+        .price-offer-sheet {
+            background: linear-gradient(145deg, rgba(11, 19, 34, 0.98), rgba(15, 23, 42, 0.98));
+            border: 1.5px solid rgba(245, 158, 11, 0.5);
+            border-radius: 16px;
+            padding: 14px;
             margin-top: 8px;
         }
 
-        /* Side Column: Active Trip Tracker & Approved Drivers */
-        .status-banner {
-            display: none;
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-
-        .status-banner.pending {
-            background: rgba(245, 158, 11, 0.12);
-            border-color: rgba(245, 158, 11, 0.45);
-        }
-
-        .status-title {
-            font-size: 0.92rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-            color: var(--accent-emerald);
-        }
-
-        .status-banner.pending .status-title {
-            color: var(--accent-gold);
-        }
-
-        .status-text {
-            font-size: 0.82rem;
-            color: #e2e8f0;
-            line-height: 1.55;
-        }
-
-        .driver-card {
-            background: rgba(11, 19, 34, 0.85);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 11px 13px;
+        .offer-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .driver-name {
-            font-size: 0.88rem;
-            font-weight: 800;
-        }
+        .offer-distance { font-size: 0.82rem; color: var(--accent-emerald); font-weight: 800; }
+        .fare-breakdown { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+        .offer-amount { font-size: 1.32rem; font-weight: 900; color: var(--accent-gold); }
 
-        .driver-car {
-            font-size: 0.76rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .driver-badge {
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 4px 9px;
-            border-radius: 999px;
-            background: rgba(16, 185, 129, 0.14);
-            color: var(--accent-emerald);
-            white-space: nowrap;
-        }
-
-        .rules-mini {
-            list-style: none;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            line-height: 1.75;
+        .offer-actions {
+            display: grid;
+            grid-template-columns: 1.5fr 0.75fr;
+            gap: 9px;
             margin-top: 10px;
         }
 
-        .rules-mini li::before {
-            content: "• ";
-            color: var(--accent-gold);
-            font-weight: bold;
+        .accept-btn {
+            background: linear-gradient(135deg, var(--accent-emerald), #059669);
+            color: #05130d;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.94rem;
+            font-weight: 900;
+            cursor: pointer;
         }
 
-        .section-view {
+        .cancel-btn {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .active-trip-card {
             display: none;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1.5px solid rgba(16, 185, 129, 0.5);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 14px;
         }
 
-        .section-view.active {
-            display: block;
+        .driver-match-box {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
         }
 
-        @media (max-width: 780px) {
-            .workspace-grid {
-                grid-template-columns: 1fr;
-            }
-            .service-tabs {
-                grid-template-columns: 1fr;
-            }
-            .tier-list {
-                grid-template-columns: 1fr;
-            }
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            .form-group.full {
-                grid-column: span 1;
-            }
-            .navbar {
-                padding: 12px 14px;
-            }
-            .hero-title {
-                font-size: 1.3rem;
-            }
+        .call-driver-btn {
+            display: inline-block;
+            margin-top: 8px;
+            background: var(--accent-emerald);
+            color: #070d17;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .extra-fields { display: none; }
+        .extra-fields.active { display: block; }
+
+        @media (max-width: 520px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+            .tier-list { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -606,267 +324,147 @@
                     <polygon points="300,275 294,225 306,225"/>
                     <polygon points="225,200 275,194 275,206"/>
                     <polygon points="375,200 325,194 325,206"/>
-                    <polygon points="247,147 282,182 291,173"/>
-                    <polygon points="353,253 318,218 309,227"/>
-                    <polygon points="247,253 282,218 273,209"/>
-                    <polygon points="353,147 318,182 327,191"/>
                 </g>
             </svg>
-            <div class="logo-text">
-                <span class="logo-title">Kurd AI</span>
-                <span class="logo-sub">تەکسی سەرنشین و گەیاندن</span>
-            </div>
+            <span class="logo-title">Kurd AI</span>
         </a>
-
         <a href="index.html" class="back-btn">سەرەکی ↩</a>
     </header>
 
     <main class="container">
-        <!-- Hero & Main Switcher -->
-        <section class="hero-card">
-            <div class="hero-top">
-                <div>
-                    <div class="hero-badge">⚡ خزمەتگوزاری خێرا و متمانەپێکراو</div>
-                    <h1 class="hero-title">گواستنەوەی سەرنشین و گەیاندنی کاڵا</h1>
-                    <p class="hero-desc">داواکردنی تەکسی بە نرخی دیاریکراو یان ناردنی کاڵا و پۆستە بۆ هەر شوێنێکی شار بەبێ دواکەوتن.</p>
-                </div>
+        <div class="service-tabs">
+            <button type="button" class="service-tab active" id="tab-taxi" onclick="switchServiceMode('taxi')">
+                <span>🚖</span>
+                <span>تەکسی</span>
+            </button>
+            <button type="button" class="service-tab" id="tab-delivery" onclick="switchServiceMode('delivery')">
+                <span>📦</span>
+                <span>گەیاندنی کاڵا</span>
+            </button>
+        </div>
 
-                <div class="city-selector-box">
-                    <label for="activeCity">شار / پارێزگا:</label>
-                    <select id="activeCity" onchange="onCityChange()">
-                        <option value="هەولێر" selected>هەولێر</option>
-                        <option value="سلێمانی">سلێمانی</option>
-                        <option value="دهۆک">دهۆک</option>
-                        <option value="هەڵەبجە">هەڵەبجە</option>
-                    </select>
-                </div>
+        <div class="map-wrapper">
+            <div class="map-mode-bar">
+                <button type="button" class="pin-select-btn active-pickup" id="btnSetPickup" onclick="setActivePinMode('pickup')">
+                    📍 شوێنی خۆم دابنێ
+                </button>
+                <button type="button" class="pin-select-btn" id="btnSetDropoff" onclick="setActivePinMode('dropoff')">
+                    🏁 شوێنی مەبەست دابنێ
+                </button>
+                <button type="button" class="gps-locate-btn" onclick="locateMeGPS()">📡 GPS</button>
             </div>
 
-            <div class="service-tabs">
-                <button type="button" class="service-tab active" id="tab-taxi" onclick="switchService('taxi')">
-                    <span class="tab-icon">🚖</span>
-                    <span>تەکسی سەرنشین</span>
-                </button>
-                <button type="button" class="service-tab" id="tab-delivery" onclick="switchService('delivery')">
-                    <span class="tab-icon">📦</span>
-                    <span>گەیاندنی کاڵا</span>
-                </button>
-                <button type="button" class="service-tab" id="tab-driver" onclick="switchService('driver')">
-                    <span class="tab-icon">🪪</span>
-                    <span>بوون بە شۆفێر</span>
-                </button>
+            <div id="liveMap"></div>
+
+            <div class="map-hint-bar">
+                <span id="mapInstruction">کلیک لەسەر نەخشە بکە بۆ دیاریکردنی شوێنی هەڵگرتن</span>
+                <span id="liveKmBadge" style="color:#f59e0b; font-weight:800;">0.0 کم</span>
+            </div>
+        </div>
+
+        <section class="panel-card">
+            <form id="orderForm" onsubmit="acceptAndSendOrder(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>لۆکەیشنی هەڵگرتن (خۆت / نێرەر):</label>
+                        <input type="text" id="pickupText" value="هەولێر - کەسنەزان" required>
+                    </div>
+                    <div class="form-group">
+                        <label>لۆکەیشنی گەیشتن (مەبەست / وەرگر):</label>
+                        <input type="text" id="dropoffText" value="هەولێر - بنەسڵاوە" required>
+                    </div>
+                </div>
+
+                <!-- Passenger Taxi (Only Standard Taxi) -->
+                <div class="extra-fields active" id="fields-taxi">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>ناوی سەرنشین:</label>
+                            <input type="text" id="passengerName" placeholder="ناوت بنووسە...">
+                        </div>
+                        <div class="form-group">
+                            <label>ژمارەی مۆبایل:</label>
+                            <input type="tel" id="passengerPhone" placeholder="0750 000 0000">
+                        </div>
+                    </div>
+
+                    <div class="single-taxi-badge">
+                        <div style="display:flex; align-items:center; gap:9px;">
+                            <span style="font-size:1.4rem;">🚖</span>
+                            <div>
+                                <div style="font-weight:800; font-size:0.92rem;" id="label-taxi-standard">تەکسی</div>
+                                <div style="font-size:0.74rem; color:#94a3b8;">گواستنەوەی خێرا و سەلامەت</div>
+                            </div>
+                        </div>
+                        <span style="font-size:0.8rem; font-weight:800; color:#10b981;" id="sub-taxi-standard">750 د.ع / کم</span>
+                    </div>
+                </div>
+
+                <!-- Cargo Delivery Tiers -->
+                <div class="extra-fields" id="fields-delivery">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>مۆبایلی نێرەر:</label>
+                            <input type="tel" id="senderPhone" placeholder="0750 000 0000">
+                        </div>
+                        <div class="form-group">
+                            <label>مۆبایلی وەرگر:</label>
+                            <input type="tel" id="receiverPhone" placeholder="0770 000 0000">
+                        </div>
+                        <div class="form-group full">
+                            <label>جۆری کاڵا / پۆستە:</label>
+                            <input type="text" id="cargoDesc" placeholder="بۆ نموونە: پاکێت، خواردن، کارتۆن...">
+                        </div>
+                    </div>
+
+                    <div class="tier-list" id="cargoTiers">
+                        <div class="tier-card selected" data-key="moto" onclick="selectCargoKey('moto', this)">
+                            <div>🛵</div>
+                            <div class="tier-name" id="label-delivery-moto">ماتۆڕی گەیاندن</div>
+                            <div class="tier-sub" id="sub-delivery-moto">600 د.ع / کم</div>
+                        </div>
+                        <div class="tier-card" data-key="taxi_cargo" onclick="selectCargoKey('taxi_cargo', this)">
+                            <div>🚖</div>
+                            <div class="tier-name" id="label-delivery-taxi_cargo">تەکسی کاڵا</div>
+                            <div class="tier-sub" id="sub-delivery-taxi_cargo">900 د.ع / کم</div>
+                        </div>
+                        <div class="tier-card" data-key="van" onclick="selectCargoKey('van', this)">
+                            <div>🚚</div>
+                            <div class="tier-name" id="label-delivery-van">پیکاب / بارهەڵگر</div>
+                            <div class="tier-sub" id="sub-delivery-van">1,750 د.ع / کم</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fare Quote & Accept / Reject -->
+                <div class="price-offer-sheet">
+                    <div class="offer-top">
+                        <div>
+                            <div class="offer-distance" id="offerDistanceText">دووری: 9.2 کم • کات: ~15 خولەک (تەکسی)</div>
+                            <div class="fare-breakdown" id="fareBreakdownText">دەستپێک: 2,000 + 750/کم + 100/خولەک</div>
+                        </div>
+                        <div class="offer-amount" id="offerPriceText">10,500 د.ع</div>
+                    </div>
+
+                    <div class="offer-actions">
+                        <button type="submit" class="accept-btn">✅ قبوڵکردنی نرخ و داواکردن</button>
+                        <button type="button" class="cancel-btn" onclick="resetLocations()">✖ پاشگەزبوونەوە</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="active-trip-card" id="activeTripCard">
+                <div style="font-weight:800; color:#10b981; margin-bottom:5px;" id="tripStatusHeading">
+                    ⏳ داواکارییەکەت بە نرخی پەسەندکراو نێردرا بۆ شۆفێرە نزیکەکان...
+                </div>
+                <div style="font-size:0.84rem; color:#e2e8f0; line-height:1.6;" id="tripSummaryText"></div>
+                <div class="driver-match-box" id="driverMatchBox">
+                    <div style="font-weight:800; color:#f59e0b;">🚖 شۆفێر داواکارییەکەی قبوڵ کرد:</div>
+                    <div id="assignedDriverInfo" style="font-size:0.86rem; margin-top:4px;"></div>
+                    <a id="callDriverLink" href="#" class="call-driver-btn">📞 پەیوەندیکردن بە شۆفێر</a>
+                </div>
             </div>
         </section>
-
-        <div class="workspace-grid">
-            <!-- Left / Main Column -->
-            <div>
-                <!-- 1. PASSENGER TAXI VIEW -->
-                <section class="panel-card section-view active" id="view-taxi">
-                    <div class="panel-header">
-                        <div class="panel-title">🚖 داواکردنی تەکسی سەرنشین</div>
-                        <span class="live-pill">خەمڵاندنی دەستبەجێ</span>
-                    </div>
-
-                    <div class="map-stage">
-                        <div class="map-road road-h1"></div>
-                        <div class="map-road road-h2"></div>
-                        <div class="map-road road-v1"></div>
-                        <div class="map-road road-v2"></div>
-                        <div class="map-route-line"></div>
-                        <div class="pin pin-pickup" id="taxiPickupPin">📍 هەڵگرتن: کەسنەزان</div>
-                        <div class="pin pin-dropoff" id="taxiDropoffPin">🏁 گەیشتن: بنەسڵاوە</div>
-                        <div class="map-footer-bar">
-                            <span id="gpsStatusText">شوێنی هەڵگرتن ئامادەیە</span>
-                            <button type="button" class="gps-btn" onclick="detectUserLocation()">📡 GPSـی من</button>
-                        </div>
-                    </div>
-
-                    <form id="taxiRideForm" onsubmit="submitRideOrder(event)">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>خاڵی هەڵگرتن (Pickup):</label>
-                                <input type="text" id="pickupInput" value="کەسنەزان" required oninput="updateFareEstimate()">
-                            </div>
-                            <div class="form-group">
-                                <label>خاڵی گەیشتن (Drop-off):</label>
-                                <input type="text" id="dropoffInput" value="بنەسڵاوە" required oninput="updateFareEstimate()">
-                            </div>
-                            <div class="form-group">
-                                <label>ناوی سەرنشین:</label>
-                                <input type="text" id="passengerName" required placeholder="ناوت بنووسە...">
-                            </div>
-                            <div class="form-group">
-                                <label>ژمارەی مۆبایل:</label>
-                                <input type="tel" id="passengerPhone" required placeholder="0750 000 0000">
-                            </div>
-                        </div>
-
-                        <label style="display:block; font-size:0.8rem; color:var(--text-muted); font-weight:700; margin-bottom:7px;">جۆری تەکسی هەڵبژێرە:</label>
-                        <div class="tier-list" id="taxiTiers">
-                            <div class="tier-card selected" data-tier="economy" data-rate="1200" data-base="3000" onclick="selectTier('taxi', this)">
-                                <div>🚕</div>
-                                <div class="tier-name">تەکسی ئاسایی</div>
-                                <div class="tier-sub">خێرا و گونجاو</div>
-                            </div>
-                            <div class="tier-card" data-tier="comfort" data-rate="1600" data-base="4500" onclick="selectTier('taxi', this)">
-                                <div>🚙</div>
-                                <div class="tier-name">کۆمفۆرت</div>
-                                <div class="tier-sub">ئۆتۆمبێلی مۆدێرن</div>
-                            </div>
-                            <div class="tier-card" data-tier="vip" data-rate="2400" data-base="7000" onclick="selectTier('taxi', this)">
-                                <div>🖤</div>
-                                <div class="tier-name">تەکسی VIP</div>
-                                <div class="tier-sub">تایبەت و پلە بەرز</div>
-                            </div>
-                        </div>
-
-                        <div class="fare-box">
-                            <div>
-                                <div class="fare-label">نرخی خەمڵێنراوی گەشت</div>
-                                <div class="fare-meta" id="taxiDistanceMeta">دووری: ~٨.٥ کم • کاتی چاوەڕوانکراو: ~١٤ خولەک</div>
-                            </div>
-                            <div class="fare-price" id="taxiEstimatedPrice">١٣,٠٠٠ د.ع</div>
-                        </div>
-
-                        <button type="submit" class="primary-btn">داواکردنی تەکسی ئێستا 🚖</button>
-                    </form>
-                </section>
-
-                <!-- 2. CARGO DELIVERY VIEW -->
-                <section class="panel-card section-view" id="view-delivery">
-                    <div class="panel-header">
-                        <div class="panel-title">📦 گەیاندن و گواستنەوەی کاڵا</div>
-                        <span class="live-pill">نێرەر بۆ وەرگر</span>
-                    </div>
-
-                    <form id="cargoForm" onsubmit="submitCargoOrder(event)">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>شوێنی وەرگرتنی کاڵا:</label>
-                                <input type="text" id="cargoOrigin" value="کەسنەزان" required oninput="updateCargoEstimate()">
-                            </div>
-                            <div class="form-group">
-                                <label>شوێنی گەیاندنی کاڵا:</label>
-                                <input type="text" id="cargoDestination" value="بنەسڵاوە" required oninput="updateCargoEstimate()">
-                            </div>
-                            <div class="form-group">
-                                <label>مۆبایلی نێرەر:</label>
-                                <input type="tel" id="senderPhone" required placeholder="0750 000 0000">
-                            </div>
-                            <div class="form-group">
-                                <label>مۆبایلی وەرگر:</label>
-                                <input type="tel" id="receiverPhone" required placeholder="0770 000 0000">
-                            </div>
-                            <div class="form-group full">
-                                <label>جۆر و وردەکاری کاڵا:</label>
-                                <input type="text" id="cargoDesc" required placeholder="بۆ نموونە: پاکێتی خواردن، کەلوپەلی ئەلیکترۆنی، یان کارتۆن...">
-                            </div>
-                        </div>
-
-                        <label style="display:block; font-size:0.8rem; color:var(--text-muted); font-weight:700; margin-bottom:7px;">شێوازی گەیاندنی کاڵا:</label>
-                        <div class="tier-list" id="cargoTiers">
-                            <div class="tier-card selected" data-tier="moto" data-rate="900" data-base="2500" onclick="selectTier('cargo', this)">
-                                <div>🛵</div>
-                                <div class="tier-name">ماتۆڕی گەیاندن</div>
-                                <div class="tier-sub">بۆ پۆستە و کاڵای بچووک</div>
-                            </div>
-                            <div class="tier-card" data-tier="taxi_cargo" data-rate="1400" data-base="4000" onclick="selectTier('cargo', this)">
-                                <div>🚖</div>
-                                <div class="tier-name">تەکسی کاڵا</div>
-                                <div class="tier-sub">بۆ کەلوپەلی مامناوەند</div>
-                            </div>
-                            <div class="tier-card" data-tier="van" data-rate="2500" data-base="8000" onclick="selectTier('cargo', this)">
-                                <div>🚚</div>
-                                <div class="tier-name">پیکاب / بارهەڵگر</div>
-                                <div class="tier-sub">بۆ بار و کاڵای گەورە</div>
-                            </div>
-                        </div>
-
-                        <div class="fare-box">
-                            <div>
-                                <div class="fare-label">نرخی خەمڵێنراوی گەیاندن</div>
-                                <div class="fare-meta" id="cargoMeta">گەیاندنی ڕاستەوخۆ و سەلامەت</div>
-                            </div>
-                            <div class="fare-price" id="cargoEstimatedPrice">١٠,٠٠٠ د.ع</div>
-                        </div>
-
-                        <button type="submit" class="primary-btn">ناردنی داواکاری گەیاندن 📦</button>
-                    </form>
-                </section>
-
-                <!-- 3. DRIVER REGISTRATION VIEW -->
-                <section class="panel-card section-view" id="view-driver">
-                    <div class="panel-header">
-                        <div class="panel-title">🪪 داواکاری خاوەن تەکسی و گەیاندن</div>
-                        <span class="live-pill">پەسەندکردنی ئەدمین</span>
-                    </div>
-
-                    <form id="driverForm" onsubmit="submitDriver(event)">
-                        <div class="form-grid">
-                            <div class="form-group full">
-                                <label>ناوی چواری شۆفێر:</label>
-                                <input type="text" id="driverName" required placeholder="ناوی تەواو بنووسە...">
-                            </div>
-
-                            <div class="form-group">
-                                <label>ژمارەی مۆبایل:</label>
-                                <input type="tel" id="driverPhone" required placeholder="0750 000 0000">
-                            </div>
-
-                            <div class="form-group">
-                                <label>شار / پارێزگا:</label>
-                                <select id="driverCity" required>
-                                    <option value="هەولێر" selected>هەولێر</option>
-                                    <option value="سلێمانی">سلێمانی</option>
-                                    <option value="دهۆک">دهۆک</option>
-                                    <option value="هەڵەبجە">هەڵەبجە</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>جۆری ئۆتۆمبێل / ماتۆڕ و مۆدێل:</label>
-                                <input type="text" id="driverCar" required placeholder="بۆ نموونە: تۆیۆتا کامری 2021">
-                            </div>
-
-                            <div class="form-group">
-                                <label>ژمارەی تابلۆ:</label>
-                                <input type="text" id="driverPlate" required placeholder="بۆ نموونە: 12345 / هەولێر">
-                            </div>
-                        </div>
-
-                        <label style="display:flex; align-items:center; gap:9px; font-size:0.84rem; color:#e2e8f0; margin-bottom:14px; cursor:pointer;">
-                            <input type="checkbox" id="driverAgree" required style="width:18px; height:18px; accent-color:var(--accent-gold);">
-                            <span>پابەندبوون بە خاوێنی، ڕێزگرتن لە سەرنشین، و پەسەندکردنی ئەدمین پێش دەستبەکاربوون.</span>
-                        </label>
-
-                        <button type="submit" class="primary-btn">ناردنی داواکاری بۆ پەسەندکردن 🪪</button>
-                    </form>
-                </section>
-            </div>
-
-            <!-- Right Column: Live Status & Approved Drivers -->
-            <aside class="panel-card">
-                <div class="status-banner" id="statusBanner">
-                    <div class="status-title" id="statusTitle">دۆخی داواکاری</div>
-                    <div class="status-text" id="statusText"></div>
-                </div>
-
-                <div class="panel-header" style="margin-bottom:12px; padding-bottom:10px;">
-                    <div class="panel-title">🚖 شۆفێرە ئامادەکانی <span id="cityLabelInline" style="color:var(--accent-gold);">هەولێر</span></div>
-                </div>
-
-                <div id="driversList"></div>
-
-                <ul class="rules-mini">
-                    <li>نرخەکان بە شێوەی خەمڵێنراو پێش دەستپێکردن نیشان دەدرێن.</li>
-                    <li>هەر شۆفێرێکی نوێ دوای تۆمارکردن لە لایەن ئەدمینەوە پەسەند دەکرێت.</li>
-                    <li>بۆ کاڵای گەورە دەتوانیت شێوازی پیکاب یان تەکسی کاڵا هەڵبژێریت.</li>
-                </ul>
-
-                <button type="button" class="secondary-btn" onclick="switchService('driver')">+ تۆمارکردنی شۆفێری نوێ</button>
-            </aside>
-        </div>
     </main>
 
     <script>
@@ -874,265 +472,242 @@
             ? window.location.origin
             : 'https://kurd-domino-production.up.railway.app';
 
-        let selectedTaxiTier = { name: 'تەکسی ئاسایی', base: 3000, rate: 1200 };
-        let selectedCargoTier = { name: 'ماتۆڕی گەیاندن', base: 2500, rate: 900 };
+        const socket = io(API_BASE);
+        let currentMode = 'taxi';
+        let activePinMode = 'pickup';
+        let activeOrderId = null;
+        let selectedCargoKey = 'moto';
 
-        const sampleDrivers = [
-            { name: 'کاک ئاراس محەمەد', city: 'هەولێر', car: 'تۆیۆتا کامری • هەولێر', status: 'ئامادەیە' },
-            { name: 'شێرزاد عەلی', city: 'هەولێر', car: 'هیۆندای سۆناتا • کەسنەزان', status: 'لە ڕێگایە' },
-            { name: 'ڕێبوار کەریم', city: 'سلێمانی', car: 'تەکسی سلێمانی • بەختیاری', status: 'ئامادەیە' },
-            { name: 'هێمن سەلاح', city: 'دهۆک', car: 'تەکسی دهۆک • ماڵتا', status: 'ئامادەیە' }
-        ];
-
-        function switchService(mode) {
-            ['taxi', 'delivery', 'driver'].forEach(m => {
-                document.getElementById('tab-' + m).classList.toggle('active', m === mode);
-                document.getElementById('view-' + m).classList.toggle('active', m === mode);
-            });
-        }
-
-        function onCityChange() {
-            const city = document.getElementById('activeCity').value;
-            document.getElementById('cityLabelInline').innerText = city;
-            document.getElementById('driverCity').value = city;
-            renderDrivers();
-            updateFareEstimate();
-            updateCargoEstimate();
-        }
-
-        function detectUserLocation() {
-            const statusEl = document.getElementById('gpsStatusText');
-            if (!navigator.geolocation) {
-                statusEl.innerText = 'GPS لەم ئامێرەدا چالاک نییە';
-                return;
+        let ratesTable = {
+            taxi: {
+                standard: { label: 'تەکسی', base: 2000, perKm: 750, perMin: 100, minFare: 3000 }
+            },
+            delivery: {
+                moto: { label: 'ماتۆڕی گەیاندن', base: 1500, perKm: 600, perMin: 50, minFare: 2500 },
+                taxi_cargo: { label: 'تەکسی کاڵا', base: 2500, perKm: 900, perMin: 100, minFare: 4000 },
+                van: { label: 'پیکاب / بارهەڵگر', base: 6000, perKm: 1750, perMin: 150, minFare: 8000 }
             }
-            statusEl.innerText = 'دۆزینەوەی شوێن...';
+        };
+
+        let pickupCoords = [36.2045, 44.1422];
+        let dropoffCoords = [36.1355, 44.0865];
+
+        const map = L.map('liveMap').setView([36.185, 44.08], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const pickupMarker = L.marker(pickupCoords, { draggable: true }).addTo(map).bindPopup('📍 شوێنی هەڵگرتن').openPopup();
+        const dropoffMarker = L.marker(dropoffCoords, { draggable: true }).addTo(map).bindPopup('🏁 شوێنی مەبەست');
+        const routeLine = L.polyline([pickupCoords, dropoffCoords], { color: '#f59e0b', weight: 4, dashArray: '8, 8' }).addTo(map);
+
+        function applyRatesToCards() {
+            const taxiRate = ratesTable.taxi?.standard || ratesTable.taxi?.economy;
+            if (taxiRate) {
+                document.getElementById('label-taxi-standard').innerText = taxiRate.label || 'تەکسی';
+                document.getElementById('sub-taxi-standard').innerText = `${Number(taxiRate.perKm).toLocaleString()} د.ع / کم`;
+            }
+            ['moto', 'taxi_cargo', 'van'].forEach(k => {
+                const item = ratesTable.delivery?.[k];
+                if (item) {
+                    document.getElementById(`label-delivery-${k}`).innerText = item.label;
+                    document.getElementById(`sub-delivery-${k}`).innerText = `${Number(item.perKm).toLocaleString()} د.ع / کم`;
+                }
+            });
+            recalculateRouteAndFare();
+        }
+
+        async function loadServerRates() {
+            try {
+                const res = await fetch(`${API_BASE}/api/taxi/rates`);
+                if (res.ok) {
+                    ratesTable = await res.json();
+                    applyRatesToCards();
+                }
+            } catch (e) {}
+        }
+
+        socket.on('taxi_rates_updated', (updatedRates) => {
+            ratesTable = updatedRates;
+            applyRatesToCards();
+        });
+
+        function setActivePinMode(mode) {
+            activePinMode = mode;
+            document.getElementById('btnSetPickup').classList.toggle('active-pickup', mode === 'pickup');
+            document.getElementById('btnSetDropoff').classList.toggle('active-dropoff', mode === 'dropoff');
+            document.getElementById('mapInstruction').innerText = mode === 'pickup'
+                ? 'کلیک لەسەر نەخشە بکە بۆ دانانی شوێنی خۆت'
+                : 'کلیک لەسەر نەخشە بکە بۆ دانانی شوێنی مەبەست';
+        }
+
+        map.on('click', (e) => {
+            const lat = Number(e.latlng.lat.toFixed(5));
+            const lng = Number(e.latlng.lng.toFixed(5));
+            if (activePinMode === 'pickup') {
+                pickupCoords = [lat, lng];
+                pickupMarker.setLatLng(pickupCoords).bindPopup('📍 شوێنی هەڵگرتن').openPopup();
+                document.getElementById('pickupText').value = `لۆکەیشنی هەڵگرتن (${lat}, ${lng})`;
+                setActivePinMode('dropoff');
+            } else {
+                dropoffCoords = [lat, lng];
+                dropoffMarker.setLatLng(dropoffCoords).bindPopup('🏁 شوێنی مەبەست').openPopup();
+                document.getElementById('dropoffText').value = `لۆکەیشنی مەبەست (${lat}, ${lng})`;
+            }
+            recalculateRouteAndFare();
+        });
+
+        pickupMarker.on('dragend', () => {
+            const pos = pickupMarker.getLatLng();
+            pickupCoords = [Number(pos.lat.toFixed(5)), Number(pos.lng.toFixed(5))];
+            document.getElementById('pickupText').value = `لۆکەیشنی هەڵگرتن (${pickupCoords[0]}, ${pickupCoords[1]})`;
+            recalculateRouteAndFare();
+        });
+
+        dropoffMarker.on('dragend', () => {
+            const pos = dropoffMarker.getLatLng();
+            dropoffCoords = [Number(pos.lat.toFixed(5)), Number(pos.lng.toFixed(5))];
+            document.getElementById('dropoffText').value = `لۆکەیشنی مەبەست (${dropoffCoords[0]}, ${dropoffCoords[1]})`;
+            recalculateRouteAndFare();
+        });
+
+        function locateMeGPS() {
+            if (!navigator.geolocation) return alert('GPS لەم ئامێرەدا چالاک نییە');
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    const lat = pos.coords.latitude.toFixed(3);
-                    const lng = pos.coords.longitude.toFixed(3);
-                    const city = document.getElementById('activeCity').value;
-                    document.getElementById('pickupInput').value = `${city} (${lat}, ${lng})`;
-                    statusEl.innerText = `شوێنی GPS دیاری کرا`;
-                    updateFareEstimate();
+                    const lat = Number(pos.coords.latitude.toFixed(5));
+                    const lng = Number(pos.coords.longitude.toFixed(5));
+                    pickupCoords = [lat, lng];
+                    pickupMarker.setLatLng(pickupCoords).bindPopup('📍 شوێنی ئێستای تۆ').openPopup();
+                    map.setView(pickupCoords, 14);
+                    document.getElementById('pickupText').value = `GPSـی من (${lat}, ${lng})`;
+                    setActivePinMode('dropoff');
+                    recalculateRouteAndFare();
                 },
-                () => {
-                    statusEl.innerText = 'مۆڵەتی GPS نەدرا؛ بە دەست بنووسە';
-                }
+                () => alert('تکایە ڕێگەپێدانی GPS بکەرەوە یان لەسەر نەخشە کلیک بکە.')
             );
         }
 
-        function selectTier(type, el) {
-            const parentId = type === 'taxi' ? 'taxiTiers' : 'cargoTiers';
-            document.querySelectorAll(`#${parentId} .tier-card`).forEach(c => c.classList.remove('selected'));
+        function calcDistanceKm(c1, c2) {
+            const R = 6371;
+            const dLat = (c2[0] - c1[0]) * Math.PI / 180;
+            const dLon = (c2[1] - c1[1]) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(c1[0] * Math.PI / 180) * Math.cos(c2[0] * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const straightKm = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+            return Number(Math.max(1.0, straightKm * 1.25).toFixed(1));
+        }
+
+        function formatIQD(val) {
+            return (Math.round(val / 250) * 250).toLocaleString('en-US') + ' د.ع';
+        }
+
+        function recalculateRouteAndFare() {
+            routeLine.setLatLngs([pickupCoords, dropoffCoords]);
+            const km = calcDistanceKm(pickupCoords, dropoffCoords);
+            const mins = Math.max(4, Math.round(km * 1.6));
+
+            const r = currentMode === 'taxi'
+                ? (ratesTable.taxi?.standard || ratesTable.taxi?.economy)
+                : ratesTable.delivery[selectedCargoKey];
+
+            const rawFare = Number(r.base) + (km * Number(r.perKm)) + (mins * Number(r.perMin));
+            const finalFare = Math.max(Number(r.minFare), rawFare);
+
+            document.getElementById('liveKmBadge').innerText = `${km} کم`;
+            document.getElementById('offerDistanceText').innerText = `دووری: ${km} کم • کات: ~${mins} خولەک (${r.label})`;
+            document.getElementById('fareBreakdownText').innerText =
+                `دەستپێک: ${Number(r.base).toLocaleString()} + ${Number(r.perKm).toLocaleString()}/کم + ${Number(r.perMin).toLocaleString()}/خولەک`;
+            document.getElementById('offerPriceText').innerText = formatIQD(finalFare);
+        }
+
+        function switchServiceMode(mode) {
+            currentMode = mode;
+            document.getElementById('tab-taxi').classList.toggle('active', mode === 'taxi');
+            document.getElementById('tab-delivery').classList.toggle('active', mode === 'delivery');
+            document.getElementById('fields-taxi').classList.toggle('active', mode === 'taxi');
+            document.getElementById('fields-delivery').classList.toggle('active', mode === 'delivery');
+            recalculateRouteAndFare();
+        }
+
+        function selectCargoKey(key, el) {
+            document.querySelectorAll('#cargoTiers .tier-card').forEach(c => c.classList.remove('selected'));
             el.classList.add('selected');
-
-            const base = Number(el.dataset.base);
-            const rate = Number(el.dataset.rate);
-            const name = el.querySelector('.tier-name').innerText;
-
-            if (type === 'taxi') {
-                selectedTaxiTier = { name, base, rate };
-                updateFareEstimate();
-            } else {
-                selectedCargoTier = { name, base, rate };
-                updateCargoEstimate();
-            }
+            selectedCargoKey = key;
+            recalculateRouteAndFare();
         }
 
-        function estimateKm(origin, dest) {
-            const cleanLen = Math.abs((origin || '').trim().length - (dest || '').trim().length);
-            const baseKm = 7.5 + (cleanLen % 8) * 1.1;
-            return Number(baseKm.toFixed(1));
+        function resetLocations() {
+            document.getElementById('activeTripCard').style.display = 'none';
+            setActivePinMode('pickup');
         }
 
-        function formatIQD(amount) {
-            const rounded = Math.round(amount / 500) * 500;
-            return rounded.toLocaleString('en-US') + ' د.ع';
-        }
+        async function acceptAndSendOrder(e) {
+            e.preventDefault();
+            activeOrderId = Date.now();
+            const pickup = document.getElementById('pickupText').value.trim();
+            const dropoff = document.getElementById('dropoffText').value.trim();
+            const priceText = document.getElementById('offerPriceText').innerText;
+            const distanceText = document.getElementById('liveKmBadge').innerText;
+            const r = currentMode === 'taxi'
+                ? (ratesTable.taxi?.standard || ratesTable.taxi?.economy)
+                : ratesTable.delivery[selectedCargoKey];
 
-        function updateFareEstimate() {
-            const pickup = document.getElementById('pickupInput').value.trim() || 'هەڵگرتن';
-            const dropoff = document.getElementById('dropoffInput').value.trim() || 'گەیشتن';
-            document.getElementById('taxiPickupPin').innerText = `📍 ${pickup.slice(0, 18)}`;
-            document.getElementById('taxiDropoffPin').innerText = `🏁 ${dropoff.slice(0, 18)}`;
+            if (currentMode === 'taxi') {
+                const name = document.getElementById('passengerName').value.trim();
+                const phone = document.getElementById('passengerPhone').value.trim();
+                if (!name || !phone) return alert('تکایە ناو و ژمارەی مۆبایلەکەت بنووسە.');
 
-            const km = estimateKm(pickup, dropoff);
-            const mins = Math.max(8, Math.round(km * 1.7));
-            const total = selectedTaxiTier.base + km * selectedTaxiTier.rate;
-
-            document.getElementById('taxiDistanceMeta').innerText = `دووری: ~${km} کم • کاتی چاوەڕوانکراو: ~${mins} خولەک`;
-            document.getElementById('taxiEstimatedPrice').innerText = formatIQD(total);
-        }
-
-        function updateCargoEstimate() {
-            const origin = document.getElementById('cargoOrigin').value.trim() || 'نێرەر';
-            const dest = document.getElementById('cargoDestination').value.trim() || 'وەرگر';
-            const km = estimateKm(origin, dest);
-            const total = selectedCargoTier.base + km * selectedCargoTier.rate;
-
-            document.getElementById('cargoMeta').innerText = `${selectedCargoTier.name} • دووری: ~${km} کم`;
-            document.getElementById('cargoEstimatedPrice').innerText = formatIQD(total);
-        }
-
-        function showStatus(title, text, isPending = false) {
-            const banner = document.getElementById('statusBanner');
-            banner.style.display = 'block';
-            banner.classList.toggle('pending', isPending);
-            document.getElementById('statusTitle').innerText = title;
-            document.getElementById('statusText').innerText = text;
-        }
-
-        async function postTaxiPayload(endpoint, payload) {
-            try {
-                const res = await fetch(`${API_BASE}${endpoint}`, {
+                await fetch(`${API_BASE}/api/taxi/orders`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) return true;
-            } catch (e) {}
-            return false;
+                    body: JSON.stringify({
+                        id: activeOrderId, serviceType: 'taxi', pickup, dropoff,
+                        pickupCoords, dropoffCoords, distanceKm: distanceText,
+                        passengerName: name, passengerPhone: phone, tier: r.label, estimatedPrice: priceText
+                    })
+                }).catch(() => {});
+
+                document.getElementById('activeTripCard').style.display = 'block';
+                document.getElementById('tripSummaryText').innerText =
+                    `تەکسی | لە: ${pickup} ← بۆ: ${dropoff} | دووری: ${distanceText} | نرخ: ${priceText}`;
+            } else {
+                const senderPhone = document.getElementById('senderPhone').value.trim();
+                const receiverPhone = document.getElementById('receiverPhone').value.trim();
+                const cargoDesc = document.getElementById('cargoDesc').value.trim();
+                if (!senderPhone || !receiverPhone || !cargoDesc) return alert('تکایە مۆبایلی نێرەر و وەرگر و جۆری کاڵاکە بنووسە.');
+
+                await fetch(`${API_BASE}/api/delivery/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: activeOrderId, serviceType: 'delivery', origin: pickup, destination: dropoff,
+                        pickupCoords, dropoffCoords, distanceKm: distanceText,
+                        senderPhone, receiverPhone, cargoDesc, tier: r.label, estimatedPrice: priceText
+                    })
+                }).catch(() => {});
+
+                document.getElementById('activeTripCard').style.display = 'block';
+                document.getElementById('tripSummaryText').innerText =
+                    `گەیاندن (${r.label} - ${cargoDesc}) | لە: ${pickup} ← بۆ: ${dropoff} | نرخ: ${priceText}`;
+            }
+            document.getElementById('activeTripCard').scrollIntoView({ behavior: 'smooth' });
         }
 
-        async function submitRideOrder(e) {
-            e.preventDefault();
-            const city = document.getElementById('activeCity').value;
-            const pickup = document.getElementById('pickupInput').value.trim();
-            const dropoff = document.getElementById('dropoffInput').value.trim();
-            const passengerName = document.getElementById('passengerName').value.trim();
-            const passengerPhone = document.getElementById('passengerPhone').value.trim();
-            const priceText = document.getElementById('taxiEstimatedPrice').innerText;
+        socket.on('order_accepted_by_driver', (data) => {
+            if (activeOrderId && Number(data.orderId) === Number(activeOrderId)) {
+                document.getElementById('tripStatusHeading').innerText = '🚖 شۆفێر داواکارییەکەی قبوڵ کرد و لە ڕێگایە!';
+                document.getElementById('driverMatchBox').style.display = 'block';
+                document.getElementById('assignedDriverInfo').innerText =
+                    `شۆفێر: ${data.driverName} | ئۆتۆمبێل: ${data.driverCar} (${data.driverPlate})`;
+                document.getElementById('callDriverLink').href = `tel:${data.driverPhone}`;
+            }
+        });
 
-            const order = {
-                id: Date.now(),
-                serviceType: 'taxi',
-                city,
-                pickup,
-                dropoff,
-                passengerName,
-                passengerPhone,
-                tier: selectedTaxiTier.name,
-                estimatedPrice: priceText,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
-
-            const saved = JSON.parse(localStorage.getItem('kurd_taxi_orders') || '[]');
-            saved.unshift(order);
-            localStorage.setItem('kurd_taxi_orders', JSON.stringify(saved));
-
-            await postTaxiPayload('/api/taxi/orders', order);
-
-            showStatus(
-                '✅ داواکاری تەکسی تۆمار کرا',
-                `گەشتی ${selectedTaxiTier.name} لە (${pickup}) بۆ (${dropoff}) لە شاری ${city} بە نرخی خەمڵێنراوی (${priceText}) نێردرا.`,
-                false
-            );
-            e.target.reset();
-            document.getElementById('pickupInput').value = 'کەسنەزان';
-            document.getElementById('dropoffInput').value = 'بنەسڵاوە';
-            updateFareEstimate();
-        }
-
-        async function submitCargoOrder(e) {
-            e.preventDefault();
-            const city = document.getElementById('activeCity').value;
-            const origin = document.getElementById('cargoOrigin').value.trim();
-            const destination = document.getElementById('cargoDestination').value.trim();
-            const senderPhone = document.getElementById('senderPhone').value.trim();
-            const receiverPhone = document.getElementById('receiverPhone').value.trim();
-            const cargoDesc = document.getElementById('cargoDesc').value.trim();
-            const priceText = document.getElementById('cargoEstimatedPrice').innerText;
-
-            const cargoOrder = {
-                id: Date.now(),
-                serviceType: 'delivery',
-                city,
-                origin,
-                destination,
-                senderPhone,
-                receiverPhone,
-                cargoDesc,
-                tier: selectedCargoTier.name,
-                estimatedPrice: priceText,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
-
-            const saved = JSON.parse(localStorage.getItem('kurd_delivery_orders') || '[]');
-            saved.unshift(cargoOrder);
-            localStorage.setItem('kurd_delivery_orders', JSON.stringify(saved));
-
-            await postTaxiPayload('/api/delivery/orders', cargoOrder);
-
-            showStatus(
-                '📦 داواکاری گەیاندنی کاڵا نێردرا',
-                `کاڵای (${cargoDesc}) لە (${origin}) بۆ (${destination}) بە شێوازی (${selectedCargoTier.name}) بە نرخی (${priceText}) تۆمار کرا.`,
-                false
-            );
-            e.target.reset();
-            document.getElementById('cargoOrigin').value = 'کەسنەزان';
-            document.getElementById('cargoDestination').value = 'بنەسڵاوە';
-            updateCargoEstimate();
-        }
-
-        async function submitDriver(e) {
-            e.preventDefault();
-            const newReq = {
-                id: Date.now(),
-                name: document.getElementById('driverName').value.trim(),
-                phone: document.getElementById('driverPhone').value.trim(),
-                city: document.getElementById('driverCity').value,
-                car: document.getElementById('driverCar').value.trim(),
-                plate: document.getElementById('driverPlate').value.trim(),
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
-
-            const requests = JSON.parse(localStorage.getItem('taxi_requests') || '[]');
-            requests.unshift(newReq);
-            localStorage.setItem('taxi_requests', JSON.stringify(requests));
-
-            await postTaxiPayload('/api/taxi/drivers', newReq);
-
-            showStatus(
-                '⏳ داواکارییەکەت لە چاوەڕوانیدایە',
-                'زانیارییەکانت تۆمار کران و پاش پەسەندکردنی ئەدمین هەژمارەکەت بۆ وەرگرتنی داواکاری چالاک دەکرێت.',
-                true
-            );
-            e.target.reset();
-            renderDrivers();
-        }
-
-        function renderDrivers() {
-            const city = document.getElementById('activeCity').value;
-            const approvedLocal = JSON.parse(localStorage.getItem('taxi_requests') || '[]')
-                .filter(d => d.status === 'approved' && d.city === city)
-                .map(d => ({ name: d.name, city: d.city, car: `${d.car} • ${d.plate}`, status: 'پەسەندکراو' }));
-
-            const cityDrivers = [
-                ...approvedLocal,
-                ...sampleDrivers.filter(d => d.city === city)
-            ];
-
-            const listEl = document.getElementById('driversList');
-            const displayList = cityDrivers.length ? cityDrivers : sampleDrivers.slice(0, 2);
-
-            listEl.innerHTML = displayList.map(d => `
-                <div class="driver-card">
-                    <div>
-                        <div class="driver-name">${d.name}</div>
-                        <div class="driver-car">${d.car}</div>
-                    </div>
-                    <span class="driver-badge">${d.status}</span>
-                </div>
-            `).join('');
-        }
-
-        renderDrivers();
-        updateFareEstimate();
-        updateCargoEstimate();
+        loadServerRates();
+        applyRatesToCards();
     </script>
 </body>
 </html>

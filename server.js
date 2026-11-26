@@ -412,29 +412,90 @@ app.delete('/api/admin/marketplace/reject/:id', (req, res) => {
 });
 
 // ==========================================
-// --- بەشی تەکسی، گەیاندن و شۆفێران ---
+// --- بەشی تەکسی، گەیاندن، نرخەکان و شۆفێران ---
 // ==========================================
 const TAXI_DATA_FILE = path.join(__dirname, 'taxi-data.json');
 
+const DEFAULT_TAXI_RATES = {
+  taxi: {
+    standard: { label: 'تەکسی', base: 2000, perKm: 750, perMin: 100, minFare: 3000 }
+  },
+  delivery: {
+    moto: { label: 'ماتۆڕی گەیاندن', base: 1500, perKm: 600, perMin: 50, minFare: 2500 },
+    taxi_cargo: { label: 'تەکسی کاڵا', base: 2500, perKm: 900, perMin: 100, minFare: 4000 },
+    van: { label: 'پیکاب / بارهەڵگر', base: 6000, perKm: 1750, perMin: 150, minFare: 8000 }
+  }
+};
+
 function getTaxiData() {
   if (!fs.existsSync(TAXI_DATA_FILE)) {
-    return { rideOrders: [], deliveryOrders: [], driverRequests: [] };
+    return {
+      rates: JSON.parse(JSON.stringify(DEFAULT_TAXI_RATES)),
+      rideOrders: [],
+      deliveryOrders: [],
+      driverRequests: []
+    };
   }
   try {
     const parsed = JSON.parse(fs.readFileSync(TAXI_DATA_FILE, 'utf-8') || '{}');
     return {
+      rates: {
+        taxi: {
+          standard: (parsed.rates && parsed.rates.taxi && parsed.rates.taxi.standard)
+            ? parsed.rates.taxi.standard
+            : DEFAULT_TAXI_RATES.taxi.standard
+        },
+        delivery: {
+          moto: (parsed.rates && parsed.rates.delivery && parsed.rates.delivery.moto)
+            ? parsed.rates.delivery.moto
+            : DEFAULT_TAXI_RATES.delivery.moto,
+          taxi_cargo: (parsed.rates && parsed.rates.delivery && parsed.rates.delivery.taxi_cargo)
+            ? parsed.rates.delivery.taxi_cargo
+            : DEFAULT_TAXI_RATES.delivery.taxi_cargo,
+          van: (parsed.rates && parsed.rates.delivery && parsed.rates.delivery.van)
+            ? parsed.rates.delivery.van
+            : DEFAULT_TAXI_RATES.delivery.van
+        }
+      },
       rideOrders: Array.isArray(parsed.rideOrders) ? parsed.rideOrders : [],
       deliveryOrders: Array.isArray(parsed.deliveryOrders) ? parsed.deliveryOrders : [],
       driverRequests: Array.isArray(parsed.driverRequests) ? parsed.driverRequests : []
     };
   } catch (err) {
-    return { rideOrders: [], deliveryOrders: [], driverRequests: [] };
+    return {
+      rates: JSON.parse(JSON.stringify(DEFAULT_TAXI_RATES)),
+      rideOrders: [],
+      deliveryOrders: [],
+      driverRequests: []
+    };
   }
 }
 
 function saveTaxiData(data) {
   fs.writeFileSync(TAXI_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
+
+// ناردنی خشتەی نرخەکان بۆ لاپەڕەی سەرنشین و ئەدمین
+app.get('/api/taxi/rates', (req, res) => {
+  const db = getTaxiData();
+  res.json(db.rates);
+});
+
+// دەستکاریکردن و پاشەکەوتکردنی نرخەکان لە لایەن ئەدمینەوە
+app.post('/api/admin/taxi/rates', (req, res) => {
+  try {
+    const db = getTaxiData();
+    if (req.body && req.body.taxi && req.body.delivery) {
+      db.rates = req.body;
+      saveTaxiData(db);
+      io.emit('taxi_rates_updated', db.rates);
+      return res.json({ success: true, rates: db.rates });
+    }
+    res.status(400).json({ error: 'زانیاریی نرخەکان ناتەواوە' });
+  } catch (err) {
+    res.status(500).json({ error: 'نرخەکان پاشەکەوت نەکران' });
+  }
+});
 
 app.get('/api/taxi/drivers', (req, res) => {
   const db = getTaxiData();
@@ -476,6 +537,33 @@ app.post('/api/delivery/orders', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'تۆمار نەکرا' });
   }
+});
+
+// کاتێک شۆفێر داواکارییەکە وەردەگرێت
+app.post('/api/taxi/orders/accept/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const db = getTaxiData();
+  const ride = db.rideOrders.find(o => Number(o.id) === id);
+  const delivery = db.deliveryOrders.find(o => Number(o.id) === id);
+  const target = ride || delivery;
+
+  if (!target) {
+    return res.status(404).json({ error: 'داواکارییەکە نەدۆزرایەوە' });
+  }
+
+  target.status = 'accepted';
+  target.assignedDriver = req.body;
+  saveTaxiData(db);
+
+  io.emit('order_accepted_by_driver', {
+    orderId: id,
+    driverName: req.body.driverName,
+    driverPhone: req.body.driverPhone,
+    driverCar: req.body.driverCar,
+    driverPlate: req.body.driverPlate
+  });
+
+  res.json({ success: true, order: target });
 });
 
 app.post('/api/taxi/drivers', (req, res) => {
