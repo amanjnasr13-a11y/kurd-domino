@@ -10,20 +10,71 @@
     .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #060b13; border-bottom: 1px solid #1f2937; }
     .nav-title { font-size: 20px; font-weight: bold; color: #ef4444; }
     .btn-back { color: #9ca3af; text-decoration: none; font-size: 14px; border: 1px solid #374151; padding: 6px 14px; border-radius: 8px; }
-    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid #1f2937; padding-bottom: 10px; }
-    .tab-btn { background: #111927; color: #fff; border: 1px solid #374151; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .container { max-width: 1120px; margin: 26px auto; padding: 0 20px; }
+
+    /* Main Section Switcher */
+    .main-sections { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .sec-btn {
+      background: #111927;
+      color: #e5e7eb;
+      border: 1.5px solid #374151;
+      padding: 11px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    .sec-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0b1320;
+      border-color: #f59e0b;
+    }
+
+    .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; border-bottom: 1px solid #1f2937; padding-bottom: 12px; }
+    .tab-btn { background: #111927; color: #fff; border: 1px solid #374151; padding: 9px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
     .tab-btn.active { background: #f59e0b; color: #0b1320; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
     .admin-card { background: #111927; border: 1px solid #374151; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
     .admin-card img { width: 100%; height: 160px; object-fit: cover; }
     .card-content { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-    .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; width: fit-content; margin-bottom: 8px; }
+    .badge { display: inline-block; padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: bold; width: fit-content; margin-bottom: 8px; }
     .badge-pending { background: #78350f; color: #fde68a; }
     .badge-approved { background: #064e3b; color: #6ee7b7; }
     .actions { display: flex; gap: 8px; margin-top: 15px; }
-    .btn-approve { flex: 1; background: #10b981; color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    .btn-reject { flex: 1; background: #ef4444; color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-approve { flex: 1; background: #10b981; color: #fff; border: none; padding: 9px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-reject { flex: 1; background: #ef4444; color: #fff; border: none; padding: 9px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+    /* Rates Editor Styles */
+    .rates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; margin-bottom: 20px; }
+    .rate-box { background: #111927; border: 1px solid #374151; border-radius: 14px; padding: 18px; }
+    .rate-box h3 { color: #f59e0b; margin-bottom: 14px; font-size: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; }
+    .rate-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 11px; }
+    .rate-field label { font-size: 12px; color: #9ca3af; font-weight: bold; }
+    .rate-field input {
+      background: #0b1320;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: #ffffff;
+      font-size: 14px;
+      outline: none;
+    }
+    .rate-field input:focus { border-color: #f59e0b; }
+    .save-rates-btn {
+      background: #10b981;
+      color: #06130e;
+      border: none;
+      padding: 13px 26px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
 
     /* پەنجەرەی داخڵبوونی ئەدمین */
     #loginModal {
@@ -74,31 +125,60 @@
   </header>
 
   <div class="container">
-    <div class="tabs">
-      <button class="tab-btn active" id="tabPending" onclick="filterStatus('pending')">چاوەڕوانکراو (Pending)</button>
-      <button class="tab-btn" id="tabApproved" onclick="filterStatus('approved')">پەسەندکراوەکان (Approved)</button>
-      <button class="tab-btn" id="tabAll" onclick="filterStatus('all')">هەموو کاڵاکان</button>
+    <!-- بەشە سەرەکییەکانی ئەدمین -->
+    <div class="main-sections">
+      <button class="sec-btn active" id="secBtnMarket" onclick="switchAdminSection('market')">🛒 کاڵاکانی بازاڕ</button>
+      <button class="sec-btn" id="secBtnOrders" onclick="switchAdminSection('orders')">🚖 داواکاری تەکسی و گەیاندن</button>
+      <button class="sec-btn" id="secBtnDrivers" onclick="switchAdminSection('drivers')">🪪 شۆفێرەکان</button>
+      <button class="sec-btn" id="secBtnRates" onclick="switchAdminSection('rates')">💰 نرخەکانی تەکسی و کاڵا</button>
     </div>
 
-    <div class="grid" id="adminGrid">
-      <p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">باردەکرێت...</p>
+    <!-- ١. بەشی کاڵاکانی بازاڕ -->
+    <div class="admin-section active" id="section-market">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabPending" onclick="filterStatus('pending')">چاوەڕوانکراو (Pending)</button>
+        <button class="tab-btn" id="tabApproved" onclick="filterStatus('approved')">پەسەندکراوەکان (Approved)</button>
+        <button class="tab-btn" id="tabAll" onclick="filterStatus('all')">هەموو کاڵاکان</button>
+      </div>
+
+      <div class="grid" id="adminGrid">
+        <p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">باردەکرێت...</p>
+      </div>
+    </div>
+
+    <!-- ٢. بەشی داواکاری تەکسی و گەیاندنی کاڵا -->
+    <div class="admin-section" id="section-orders">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabRideOrders" onclick="switchOrderTab('rides')">🚖 داواکارییەکانی تەکسی</button>
+        <button class="tab-btn" id="tabCargoOrders" onclick="switchOrderTab('cargo')">📦 داواکارییەکانی گەیاندنی کاڵا</button>
+      </div>
+      <div class="grid" id="ordersGrid"></div>
+    </div>
+
+    <!-- ٣. بەشی شۆفێران -->
+    <div class="admin-section" id="section-drivers">
+      <div class="grid" id="driversAdminGrid"></div>
+    </div>
+
+    <!-- ٤. بەشی دەستکاریکردنی نرخەکان -->
+    <div class="admin-section" id="section-rates">
+      <div class="rates-grid" id="ratesEditorGrid"></div>
+      <button class="save-rates-btn" onclick="saveTaxiRates()">💾 پاشەکەوتکردنی نرخە نوێیەکان</button>
     </div>
   </div>
 
   <script>
-    // پشکنینی پاسۆرد لە کاتی تۆماربووندا
     function checkLoginStatus() {
       if (sessionStorage.getItem('admin_logged') === 'true') {
         document.getElementById('loginModal').style.display = 'none';
         fetchAdminItems();
+        fetchTaxiAdminData();
       }
     }
 
     function handleLogin(e) {
       e.preventDefault();
       const input = document.getElementById('passInput').value.trim();
-
-      // پشکنینی هەردوو شێوازی ژمارەی ئینگلیزی و کوردی
       let normalized = input.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
                             .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 
@@ -106,12 +186,28 @@
         sessionStorage.setItem('admin_logged', 'true');
         document.getElementById('loginModal').style.display = 'none';
         fetchAdminItems();
+        fetchTaxiAdminData();
       } else {
         alert("❌ وشەی نهێنی هەڵەیە! تکایە دووبارە تاقی بکەرەوە.");
         document.getElementById('passInput').value = '';
       }
     }
 
+    function switchAdminSection(sec) {
+      ['market', 'orders', 'drivers', 'rates'].forEach(s => {
+        document.getElementById('section-' + s).classList.toggle('active', s === sec);
+      });
+      document.getElementById('secBtnMarket').classList.toggle('active', sec === 'market');
+      document.getElementById('secBtnOrders').classList.toggle('active', sec === 'orders');
+      document.getElementById('secBtnDrivers').classList.toggle('active', sec === 'drivers');
+      document.getElementById('secBtnRates').classList.toggle('active', sec === 'rates');
+
+      if (sec !== 'market') {
+        fetchTaxiAdminData();
+      }
+    }
+
+    // --- بازاڕ ---
     let allItems = [];
     let currentFilter = 'pending';
 
@@ -127,7 +223,7 @@
 
     function filterStatus(status) {
       currentFilter = status;
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('#section-market .tab-btn').forEach(btn => btn.classList.remove('active'));
       if (status === 'pending') document.getElementById('tabPending').classList.add('active');
       if (status === 'approved') document.getElementById('tabApproved').classList.add('active');
       if (status === 'all') document.getElementById('tabAll').classList.add('active');
@@ -179,21 +275,199 @@
       if (!confirm('ئایا دڵنیایت لە قبووڵکردنی ئەم کاڵایە بۆ ناو بازاڕ؟')) return;
       const res = await fetch(`/api/admin/marketplace/approve/${id}`, { method: 'POST' });
       const data = await res.json();
-      if (data.success) {
-        fetchAdminItems();
-      }
+      if (data.success) fetchAdminItems();
     }
 
     async function rejectItem(id) {
       if (!confirm('ئایا دڵنیایت لە سڕینەوە و ڕەتکردنەوەی ئەم کاڵایە؟')) return;
       const res = await fetch(`/api/admin/marketplace/reject/${id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.success) {
-        fetchAdminItems();
+      if (data.success) fetchAdminItems();
+    }
+
+    // --- تەکسی، گەیاندن، شۆفێران و نرخەکان ---
+    let taxiDb = { rates: null, rideOrders: [], deliveryOrders: [], driverRequests: [] };
+    let currentOrderTab = 'rides';
+
+    async function fetchTaxiAdminData() {
+      try {
+        const res = await fetch('/api/admin/taxi');
+        if (res.ok) {
+          taxiDb = await res.json();
+          renderOrdersGrid();
+          renderDriversGrid();
+          renderRatesEditor();
+        }
+      } catch (e) {}
+    }
+
+    function switchOrderTab(tab) {
+      currentOrderTab = tab;
+      document.getElementById('tabRideOrders').classList.toggle('active', tab === 'rides');
+      document.getElementById('tabCargoOrders').classList.toggle('active', tab === 'cargo');
+      renderOrdersGrid();
+    }
+
+    function renderOrdersGrid() {
+      const grid = document.getElementById('ordersGrid');
+      const list = currentOrderTab === 'rides' ? taxiDb.rideOrders : taxiDb.deliveryOrders;
+
+      if (!list || list.length === 0) {
+        grid.innerHTML = '<p style="color:#9ca3af; text-align:center; grid-column:1/-1;">هیچ داواکارییەک تۆمار نەکراوە.</p>';
+        return;
+      }
+
+      grid.innerHTML = list.map(o => {
+        const isAccepted = o.status === 'accepted';
+        const badge = isAccepted
+          ? '<span class="badge badge-approved">✅ وەرگیراوە لەلایەن شۆفێر</span>'
+          : '<span class="badge badge-pending">⏳ لە چاوەڕوانی شۆفێردایە</span>';
+
+        if (currentOrderTab === 'rides') {
+          return `
+            <div class="admin-card">
+              <div class="card-content">
+                ${badge}
+                <h3 style="margin-bottom:6px; color:#f59e0b;">🚖 ${o.passengerName || 'سەرنشین'}</h3>
+                <p style="font-size:13px; color:#e5e7eb; margin-bottom:4px;">📍 لە: ${o.pickup}</p>
+                <p style="font-size:13px; color:#e5e7eb; margin-bottom:6px;">🏁 بۆ: ${o.dropoff}</p>
+                <p style="font-size:13px; color:#10b981; font-weight:bold;">💰 نرخ: ${o.estimatedPrice} (${o.distanceKm || ''})</p>
+                <p style="font-size:13px; color:#38bdf8; margin-top:4px;">📞 مۆبایل: ${o.passengerPhone}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="admin-card">
+              <div class="card-content">
+                ${badge}
+                <h3 style="margin-bottom:6px; color:#f59e0b;">📦 ${o.cargoDesc || 'کاڵا'} (${o.tier || ''})</h3>
+                <p style="font-size:13px; color:#e5e7eb; margin-bottom:4px;">📍 لە: ${o.origin}</p>
+                <p style="font-size:13px; color:#e5e7eb; margin-bottom:6px;">🏁 بۆ: ${o.destination}</p>
+                <p style="font-size:13px; color:#10b981; font-weight:bold;">💰 نرخ: ${o.estimatedPrice}</p>
+                <p style="font-size:12px; color:#38bdf8; margin-top:4px;">📞 نێرەر: ${o.senderPhone} | وەرگر: ${o.receiverPhone}</p>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    function renderDriversGrid() {
+      const grid = document.getElementById('driversAdminGrid');
+      const list = taxiDb.driverRequests || [];
+
+      if (list.length === 0) {
+        grid.innerHTML = '<p style="color:#9ca3af; text-align:center; grid-column:1/-1;">هیچ داواکارییەکی شۆفێر نییە.</p>';
+        return;
+      }
+
+      grid.innerHTML = list.map(d => {
+        const isPending = d.status === 'pending';
+        return `
+          <div class="admin-card">
+            <div class="card-content">
+              <span class="badge ${isPending ? 'badge-pending' : 'badge-approved'}">
+                ${isPending ? '⏳ چاوەڕوانی پەسەندکردن' : '✅ شۆفێری پەسەندکراو'}
+              </span>
+              <h3 style="margin-bottom:5px;">🪪 ${d.name}</h3>
+              <p style="font-size:13px; color:#cbd5e1;">🚗 ${d.car} — تابلۆ: ${d.plate}</p>
+              <p style="font-size:13px; color:#9ca3af; margin-top:3px;">📍 شار: ${d.city}</p>
+              <p style="font-size:13px; color:#38bdf8; margin-top:4px;">📞 ${d.phone}</p>
+              <div class="actions">
+                ${isPending ? `<button class="btn-approve" onclick="approveDriver(${d.id})">✔ پەسەندکردن</button>` : ''}
+                <button class="btn-reject" onclick="rejectDriver(${d.id})">✖ سڕینەوە</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approveDriver(id) {
+      if (!confirm('دڵنیایت لە پەسەندکردنی ئەم شۆفێرە؟')) return;
+      const res = await fetch(`/api/admin/taxi/drivers/approve/${id}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) fetchTaxiAdminData();
+    }
+
+    async function rejectDriver(id) {
+      if (!confirm('دڵنیایت لە سڕینەوەی ئەم شۆفێرە؟')) return;
+      const res = await fetch(`/api/admin/taxi/drivers/reject/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) fetchTaxiAdminData();
+    }
+
+    function renderRatesEditor() {
+      const grid = document.getElementById('ratesEditorGrid');
+      if (!taxiDb.rates) return;
+
+      const entries = [
+        { group: 'taxi', key: 'standard', title: '🚖 تەکسی سەرنشین', data: taxiDb.rates.taxi.standard },
+        { group: 'delivery', key: 'moto', title: '🛵 ماتۆڕی گەیاندن', data: taxiDb.rates.delivery.moto },
+        { group: 'delivery', key: 'taxi_cargo', title: '🚖 تەکسی کاڵا', data: taxiDb.rates.delivery.taxi_cargo },
+        { group: 'delivery', key: 'van', title: '🚚 پیکاب / بارهەڵگر', data: taxiDb.rates.delivery.van }
+      ];
+
+      grid.innerHTML = entries.map(item => `
+        <div class="rate-box">
+          <h3>${item.title}</h3>
+          <div class="rate-field">
+            <label>نرخی دەستپێک (دینار):</label>
+            <input type="number" id="rate-${item.group}-${item.key}-base" value="${item.data.base}">
+          </div>
+          <div class="rate-field">
+            <label>نرخی هەر کیلۆمەترێک (دینار / کم):</label>
+            <input type="number" id="rate-${item.group}-${item.key}-perKm" value="${item.data.perKm}">
+          </div>
+          <div class="rate-field">
+            <label>نرخی هەر خولەکێک (دینار / خولەک):</label>
+            <input type="number" id="rate-${item.group}-${item.key}-perMin" value="${item.data.perMin}">
+          </div>
+          <div class="rate-field">
+            <label>کەمترین نرخی گەشت (Minimum Fare):</label>
+            <input type="number" id="rate-${item.group}-${item.key}-minFare" value="${item.data.minFare}">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function saveTaxiRates() {
+      const readBox = (group, key, label) => ({
+        label,
+        base: Number(document.getElementById(`rate-${group}-${key}-base`).value) || 0,
+        perKm: Number(document.getElementById(`rate-${group}-${key}-perKm`).value) || 0,
+        perMin: Number(document.getElementById(`rate-${group}-${key}-perMin`).value) || 0,
+        minFare: Number(document.getElementById(`rate-${group}-${key}-minFare`).value) || 0
+      });
+
+      const updatedRates = {
+        taxi: {
+          standard: readBox('taxi', 'standard', 'تەکسی')
+        },
+        delivery: {
+          moto: readBox('delivery', 'moto', 'ماتۆڕی گەیاندن'),
+          taxi_cargo: readBox('delivery', 'taxi_cargo', 'تەکسی کاڵا'),
+          van: readBox('delivery', 'van', 'پیکاب / بارهەڵگر')
+        }
+      };
+
+      try {
+        const res = await fetch('/api/admin/taxi/rates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedRates)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ نرخە نوێیەکان بە سەرکەوتوویی پاشەکەوت کران و ڕاستەوخۆ لای سەرنشین چالاک بوون!');
+          fetchTaxiAdminData();
+        }
+      } catch (e) {
+        alert('❌ هەڵە لە پاشەکەوتکردنی نرخەکان.');
       }
     }
 
-    // دەستپێکردنی پشکنین
     checkLoginStatus();
   </script>
 </body>
