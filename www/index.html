@@ -58,6 +58,7 @@
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
+            text-decoration: none;
             transition: all 0.2s ease;
         }
 
@@ -178,7 +179,6 @@
             gap: 8px;
         }
 
-        /* دوگمەی زمانەکان تەنها لە ناو چاتەکە */
         .lang-switcher {
             display: flex;
             background: #131c2e;
@@ -210,6 +210,14 @@
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.6rem;
             cursor: pointer;
         }
 
@@ -324,77 +332,6 @@
             opacity: 0.5;
         }
 
-        /* مۆداڵی ئەدمین */
-        .admin-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: #131c2e;
-            border: 1px solid #f59e0b;
-            border-radius: 12px;
-            max-width: 700px;
-            width: 100%;
-            padding: 25px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #1e293b;
-            padding-bottom: 10px;
-        }
-
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            font-size: 1.6rem;
-            cursor: pointer;
-        }
-
-        .req-card {
-            background: #0b111e;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .req-info {
-            text-align: right;
-            line-height: 1.6;
-            font-size: 0.9rem;
-        }
-
-        .req-info strong {
-            color: #f59e0b;
-            font-size: 1rem;
-        }
-
-        .req-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-approve { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .action-reject { background: #ef4444; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .call-link { background: #3b82f6; color: #fff; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; }
-
         @media (max-width: 900px) {
             .card { width: calc(50% - 20px); }
         }
@@ -402,14 +339,13 @@
         @media (max-width: 580px) {
             .card { width: 100%; }
             .navbar { padding: 15px 20px; }
-            .req-card { flex-direction: column; gap: 15px; text-align: center; }
             .ai-chat-box { height: 92vh; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ناڤبار (هەمووی بە کوردی) -->
+    <!-- ناڤبار -->
     <header class="navbar">
         <div class="logo-wrap">
             <svg class="kurdish-flag" viewBox="0 0 600 400">
@@ -431,10 +367,10 @@
             <div class="logo">Kurd AI - کورد ئەی ئای</div>
         </div>
 
-        <button class="admin-btn" onclick="openAdmin()">کۆنتڕۆڵی بەڕێوەبەر (Admin)</button>
+        <a href="admin.html" class="admin-btn">کۆنتڕۆڵی بەڕێوەبەر (Admin)</a>
     </header>
 
-    <!-- ناوەڕۆکی سەرەکی (هەمووی بە کوردی) -->
+    <!-- ناوەڕۆکی سەرەکی -->
     <main class="main-content">
         <h1 class="title">بەخێربێیت بۆ سیستەمی Kurd AI</h1>
         <p class="subtitle">زۆربەی پێداویستییەکانی ڕۆژانەت لێرە دابین دەکرێت</p>
@@ -447,11 +383,11 @@
                 <div class="card-desc">هەر پرسیارێکت هەیە یان وێنەیەک بگرە لێرە بیپرسە</div>
             </div>
 
-            <!-- ٢. تەکسی و گواستنەوە -->
+            <!-- ٢. تەکسی و گەیاندنی کاڵا -->
             <a href="taxi.html" class="card">
                 <div class="card-icon">🚖</div>
-                <div class="card-title">تەکسی و گواستنەوە</div>
-                <div class="card-desc">نرخ و هێڵەکانی ناو شار و شارەکان</div>
+                <div class="card-title">تەکسی و گەیاندنی کاڵا</div>
+                <div class="card-desc">داواکردنی تەکسی و گەیاندن بە لۆکەیشن و نرخی دیاریکراو</div>
             </a>
 
             <!-- ٣. گەیمینگ -->
@@ -484,7 +420,7 @@
         </div>
     </main>
 
-    <!-- پەنجەرەی چاتی Kurd AI (سێ زمان لێرەدایە) -->
+    <!-- پەنجەرەی چاتی Kurd AI -->
     <div class="ai-modal" id="aiModal">
         <div class="ai-chat-box" id="aiChatBox" dir="rtl">
             <div class="ai-header">
@@ -518,23 +454,6 @@
 
                 <textarea id="aiInput" placeholder="پرسیار بنووسە یان وێنەیەک بگرە..." onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAIMessage(); }"></textarea>
                 <button class="ai-send-btn" id="aiSendBtn" onclick="sendAIMessage()">ناردن</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- مۆداڵی ئەدمین -->
-    <div class="admin-modal" id="adminModal">
-        <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
-            <div class="modal-header">
-                <h2 style="color: #f59e0b;">داواکارییەکانی شۆفێرانی تاکسی بۆ ڕێکەوتن</h2>
-                <button class="close-btn" onclick="closeAdmin()">&times;</button>
-            </div>
-            <div id="requestsList"></div>
-            <h2 style="color: #f59e0b; margin-top: 25px; border-top: 1px solid #334155; padding-top: 15px;">داواکارییەکانی پیشەوەران و وەستاکان</h2>
-            <div id="proRequestsList"></div>
-            <h2 style="color: #f59e0b; margin-top: 25px; border-top: 1px solid #334155; padding-top: 15px; font-size: 16px;">🛒 کاڵاکانی کۆنەبازاڕ (چاوەڕوانی پەسەندکردن)</h2>
-            <div id="adminMarketplaceList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-                <p style="color: #9ca3af; font-size: 13px;">هیچ کاڵایەکی نوێ لە چاوەڕوانیدا نییە.</p>
             </div>
         </div>
     </div>
@@ -726,145 +645,6 @@
                 sendBtn.disabled = false;
                 messagesBox.scrollTop = messagesBox.scrollHeight;
             }
-        }
-
-        function openAdmin() {
-            const pass = prompt("تکایە وشەی نهێنی بەڕێوەبەر بنووسە:");
-            if (pass === "admin123") {
-                renderRequests();
-                renderProRequests();
-                loadAdminMarketItems();
-                document.getElementById('adminModal').style.display = 'flex';
-            } else if (pass !== null) {
-                alert("وشەی نهێنی هەڵەیە!");
-            }
-        }
-
-        function closeAdmin() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
-
-        function renderRequests() {
-            const list = document.getElementById('requestsList');
-            let requests = JSON.parse(localStorage.getItem('taxi_requests')) || [];
-            if (requests.length === 0) {
-                list.innerHTML = "<p style='text-align: center; color: #94a3b8; padding: 25px;'>هیچ داواکارییەکی نوێی شۆفێر نییە.</p>";
-                return;
-            }
-            list.innerHTML = requests.map(req => `
-                <div class="req-card">
-                    <div class="req-info">
-                        <strong>${req.name}</strong> (${req.city})<br>
-                        ئۆتۆمبێل: ${req.car} | تابلۆ: ${req.plate}<br>
-                        دۆخ: <span style="color: ${req.status === 'approved' ? '#10b981' : '#f59e0b'}">
-                            ${req.status === 'approved' ? 'پەسەندکراوە ✓' : 'چاوەڕوانی ڕێکەوتنە ⏳'}
-                        </span>
-                    </div>
-                    <div class="req-actions">
-                        <a href="tel:${req.phone}" class="call-link">پەیوەندی 📞</a>
-                        ${req.status === 'pending' ? `<button class="action-approve" onclick="approveReq(${req.id})">قبوڵکردن</button>` : ''}
-                        <button class="action-reject" onclick="deleteReq(${req.id})">سڕینەوە</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function approveReq(id) {
-            let requests = JSON.parse(localStorage.getItem('taxi_requests')) || [];
-            requests = requests.map(r => r.id === id ? { ...r, status: 'approved' } : r);
-            localStorage.setItem('taxi_requests', JSON.stringify(requests));
-            renderRequests();
-        }
-
-        function deleteReq(id) {
-            if (confirm("دڵنیایت لە سڕینەوەی ئەم داواکارییە؟")) {
-                let requests = JSON.parse(localStorage.getItem('taxi_requests')) || [];
-                requests = requests.filter(r => r.id !== id);
-                localStorage.setItem('taxi_requests', JSON.stringify(requests));
-                renderRequests();
-            }
-        }
-
-        function renderProRequests() {
-            const container = document.getElementById('proRequestsList');
-            let pros = JSON.parse(localStorage.getItem('kurdai_pros')) || [];
-            if (pros.length === 0) {
-                container.innerHTML = '<p style="color: #94a3b8; padding: 10px;">هیچ داواکارییەکی پیشەوەران نییە.</p>';
-                return;
-            }
-            container.innerHTML = pros.map(p => `
-                <div style="background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <strong>${p.name}</strong> (${p.city}) - <span style="color:#f59e0b">${p.job}</span>
-                        <div style="font-size: 13px; color: #cbd5e1; margin-top: 4px;">مۆبایل: <span style="direction:ltr; display:inline-block;">${p.phone}</span></div>
-                        <div style="font-size: 12px; color: #94a3b8;">ئەزموون: ${p.bio || 'نەنووسراوە'}</div>
-                        <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-top: 5px; display: inline-block; background: ${p.status === 'approved' ? '#22c55e' : p.status === 'rejected' ? '#ef4444' : '#eab308'}; color: #fff;">
-                            ${p.status === 'approved' ? 'پەسەندکراوە' : p.status === 'rejected' ? 'ڕەتکراوەتەوە' : 'چاوەڕوانە'}
-                        </span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        ${p.status !== 'approved' ? `<button onclick="updateProStatus(${p.id}, 'approved')" style="background:#22c55e; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">پەسەندکردن</button>` : ''}
-                        ${p.status !== 'rejected' ? `<button onclick="updateProStatus(${p.id}, 'rejected')" style="background:#ef4444; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">ڕەتکردنەوە</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function updateProStatus(id, newStatus) {
-            let pros = JSON.parse(localStorage.getItem('kurdai_pros')) || [];
-            pros = pros.map(p => p.id === id ? { ...p, status: newStatus } : p);
-            localStorage.setItem('kurdai_pros', JSON.stringify(pros));
-            renderProRequests();
-        }
-
-        async function loadAdminMarketItems() {
-            const container = document.getElementById('adminMarketplaceList');
-            if (!container) return;
-            try {
-                const res = await fetch(`${API_BASE}/api/admin/marketplace/items`);
-                const items = await res.json();
-                const pendingItems = items.filter(i => i.status === 'pending');
-                if (pendingItems.length === 0) {
-                    container.innerHTML = '<p style="color: #9ca3af; font-size: 13px;">هیچ کاڵایەکی نوێ لە چاوەڕوانیدا نییە.</p>';
-                    return;
-                }
-                container.innerHTML = '';
-                pendingItems.forEach(item => {
-                    const itemRow = document.createElement('div');
-                    itemRow.style.cssText = 'background: #0b1320; border: 1px solid #374151; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px;';
-                    itemRow.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <img src="${item.img}" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
-                            <div>
-                                <div style="font-weight: bold; color: #fff; font-size: 14px;">${item.title}</div>
-                                <div style="color: #10b981; font-size: 13px;">${item.price}</div>
-                                <div style="color: #9ca3af; font-size: 11px;">📍 ${item.city} | 📞 ${item.phone}</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 6px;">
-                            <button onclick="approveMarketItem(${item.id})" style="background: #10b981; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✔ پەسەندکردن</button>
-                            <button onclick="rejectMarketItem(${item.id})" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✖ سڕینەوە</button>
-                        </div>
-                    `;
-                    container.appendChild(itemRow);
-                });
-            } catch (err) {
-                container.innerHTML = '<p style="color: #ef4444; font-size: 12px;">هەڵە لە هێنانی کاڵاکان ڕوویدا.</p>';
-            }
-        }
-
-        async function approveMarketItem(id) {
-            if (!confirm('ئایا دڵنیایت لە پەسەندکردنی ئەم کاڵایە بۆ ناو بازاڕ؟')) return;
-            const res = await fetch(`${API_BASE}/api/admin/marketplace/approve/${id}`, { method: 'POST' });
-            const data = await res.json();
-            if (data.success) loadAdminMarketItems();
-        }
-
-        async function rejectMarketItem(id) {
-            if (!confirm('ئایا دڵنیایت لە سڕینەوەی ئەم کاڵایە؟')) return;
-            const res = await fetch(`${API_BASE}/api/admin/marketplace/reject/${id}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) loadAdminMarketItems();
         }
     </script>
 </body>
