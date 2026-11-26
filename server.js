@@ -10,13 +10,13 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 // ڕێگەپێدان بە CORS بۆ ئەپی مۆبایل (Capacitor) و وێب
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
 });
 
 // ڕێگەپێدان بە وەرگرتنی وێنەی قەبارە گەورە و فایلە ستاتیکەکان
@@ -32,6 +32,14 @@ app.get('/', (req, res) => {
 
 app.get('/marketplace', (req, res) => {
   res.sendFile(path.join(__dirname, 'www', 'marketplace.html'));
+});
+
+app.get('/taxi', (req, res) => {
+  const wwwTaxi = path.join(__dirname, 'www', 'taxi.html');
+  if (fs.existsSync(wwwTaxi)) {
+    return res.sendFile(wwwTaxi);
+  }
+  res.sendFile(path.join(__dirname, 'taxi.html'));
 });
 
 app.get('/admin', (req, res) => {
@@ -76,7 +84,6 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
           bodyData.tools = [{ googleSearch: {} }];
         }
       } else {
-        // بۆ gemma ڕێنماییەکە دەخەینە سەرەتای پرسیارەکە
         bodyData.contents = [
           { role: 'user', parts: [{ text: `ڕێنمایی سیستەم:\n${systemInstruction}\n\n` }] },
           ...contents
@@ -109,7 +116,11 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
   // ئەگەر هەموو مۆدێلەکانی گۆگڵ قەرەباڵغ بوون، یەکسەر دەچێتە سەر OpenRouter وەک یەدەگ
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   if (openRouterKey) {
-    const orModels = ['google/gemma-3-27b-it:free', 'deepseek/deepseek-chat-v3-0324:free', 'mistralai/mistral-small-3.1-24b-instruct:free'];
+    const orModels = [
+      'google/gemma-3-27b-it:free',
+      'deepseek/deepseek-chat-v3-0324:free',
+      'mistralai/mistral-small-3.1-24b-instruct:free'
+    ];
     const orMessages = [{ role: 'system', content: systemInstruction }];
     for (const c of contents) {
       const txt = c.parts?.map(p => p.text || '').join(' ').trim();
@@ -130,7 +141,9 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
         const ansOr = dataOr.choices?.[0]?.message?.content;
         if (resOr.ok && ansOr) return ansOr;
         throw new Error(dataOr.error?.message || `HTTP ${resOr.status}`);
-      } catch (e) { console.error('❌ هەڵەی OpenRouter:', orModel, e.message); }
+      } catch (e) {
+        console.error('❌ هەڵەی OpenRouter:', orModel, e.message);
+      }
     }
   }
 
@@ -172,7 +185,7 @@ app.post('/api/chat', async (req, res) => {
     });
 
     const recentHistory = (history || []).slice(-12);
-    const rawUserText = (recentHistory[recentHistory.length - 1]?.content || '');
+    const rawUserText = recentHistory[recentHistory.length - 1]?.content || '';
     const normalizedText = rawUserText.replace(/ك/g, 'ک').replace(/ي/g, 'ی').trim();
 
     // هێنانی کەشوهەوای ڕاستەوخۆی شارەکانی کوردستان
@@ -399,6 +412,116 @@ app.delete('/api/admin/marketplace/reject/:id', (req, res) => {
 });
 
 // ==========================================
+// --- بەشی تەکسی، گەیاندن و شۆفێران ---
+// ==========================================
+const TAXI_DATA_FILE = path.join(__dirname, 'taxi-data.json');
+
+function getTaxiData() {
+  if (!fs.existsSync(TAXI_DATA_FILE)) {
+    return { rideOrders: [], deliveryOrders: [], driverRequests: [] };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(TAXI_DATA_FILE, 'utf-8') || '{}');
+    return {
+      rideOrders: Array.isArray(parsed.rideOrders) ? parsed.rideOrders : [],
+      deliveryOrders: Array.isArray(parsed.deliveryOrders) ? parsed.deliveryOrders : [],
+      driverRequests: Array.isArray(parsed.driverRequests) ? parsed.driverRequests : []
+    };
+  } catch (err) {
+    return { rideOrders: [], deliveryOrders: [], driverRequests: [] };
+  }
+}
+
+function saveTaxiData(data) {
+  fs.writeFileSync(TAXI_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+app.get('/api/taxi/drivers', (req, res) => {
+  const db = getTaxiData();
+  const approvedDrivers = db.driverRequests.filter(d => d.status === 'approved');
+  res.json(approvedDrivers);
+});
+
+app.post('/api/taxi/orders', (req, res) => {
+  try {
+    const db = getTaxiData();
+    const order = {
+      id: Date.now(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      ...req.body
+    };
+    db.rideOrders.unshift(order);
+    saveTaxiData(db);
+    io.emit('taxi_order_created', order);
+    res.json({ success: true, order });
+  } catch (err) {
+    res.status(500).json({ error: 'تۆمار نەکرا' });
+  }
+});
+
+app.post('/api/delivery/orders', (req, res) => {
+  try {
+    const db = getTaxiData();
+    const cargoOrder = {
+      id: Date.now(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      ...req.body
+    };
+    db.deliveryOrders.unshift(cargoOrder);
+    saveTaxiData(db);
+    io.emit('delivery_order_created', cargoOrder);
+    res.json({ success: true, cargoOrder });
+  } catch (err) {
+    res.status(500).json({ error: 'تۆمار نەکرا' });
+  }
+});
+
+app.post('/api/taxi/drivers', (req, res) => {
+  try {
+    const db = getTaxiData();
+    const driverReq = {
+      id: Date.now(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      ...req.body
+    };
+    db.driverRequests.unshift(driverReq);
+    saveTaxiData(db);
+    io.emit('taxi_driver_requested', driverReq);
+    res.json({ success: true, driverReq });
+  } catch (err) {
+    res.status(500).json({ error: 'تۆمار نەکرا' });
+  }
+});
+
+app.get('/api/admin/taxi', (req, res) => {
+  res.json(getTaxiData());
+});
+
+app.post('/api/admin/taxi/drivers/approve/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const db = getTaxiData();
+  const driver = db.driverRequests.find(d => d.id === id);
+  if (driver) {
+    driver.status = 'approved';
+    saveTaxiData(db);
+    io.emit('taxi_driver_approved', driver);
+    return res.json({ success: true });
+  }
+  res.status(404).json({ error: 'شۆفێرەکە نەدۆزرایەوە' });
+});
+
+app.delete('/api/admin/taxi/drivers/reject/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const db = getTaxiData();
+  db.driverRequests = db.driverRequests.filter(d => d.id !== id);
+  saveTaxiData(db);
+  res.json({ success: true });
+});
+
+// ==========================================
 // --- بەشی یاریی دۆمینە (Domino Game Logic) ---
 // ==========================================
 const rooms = {};
@@ -438,7 +561,6 @@ function findFirstRoundStarter(players) {
     }
   }
 
-  // ئەگەر هیچ یاریزانێک جووتی نەبوو (لە ٢ نەفەریدا دەگونجێت)، گەورەترین پوول دەست پێدەکات
   let bestIdx = 0;
   let maxSum = -1;
   let bestTile = null;
@@ -470,11 +592,9 @@ function startServerTurnGuard(room) {
     p.missedTurns = (p.missedTurns || 0) + 1;
 
     if (p.missedTurns >= 3) {
-      // دوای ٣ جار فەوتاندن، بە تەواوی دەبێتە ڕۆبۆت و خۆی یاری دەکات
       p.isBot = true;
       checkIfBotTurn(room);
     } else {
-      // تا ٣ جارەکە تەواو دەبێت، تەنها ئەم نۆرەیەی بۆ دەکات و هێشتا چاوەڕێی دەکات
       p.isBot = true;
       checkIfBotTurn(room);
       p.isBot = false;
@@ -824,7 +944,6 @@ io.on('connection', (socket) => {
       roomId = customCode.trim().toUpperCase();
       room = rooms[roomId];
     } else {
-      // گەڕان بە دوای ژوورێکی گشتیی کراوە کە هێشتا چاوەڕێی یاریزانی ئۆنلاینە
       room = Object.values(rooms).find(r => r.isPublic && r.mode === selectedMode && !r.started && r.players.length < r.mode);
       if (room) {
         roomId = room.id;
@@ -876,7 +995,6 @@ io.on('connection', (socket) => {
         isPrivate: isPrivateRoom
       });
 
-      // تەنها بۆ ژووری گشتی دوای ٣٠ چرکە ڕۆبۆت دادەنێت؛ ژووری تایبەت چاوەڕێی هاوڕێکانت دەکات
       if (!isPrivateRoom) {
         room.waitInterval = setInterval(() => {
           if (room.started) {
@@ -929,7 +1047,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ئەگەر یاریزانەکە دوگمەی (یەکسەر دەستپێبکە لەگەڵ ڕۆبۆت)ی داگرت
   socket.on('force_fill_bots', () => {
     const room = rooms[socket.roomId];
     if (room && !room.started) {
@@ -937,7 +1054,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // هەر یاریزانێک کلیک لە OK بکات دوای کۆتایی گەڕ، یەکسەر گەڕی نوێ لای هەموویان دەست پێدەکات
   socket.on('ready_next_round', () => {
     const room = rooms[socket.roomId];
     if (!room || !room.started) return;
@@ -1017,7 +1133,6 @@ io.on('connection', (socket) => {
     const pulled = room.deck.pop();
     currentP.hand.push(pulled);
 
-    // نوێکردنەوەی پاسەوانیی سێرڤەر لە دوای هەر سەحبکردنێک
     startServerTurnGuard(room);
 
     socket.emit('receive_pulled', { pulled, boneyardCount: room.deck.length });

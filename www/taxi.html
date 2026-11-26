@@ -2,238 +2,581 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurd AI - داواکاری خاوەن تاکسی بۆ ئیشکردن</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kurd AI - تەکسی سەرنشین و گەیاندنی کاڵا</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-dark: #070d17;
+            --bg-card: rgba(15, 23, 42, 0.88);
+            --bg-input: rgba(7, 13, 23, 0.9);
+            --border-subtle: rgba(148, 163, 184, 0.16);
+            --accent-gold: #f59e0b;
+            --accent-gold-hover: #d97706;
+            --accent-emerald: #10b981;
+            --accent-sky: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
         html, body {
-            background-color: #0b111e;
-            color: #ffffff;
-            min-height: 100%;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
             overflow-x: hidden;
-            overflow-y: auto; /* ڕێگەدان بە دابەزینی پەڕەکە */
+            overflow-y: auto;
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            padding-bottom: 50px;
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(245, 158, 11, 0.12), transparent 36%),
+                radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.1), transparent 38%),
+                linear-gradient(180deg, #070d17 0%, #0b1322 100%);
+            padding-bottom: 64px;
         }
 
+        /* Navbar */
         .navbar {
-            padding: 16px 30px;
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1e293b;
-            background-color: #0b111e;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(7, 13, 23, 0.82);
+            backdrop-filter: blur(14px);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
         }
 
         .logo-wrap {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 11px;
             text-decoration: none;
         }
 
         .kurdish-flag {
-            width: 38px;
-            height: 25px;
+            width: 36px;
+            height: 24px;
             border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            display: inline-block;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+            flex-shrink: 0;
         }
 
-        .logo {
-            color: #f59e0b;
-            font-size: 1.25rem;
-            font-weight: bold;
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            color: var(--accent-gold);
+            font-size: 1.15rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .logo-sub {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            margin-top: 2px;
         }
 
         .back-btn {
-            background: #131c2e;
-            border: 1px solid #1e293b;
-            color: #94a3b8;
-            padding: 7px 15px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-radius: 20px;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 7px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 999px;
             text-decoration: none;
             transition: all 0.2s ease;
         }
 
         .back-btn:hover {
-            color: #ffffff;
-            border-color: #f59e0b;
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
         }
 
-        .main-content {
-            max-width: 780px;
-            margin: 20px auto 0 auto;
-            padding: 0 20px;
-            width: 100%;
+        .container {
+            max-width: 960px;
+            margin: 22px auto 0 auto;
+            padding: 0 16px;
         }
 
-        .header-section {
-            text-align: center;
-            margin-bottom: 20px;
+        /* Hero & Mode Switcher */
+        .hero-card {
+            background: linear-gradient(135deg, rgba(17, 26, 46, 0.94), rgba(12, 19, 34, 0.94));
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
         }
 
-        .icon-top {
-            font-size: 2.5rem;
-            margin-bottom: 6px;
+        .hero-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
         }
 
-        .title {
-            font-size: 1.8rem;
-            font-weight: 800;
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: var(--accent-gold);
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 999px;
             margin-bottom: 8px;
+        }
+
+        .hero-title {
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+        }
+
+        .hero-desc {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-top: 4px;
+            line-height: 1.55;
+        }
+
+        .city-selector-box {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 170px;
+        }
+
+        .city-selector-box label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        /* 3 Main Tabs: Passenger Taxi | Cargo Delivery | Driver Join */
+        .service-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .service-tab {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 13px 12px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .service-tab .tab-icon {
+            font-size: 1.35rem;
+        }
+
+        .service-tab.active {
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.08));
+            border-color: var(--accent-gold);
             color: #ffffff;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.16);
         }
 
-        .subtitle {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            line-height: 1.5;
+        /* Interactive Grid */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            align-items: start;
         }
 
-        .rules-card {
-            background: #131c2e;
-            border: 1px solid #1e293b;
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 20px;
+        .panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
         }
 
-        .rules-card h3 {
-            color: #f59e0b;
-            font-size: 1rem;
-            margin-bottom: 10px;
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .panel-title {
+            font-size: 1.05rem;
+            font-weight: 800;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .rules-list {
-            list-style: none;
-            color: #cbd5e1;
-            font-size: 0.88rem;
-            line-height: 1.8;
+        .live-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 3px 9px;
+            border-radius: 999px;
         }
 
-        .rules-list li::before {
-            content: "✓ ";
-            color: #10b981;
-            font-weight: bold;
+        /* Map Canvas Card */
+        .map-stage {
+            position: relative;
+            height: 225px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            background:
+                linear-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px),
+                radial-gradient(circle at 30% 40%, rgba(16, 185, 129, 0.16), transparent 45%),
+                radial-gradient(circle at 75% 65%, rgba(245, 158, 11, 0.15), transparent 45%),
+                #091324;
+            background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+            margin-bottom: 14px;
         }
 
-        .form-box {
-            background: #131c2e;
-            border: 1px solid #1e293b;
-            border-radius: 12px;
-            padding: 22px;
-            margin-bottom: 30px;
+        .map-road {
+            position: absolute;
+            background: rgba(148, 163, 184, 0.18);
+            border-radius: 99px;
         }
 
+        .road-h1 { top: 34%; left: -5%; right: -5%; height: 6px; transform: rotate(-3deg); }
+        .road-h2 { top: 68%; left: -5%; right: -5%; height: 8px; transform: rotate(2deg); }
+        .road-v1 { left: 28%; top: -5%; bottom: -5%; width: 6px; transform: rotate(5deg); }
+        .road-v2 { left: 72%; top: -5%; bottom: -5%; width: 7px; transform: rotate(-4deg); }
+
+        .map-route-line {
+            position: absolute;
+            top: 34%;
+            left: 28%;
+            width: 44%;
+            height: 34%;
+            border-top: 3px dashed var(--accent-gold);
+            border-right: 3px dashed var(--accent-emerald);
+            border-top-right-radius: 26px;
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .pin {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+            white-space: nowrap;
+        }
+
+        .pin-pickup {
+            top: 34%;
+            left: 28%;
+            background: var(--accent-gold);
+            color: #070d17;
+        }
+
+        .pin-dropoff {
+            top: 68%;
+            left: 72%;
+            background: var(--accent-emerald);
+            color: #070d17;
+        }
+
+        .map-footer-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: rgba(7, 13, 23, 0.85);
+            border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(8px);
+            padding: 7px 12px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+        }
+
+        .gps-btn {
+            background: rgba(56, 189, 248, 0.16);
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            color: var(--accent-sky);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Form Inputs */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            margin-bottom: 18px;
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            text-align: right;
+            gap: 5px;
         }
 
         .form-group.full {
             grid-column: span 2;
         }
 
-        label {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            font-weight: bold;
+        .form-group label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 700;
         }
 
-        input, select {
-            background: #0b111e;
-            border: 1.5px solid #1e293b;
-            border-radius: 8px;
-            padding: 11px 13px;
-            color: #ffffff;
-            font-size: 0.95rem;
+        input, select, textarea {
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-size: 0.9rem;
             outline: none;
-            direction: rtl;
-        }
-
-        input:focus, select:focus {
-            border-color: #f59e0b;
-        }
-
-        .agree-check {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 18px;
-            cursor: pointer;
-            font-size: 0.88rem;
-            color: #e2e8f0;
-        }
-
-        .agree-check input {
-            accent-color: #f59e0b;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .submit-btn {
-            background: #f59e0b;
-            color: #0b111e;
-            border: none;
             width: 100%;
-            padding: 13px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-gold);
+        }
+
+        /* Vehicle / Cargo Options */
+        .tier-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin-bottom: 16px;
+        }
+
+        .tier-card {
+            background: rgba(11, 19, 34, 0.85);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .submit-btn:hover {
-            background: #d97706;
+        .tier-card.selected {
+            border-color: var(--accent-gold);
+            background: rgba(245, 158, 11, 0.14);
         }
 
-        .pending-box {
-            display: none;
-            background: #131c2e;
-            border: 1.5px solid #f59e0b;
+        .tier-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .tier-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Fare Estimate Box */
+        .fare-box {
+            background: rgba(7, 13, 23, 0.85);
+            border: 1px dashed rgba(245, 158, 11, 0.45);
             border-radius: 12px;
-            padding: 35px 20px;
-            text-align: center;
-            margin-bottom: 30px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
         }
 
-        .pending-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
+        .fare-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
         }
 
-        @media (max-width: 600px) {
+        .fare-meta {
+            font-size: 0.76rem;
+            color: var(--accent-emerald);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .fare-price {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+        }
+
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-hover));
+            color: #070d17;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 22px rgba(245, 158, 11, 0.3);
+        }
+
+        .secondary-btn {
+            width: 100%;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            color: var(--accent-emerald);
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* Side Column: Active Trip Tracker & Approved Drivers */
+        .status-banner {
+            display: none;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .status-banner.pending {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.45);
+        }
+
+        .status-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            color: var(--accent-emerald);
+        }
+
+        .status-banner.pending .status-title {
+            color: var(--accent-gold);
+        }
+
+        .status-text {
+            font-size: 0.82rem;
+            color: #e2e8f0;
+            line-height: 1.55;
+        }
+
+        .driver-card {
+            background: rgba(11, 19, 34, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 11px 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .driver-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .driver-car {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .driver-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.14);
+            color: var(--accent-emerald);
+            white-space: nowrap;
+        }
+
+        .rules-mini {
+            list-style: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.75;
+            margin-top: 10px;
+        }
+
+        .rules-mini li::before {
+            content: "• ";
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .section-view {
+            display: none;
+        }
+
+        .section-view.active {
+            display: block;
+        }
+
+        @media (max-width: 780px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+            .service-tabs {
+                grid-template-columns: 1fr;
+            }
+            .tier-list {
+                grid-template-columns: 1fr;
+            }
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -241,7 +584,10 @@
                 grid-column: span 1;
             }
             .navbar {
-                padding: 12px 16px;
+                padding: 12px 14px;
+            }
+            .hero-title {
+                font-size: 1.3rem;
             }
         }
     </style>
@@ -266,111 +612,527 @@
                     <polygon points="353,147 318,182 327,191"/>
                 </g>
             </svg>
-            <div class="logo">Kurd AI - تاکسی</div>
+            <div class="logo-text">
+                <span class="logo-title">Kurd AI</span>
+                <span class="logo-sub">تەکسی سەرنشین و گەیاندن</span>
+            </div>
         </a>
 
-        <a href="index.html" class="back-btn">گەڕانەوە بۆ سەرەکی ↩</a>
+        <a href="index.html" class="back-btn">سەرەکی ↩</a>
     </header>
 
-    <main class="main-content">
-        <div class="header-section">
-            <div class="icon-top">🚖</div>
-            <h1 class="title">داواکاری خاوەن تاکسی بۆ ئیشکردن</h1>
-            <p class="subtitle">پێش دەستپێکردنی کار، پێویستە فۆڕمەکە پڕبکەیتەوە و ڕێکەوتن لەگەڵ بەڕێوەبەرایەتی پلاتفۆرمەکە واژۆ بکەیت.</p>
-        </div>
-
-        <div class="rules-card">
-            <h3>📜 مەرج و ڕێساکانی ڕێکەوتن</h3>
-            <ul class="rules-list">
-                <li>پابەندبوون بە خاوێنیی ئۆتۆمبێل و هەڵسوکەوتی شایستە لەگەڵ سەرنشین.</li>
-                <li>دیاریکردنی نرخ بەپێی ستانداردی پلاتفۆرم و ڕێگری لە زیادەڕەوی.</li>
-                <li>ڕێکەوتنی لێپرسینەوە و کۆمسیۆنی دیاریکراو پێش کاراکردنی هەژمار.</li>
-                <li>داواکارییەکەت تا پەسەند نەکرێت لەلایەن بەڕێوەبەرەوە، دەستبەکاربوون کارا نابێت.</li>
-            </ul>
-        </div>
-
-        <div class="form-box" id="form-container">
-            <form id="driverForm" onsubmit="submitDriver(event)">
-                <div class="form-grid">
-                    <!-- ١. ناوی شۆفێر -->
-                    <div class="form-group full">
-                        <label>ناوی چواری شۆفێر:</label>
-                        <input type="text" id="driverName" required placeholder="ناوی تەواو بنووسە...">
-                    </div>
-
-                    <!-- ٢. ژمارەی مۆبایل -->
-                    <div class="form-group">
-                        <label>ژمارەی مۆبایل (کۆڕەک / ئاسیاسێڵ):</label>
-                        <input type="tel" id="driverPhone" required placeholder="0750 000 0000">
-                    </div>
-
-                    <!-- ٣. شار -->
-                    <div class="form-group">
-                        <label>شار / پارێزگا:</label>
-                        <select id="driverCity" required>
-                            <option value="سلێمانی">سلێمانی</option>
-                            <option value="هەولێر">هەولێر</option>
-                            <option value="دهۆک">دهۆک</option>
-                            <option value="هەڵەبجە">هەڵەبجە</option>
-                        </select>
-                    </div>
-
-                    <!-- ٤. جۆری ئۆتۆمبێل -->
-                    <div class="form-group">
-                        <label>جۆری ئۆتۆمبێل و مۆدێل:</label>
-                        <input type="text" id="driverCar" required placeholder="بۆ نموونە: تۆیۆتا کامری 2021">
-                    </div>
-
-                    <!-- ٥. ژمارەی تابلۆ -->
-                    <div class="form-group">
-                        <label>ژمارەی تابلۆی تاکسی:</label>
-                        <input type="text" id="driverPlate" required placeholder="بۆ نموونە: 12345 / سلێمانی">
-                    </div>
+    <main class="container">
+        <!-- Hero & Main Switcher -->
+        <section class="hero-card">
+            <div class="hero-top">
+                <div>
+                    <div class="hero-badge">⚡ خزمەتگوزاری خێرا و متمانەپێکراو</div>
+                    <h1 class="hero-title">گواستنەوەی سەرنشین و گەیاندنی کاڵا</h1>
+                    <p class="hero-desc">داواکردنی تەکسی بە نرخی دیاریکراو یان ناردنی کاڵا و پۆستە بۆ هەر شوێنێکی شار بەبێ دواکەوتن.</p>
                 </div>
 
-                <!-- مەرجی ڕازیبوون -->
-                <label class="agree-check">
-                    <input type="checkbox" required>
-                    <span>هەموو مەرج و ڕێکەوتنەکانم خوێندەوە و ڕەزامەندم لەسەریان.</span>
-                </label>
+                <div class="city-selector-box">
+                    <label for="activeCity">شار / پارێزگا:</label>
+                    <select id="activeCity" onchange="onCityChange()">
+                        <option value="هەولێر" selected>هەولێر</option>
+                        <option value="سلێمانی">سلێمانی</option>
+                        <option value="دهۆک">دهۆک</option>
+                        <option value="هەڵەبجە">هەڵەبجە</option>
+                    </select>
+                </div>
+            </div>
 
-                <!-- دوگمەی ناردن -->
-                <button type="submit" class="submit-btn">ناردنی داواکاری بۆ ڕێکەوتن</button>
-            </form>
-        </div>
+            <div class="service-tabs">
+                <button type="button" class="service-tab active" id="tab-taxi" onclick="switchService('taxi')">
+                    <span class="tab-icon">🚖</span>
+                    <span>تەکسی سەرنشین</span>
+                </button>
+                <button type="button" class="service-tab" id="tab-delivery" onclick="switchService('delivery')">
+                    <span class="tab-icon">📦</span>
+                    <span>گەیاندنی کاڵا</span>
+                </button>
+                <button type="button" class="service-tab" id="tab-driver" onclick="switchService('driver')">
+                    <span class="tab-icon">🪪</span>
+                    <span>بوون بە شۆفێر</span>
+                </button>
+            </div>
+        </section>
 
-        <!-- دۆخی چاوەڕوانی دوای ناردن -->
-        <div class="pending-box" id="pendingBox">
-            <div class="pending-icon">⏳</div>
-            <h2 style="color: #f59e0b; margin-bottom: 10px;">داواکارییەکەت لە چاوەڕوانیدایە!</h2>
-            <p style="color: #cbd5e1; line-height: 1.6;">
-                زانیارییەکانت بە سەرکەوتوویی تۆمار کران. بەڕێوەبەر لە ماوەیەکی کەمدا پەیوەندیت پێوە دەکات بۆ ڕێکەوتن و واژۆکردنی کار، پاشان ئەکاونتەکەت کارا دەکرێت بۆ دەستبەکاربوون.
-            </p>
+        <div class="workspace-grid">
+            <!-- Left / Main Column -->
+            <div>
+                <!-- 1. PASSENGER TAXI VIEW -->
+                <section class="panel-card section-view active" id="view-taxi">
+                    <div class="panel-header">
+                        <div class="panel-title">🚖 داواکردنی تەکسی سەرنشین</div>
+                        <span class="live-pill">خەمڵاندنی دەستبەجێ</span>
+                    </div>
+
+                    <div class="map-stage">
+                        <div class="map-road road-h1"></div>
+                        <div class="map-road road-h2"></div>
+                        <div class="map-road road-v1"></div>
+                        <div class="map-road road-v2"></div>
+                        <div class="map-route-line"></div>
+                        <div class="pin pin-pickup" id="taxiPickupPin">📍 هەڵگرتن: کەسنەزان</div>
+                        <div class="pin pin-dropoff" id="taxiDropoffPin">🏁 گەیشتن: بنەسڵاوە</div>
+                        <div class="map-footer-bar">
+                            <span id="gpsStatusText">شوێنی هەڵگرتن ئامادەیە</span>
+                            <button type="button" class="gps-btn" onclick="detectUserLocation()">📡 GPSـی من</button>
+                        </div>
+                    </div>
+
+                    <form id="taxiRideForm" onsubmit="submitRideOrder(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>خاڵی هەڵگرتن (Pickup):</label>
+                                <input type="text" id="pickupInput" value="کەسنەزان" required oninput="updateFareEstimate()">
+                            </div>
+                            <div class="form-group">
+                                <label>خاڵی گەیشتن (Drop-off):</label>
+                                <input type="text" id="dropoffInput" value="بنەسڵاوە" required oninput="updateFareEstimate()">
+                            </div>
+                            <div class="form-group">
+                                <label>ناوی سەرنشین:</label>
+                                <input type="text" id="passengerName" required placeholder="ناوت بنووسە...">
+                            </div>
+                            <div class="form-group">
+                                <label>ژمارەی مۆبایل:</label>
+                                <input type="tel" id="passengerPhone" required placeholder="0750 000 0000">
+                            </div>
+                        </div>
+
+                        <label style="display:block; font-size:0.8rem; color:var(--text-muted); font-weight:700; margin-bottom:7px;">جۆری تەکسی هەڵبژێرە:</label>
+                        <div class="tier-list" id="taxiTiers">
+                            <div class="tier-card selected" data-tier="economy" data-rate="1200" data-base="3000" onclick="selectTier('taxi', this)">
+                                <div>🚕</div>
+                                <div class="tier-name">تەکسی ئاسایی</div>
+                                <div class="tier-sub">خێرا و گونجاو</div>
+                            </div>
+                            <div class="tier-card" data-tier="comfort" data-rate="1600" data-base="4500" onclick="selectTier('taxi', this)">
+                                <div>🚙</div>
+                                <div class="tier-name">کۆمفۆرت</div>
+                                <div class="tier-sub">ئۆتۆمبێلی مۆدێرن</div>
+                            </div>
+                            <div class="tier-card" data-tier="vip" data-rate="2400" data-base="7000" onclick="selectTier('taxi', this)">
+                                <div>🖤</div>
+                                <div class="tier-name">تەکسی VIP</div>
+                                <div class="tier-sub">تایبەت و پلە بەرز</div>
+                            </div>
+                        </div>
+
+                        <div class="fare-box">
+                            <div>
+                                <div class="fare-label">نرخی خەمڵێنراوی گەشت</div>
+                                <div class="fare-meta" id="taxiDistanceMeta">دووری: ~٨.٥ کم • کاتی چاوەڕوانکراو: ~١٤ خولەک</div>
+                            </div>
+                            <div class="fare-price" id="taxiEstimatedPrice">١٣,٠٠٠ د.ع</div>
+                        </div>
+
+                        <button type="submit" class="primary-btn">داواکردنی تەکسی ئێستا 🚖</button>
+                    </form>
+                </section>
+
+                <!-- 2. CARGO DELIVERY VIEW -->
+                <section class="panel-card section-view" id="view-delivery">
+                    <div class="panel-header">
+                        <div class="panel-title">📦 گەیاندن و گواستنەوەی کاڵا</div>
+                        <span class="live-pill">نێرەر بۆ وەرگر</span>
+                    </div>
+
+                    <form id="cargoForm" onsubmit="submitCargoOrder(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>شوێنی وەرگرتنی کاڵا:</label>
+                                <input type="text" id="cargoOrigin" value="کەسنەزان" required oninput="updateCargoEstimate()">
+                            </div>
+                            <div class="form-group">
+                                <label>شوێنی گەیاندنی کاڵا:</label>
+                                <input type="text" id="cargoDestination" value="بنەسڵاوە" required oninput="updateCargoEstimate()">
+                            </div>
+                            <div class="form-group">
+                                <label>مۆبایلی نێرەر:</label>
+                                <input type="tel" id="senderPhone" required placeholder="0750 000 0000">
+                            </div>
+                            <div class="form-group">
+                                <label>مۆبایلی وەرگر:</label>
+                                <input type="tel" id="receiverPhone" required placeholder="0770 000 0000">
+                            </div>
+                            <div class="form-group full">
+                                <label>جۆر و وردەکاری کاڵا:</label>
+                                <input type="text" id="cargoDesc" required placeholder="بۆ نموونە: پاکێتی خواردن، کەلوپەلی ئەلیکترۆنی، یان کارتۆن...">
+                            </div>
+                        </div>
+
+                        <label style="display:block; font-size:0.8rem; color:var(--text-muted); font-weight:700; margin-bottom:7px;">شێوازی گەیاندنی کاڵا:</label>
+                        <div class="tier-list" id="cargoTiers">
+                            <div class="tier-card selected" data-tier="moto" data-rate="900" data-base="2500" onclick="selectTier('cargo', this)">
+                                <div>🛵</div>
+                                <div class="tier-name">ماتۆڕی گەیاندن</div>
+                                <div class="tier-sub">بۆ پۆستە و کاڵای بچووک</div>
+                            </div>
+                            <div class="tier-card" data-tier="taxi_cargo" data-rate="1400" data-base="4000" onclick="selectTier('cargo', this)">
+                                <div>🚖</div>
+                                <div class="tier-name">تەکسی کاڵا</div>
+                                <div class="tier-sub">بۆ کەلوپەلی مامناوەند</div>
+                            </div>
+                            <div class="tier-card" data-tier="van" data-rate="2500" data-base="8000" onclick="selectTier('cargo', this)">
+                                <div>🚚</div>
+                                <div class="tier-name">پیکاب / بارهەڵگر</div>
+                                <div class="tier-sub">بۆ بار و کاڵای گەورە</div>
+                            </div>
+                        </div>
+
+                        <div class="fare-box">
+                            <div>
+                                <div class="fare-label">نرخی خەمڵێنراوی گەیاندن</div>
+                                <div class="fare-meta" id="cargoMeta">گەیاندنی ڕاستەوخۆ و سەلامەت</div>
+                            </div>
+                            <div class="fare-price" id="cargoEstimatedPrice">١٠,٠٠٠ د.ع</div>
+                        </div>
+
+                        <button type="submit" class="primary-btn">ناردنی داواکاری گەیاندن 📦</button>
+                    </form>
+                </section>
+
+                <!-- 3. DRIVER REGISTRATION VIEW -->
+                <section class="panel-card section-view" id="view-driver">
+                    <div class="panel-header">
+                        <div class="panel-title">🪪 داواکاری خاوەن تەکسی و گەیاندن</div>
+                        <span class="live-pill">پەسەندکردنی ئەدمین</span>
+                    </div>
+
+                    <form id="driverForm" onsubmit="submitDriver(event)">
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label>ناوی چواری شۆفێر:</label>
+                                <input type="text" id="driverName" required placeholder="ناوی تەواو بنووسە...">
+                            </div>
+
+                            <div class="form-group">
+                                <label>ژمارەی مۆبایل:</label>
+                                <input type="tel" id="driverPhone" required placeholder="0750 000 0000">
+                            </div>
+
+                            <div class="form-group">
+                                <label>شار / پارێزگا:</label>
+                                <select id="driverCity" required>
+                                    <option value="هەولێر" selected>هەولێر</option>
+                                    <option value="سلێمانی">سلێمانی</option>
+                                    <option value="دهۆک">دهۆک</option>
+                                    <option value="هەڵەبجە">هەڵەبجە</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>جۆری ئۆتۆمبێل / ماتۆڕ و مۆدێل:</label>
+                                <input type="text" id="driverCar" required placeholder="بۆ نموونە: تۆیۆتا کامری 2021">
+                            </div>
+
+                            <div class="form-group">
+                                <label>ژمارەی تابلۆ:</label>
+                                <input type="text" id="driverPlate" required placeholder="بۆ نموونە: 12345 / هەولێر">
+                            </div>
+                        </div>
+
+                        <label style="display:flex; align-items:center; gap:9px; font-size:0.84rem; color:#e2e8f0; margin-bottom:14px; cursor:pointer;">
+                            <input type="checkbox" id="driverAgree" required style="width:18px; height:18px; accent-color:var(--accent-gold);">
+                            <span>پابەندبوون بە خاوێنی، ڕێزگرتن لە سەرنشین، و پەسەندکردنی ئەدمین پێش دەستبەکاربوون.</span>
+                        </label>
+
+                        <button type="submit" class="primary-btn">ناردنی داواکاری بۆ پەسەندکردن 🪪</button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- Right Column: Live Status & Approved Drivers -->
+            <aside class="panel-card">
+                <div class="status-banner" id="statusBanner">
+                    <div class="status-title" id="statusTitle">دۆخی داواکاری</div>
+                    <div class="status-text" id="statusText"></div>
+                </div>
+
+                <div class="panel-header" style="margin-bottom:12px; padding-bottom:10px;">
+                    <div class="panel-title">🚖 شۆفێرە ئامادەکانی <span id="cityLabelInline" style="color:var(--accent-gold);">هەولێر</span></div>
+                </div>
+
+                <div id="driversList"></div>
+
+                <ul class="rules-mini">
+                    <li>نرخەکان بە شێوەی خەمڵێنراو پێش دەستپێکردن نیشان دەدرێن.</li>
+                    <li>هەر شۆفێرێکی نوێ دوای تۆمارکردن لە لایەن ئەدمینەوە پەسەند دەکرێت.</li>
+                    <li>بۆ کاڵای گەورە دەتوانیت شێوازی پیکاب یان تەکسی کاڵا هەڵبژێریت.</li>
+                </ul>
+
+                <button type="button" class="secondary-btn" onclick="switchService('driver')">+ تۆمارکردنی شۆفێری نوێ</button>
+            </aside>
         </div>
     </main>
 
     <script>
-        function submitDriver(e) {
+        const API_BASE = window.location.origin.startsWith('http')
+            ? window.location.origin
+            : 'https://kurd-domino-production.up.railway.app';
+
+        let selectedTaxiTier = { name: 'تەکسی ئاسایی', base: 3000, rate: 1200 };
+        let selectedCargoTier = { name: 'ماتۆڕی گەیاندن', base: 2500, rate: 900 };
+
+        const sampleDrivers = [
+            { name: 'کاک ئاراس محەمەد', city: 'هەولێر', car: 'تۆیۆتا کامری • هەولێر', status: 'ئامادەیە' },
+            { name: 'شێرزاد عەلی', city: 'هەولێر', car: 'هیۆندای سۆناتا • کەسنەزان', status: 'لە ڕێگایە' },
+            { name: 'ڕێبوار کەریم', city: 'سلێمانی', car: 'تەکسی سلێمانی • بەختیاری', status: 'ئامادەیە' },
+            { name: 'هێمن سەلاح', city: 'دهۆک', car: 'تەکسی دهۆک • ماڵتا', status: 'ئامادەیە' }
+        ];
+
+        function switchService(mode) {
+            ['taxi', 'delivery', 'driver'].forEach(m => {
+                document.getElementById('tab-' + m).classList.toggle('active', m === mode);
+                document.getElementById('view-' + m).classList.toggle('active', m === mode);
+            });
+        }
+
+        function onCityChange() {
+            const city = document.getElementById('activeCity').value;
+            document.getElementById('cityLabelInline').innerText = city;
+            document.getElementById('driverCity').value = city;
+            renderDrivers();
+            updateFareEstimate();
+            updateCargoEstimate();
+        }
+
+        function detectUserLocation() {
+            const statusEl = document.getElementById('gpsStatusText');
+            if (!navigator.geolocation) {
+                statusEl.innerText = 'GPS لەم ئامێرەدا چالاک نییە';
+                return;
+            }
+            statusEl.innerText = 'دۆزینەوەی شوێن...';
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude.toFixed(3);
+                    const lng = pos.coords.longitude.toFixed(3);
+                    const city = document.getElementById('activeCity').value;
+                    document.getElementById('pickupInput').value = `${city} (${lat}, ${lng})`;
+                    statusEl.innerText = `شوێنی GPS دیاری کرا`;
+                    updateFareEstimate();
+                },
+                () => {
+                    statusEl.innerText = 'مۆڵەتی GPS نەدرا؛ بە دەست بنووسە';
+                }
+            );
+        }
+
+        function selectTier(type, el) {
+            const parentId = type === 'taxi' ? 'taxiTiers' : 'cargoTiers';
+            document.querySelectorAll(`#${parentId} .tier-card`).forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+
+            const base = Number(el.dataset.base);
+            const rate = Number(el.dataset.rate);
+            const name = el.querySelector('.tier-name').innerText;
+
+            if (type === 'taxi') {
+                selectedTaxiTier = { name, base, rate };
+                updateFareEstimate();
+            } else {
+                selectedCargoTier = { name, base, rate };
+                updateCargoEstimate();
+            }
+        }
+
+        function estimateKm(origin, dest) {
+            const cleanLen = Math.abs((origin || '').trim().length - (dest || '').trim().length);
+            const baseKm = 7.5 + (cleanLen % 8) * 1.1;
+            return Number(baseKm.toFixed(1));
+        }
+
+        function formatIQD(amount) {
+            const rounded = Math.round(amount / 500) * 500;
+            return rounded.toLocaleString('en-US') + ' د.ع';
+        }
+
+        function updateFareEstimate() {
+            const pickup = document.getElementById('pickupInput').value.trim() || 'هەڵگرتن';
+            const dropoff = document.getElementById('dropoffInput').value.trim() || 'گەیشتن';
+            document.getElementById('taxiPickupPin').innerText = `📍 ${pickup.slice(0, 18)}`;
+            document.getElementById('taxiDropoffPin').innerText = `🏁 ${dropoff.slice(0, 18)}`;
+
+            const km = estimateKm(pickup, dropoff);
+            const mins = Math.max(8, Math.round(km * 1.7));
+            const total = selectedTaxiTier.base + km * selectedTaxiTier.rate;
+
+            document.getElementById('taxiDistanceMeta').innerText = `دووری: ~${km} کم • کاتی چاوەڕوانکراو: ~${mins} خولەک`;
+            document.getElementById('taxiEstimatedPrice').innerText = formatIQD(total);
+        }
+
+        function updateCargoEstimate() {
+            const origin = document.getElementById('cargoOrigin').value.trim() || 'نێرەر';
+            const dest = document.getElementById('cargoDestination').value.trim() || 'وەرگر';
+            const km = estimateKm(origin, dest);
+            const total = selectedCargoTier.base + km * selectedCargoTier.rate;
+
+            document.getElementById('cargoMeta').innerText = `${selectedCargoTier.name} • دووری: ~${km} کم`;
+            document.getElementById('cargoEstimatedPrice').innerText = formatIQD(total);
+        }
+
+        function showStatus(title, text, isPending = false) {
+            const banner = document.getElementById('statusBanner');
+            banner.style.display = 'block';
+            banner.classList.toggle('pending', isPending);
+            document.getElementById('statusTitle').innerText = title;
+            document.getElementById('statusText').innerText = text;
+        }
+
+        async function postTaxiPayload(endpoint, payload) {
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) return true;
+            } catch (e) {}
+            return false;
+        }
+
+        async function submitRideOrder(e) {
             e.preventDefault();
-            let requests = JSON.parse(localStorage.getItem('taxi_requests')) || [];
-            
-            const newReq = {
+            const city = document.getElementById('activeCity').value;
+            const pickup = document.getElementById('pickupInput').value.trim();
+            const dropoff = document.getElementById('dropoffInput').value.trim();
+            const passengerName = document.getElementById('passengerName').value.trim();
+            const passengerPhone = document.getElementById('passengerPhone').value.trim();
+            const priceText = document.getElementById('taxiEstimatedPrice').innerText;
+
+            const order = {
                 id: Date.now(),
-                name: document.getElementById('driverName').value,
-                phone: document.getElementById('driverPhone').value,
-                city: document.getElementById('driverCity').value,
-                car: document.getElementById('driverCar').value,
-                plate: document.getElementById('driverPlate').value,
-                status: "pending"
+                serviceType: 'taxi',
+                city,
+                pickup,
+                dropoff,
+                passengerName,
+                passengerPhone,
+                tier: selectedTaxiTier.name,
+                estimatedPrice: priceText,
+                status: 'pending',
+                createdAt: new Date().toISOString()
             };
 
-            requests.push(newReq);
+            const saved = JSON.parse(localStorage.getItem('kurd_taxi_orders') || '[]');
+            saved.unshift(order);
+            localStorage.setItem('kurd_taxi_orders', JSON.stringify(saved));
+
+            await postTaxiPayload('/api/taxi/orders', order);
+
+            showStatus(
+                '✅ داواکاری تەکسی تۆمار کرا',
+                `گەشتی ${selectedTaxiTier.name} لە (${pickup}) بۆ (${dropoff}) لە شاری ${city} بە نرخی خەمڵێنراوی (${priceText}) نێردرا.`,
+                false
+            );
+            e.target.reset();
+            document.getElementById('pickupInput').value = 'کەسنەزان';
+            document.getElementById('dropoffInput').value = 'بنەسڵاوە';
+            updateFareEstimate();
+        }
+
+        async function submitCargoOrder(e) {
+            e.preventDefault();
+            const city = document.getElementById('activeCity').value;
+            const origin = document.getElementById('cargoOrigin').value.trim();
+            const destination = document.getElementById('cargoDestination').value.trim();
+            const senderPhone = document.getElementById('senderPhone').value.trim();
+            const receiverPhone = document.getElementById('receiverPhone').value.trim();
+            const cargoDesc = document.getElementById('cargoDesc').value.trim();
+            const priceText = document.getElementById('cargoEstimatedPrice').innerText;
+
+            const cargoOrder = {
+                id: Date.now(),
+                serviceType: 'delivery',
+                city,
+                origin,
+                destination,
+                senderPhone,
+                receiverPhone,
+                cargoDesc,
+                tier: selectedCargoTier.name,
+                estimatedPrice: priceText,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            const saved = JSON.parse(localStorage.getItem('kurd_delivery_orders') || '[]');
+            saved.unshift(cargoOrder);
+            localStorage.setItem('kurd_delivery_orders', JSON.stringify(saved));
+
+            await postTaxiPayload('/api/delivery/orders', cargoOrder);
+
+            showStatus(
+                '📦 داواکاری گەیاندنی کاڵا نێردرا',
+                `کاڵای (${cargoDesc}) لە (${origin}) بۆ (${destination}) بە شێوازی (${selectedCargoTier.name}) بە نرخی (${priceText}) تۆمار کرا.`,
+                false
+            );
+            e.target.reset();
+            document.getElementById('cargoOrigin').value = 'کەسنەزان';
+            document.getElementById('cargoDestination').value = 'بنەسڵاوە';
+            updateCargoEstimate();
+        }
+
+        async function submitDriver(e) {
+            e.preventDefault();
+            const newReq = {
+                id: Date.now(),
+                name: document.getElementById('driverName').value.trim(),
+                phone: document.getElementById('driverPhone').value.trim(),
+                city: document.getElementById('driverCity').value,
+                car: document.getElementById('driverCar').value.trim(),
+                plate: document.getElementById('driverPlate').value.trim(),
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            const requests = JSON.parse(localStorage.getItem('taxi_requests') || '[]');
+            requests.unshift(newReq);
             localStorage.setItem('taxi_requests', JSON.stringify(requests));
 
-            document.getElementById('form-container').style.display = 'none';
-            document.getElementById('pendingBox').style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            await postTaxiPayload('/api/taxi/drivers', newReq);
+
+            showStatus(
+                '⏳ داواکارییەکەت لە چاوەڕوانیدایە',
+                'زانیارییەکانت تۆمار کران و پاش پەسەندکردنی ئەدمین هەژمارەکەت بۆ وەرگرتنی داواکاری چالاک دەکرێت.',
+                true
+            );
+            e.target.reset();
+            renderDrivers();
         }
+
+        function renderDrivers() {
+            const city = document.getElementById('activeCity').value;
+            const approvedLocal = JSON.parse(localStorage.getItem('taxi_requests') || '[]')
+                .filter(d => d.status === 'approved' && d.city === city)
+                .map(d => ({ name: d.name, city: d.city, car: `${d.car} • ${d.plate}`, status: 'پەسەندکراو' }));
+
+            const cityDrivers = [
+                ...approvedLocal,
+                ...sampleDrivers.filter(d => d.city === city)
+            ];
+
+            const listEl = document.getElementById('driversList');
+            const displayList = cityDrivers.length ? cityDrivers : sampleDrivers.slice(0, 2);
+
+            listEl.innerHTML = displayList.map(d => `
+                <div class="driver-card">
+                    <div>
+                        <div class="driver-name">${d.name}</div>
+                        <div class="driver-car">${d.car}</div>
+                    </div>
+                    <span class="driver-badge">${d.status}</span>
+                </div>
+            `).join('');
+        }
+
+        renderDrivers();
+        updateFareEstimate();
+        updateCargoEstimate();
     </script>
 </body>
 </html>
