@@ -467,9 +467,18 @@ function startServerTurnGuard(room) {
     const p = room.players[room.turnIdx];
     if (!p || p.id !== currentP.id) return;
 
-    p.isBot = true;
-    checkIfBotTurn(room);
-    p.isBot = false;
+    p.missedTurns = (p.missedTurns || 0) + 1;
+
+    if (p.missedTurns >= 3) {
+      // دوای ٣ جار فەوتاندن، بە تەواوی دەبێتە ڕۆبۆت و خۆی یاری دەکات
+      p.isBot = true;
+      checkIfBotTurn(room);
+    } else {
+      // تا ٣ جارەکە تەواو دەبێت، تەنها ئەم نۆرەیەی بۆ دەکات و هێشتا چاوەڕێی دەکات
+      p.isBot = true;
+      checkIfBotTurn(room);
+      p.isBot = false;
+    }
   }, 18000);
 }
 
@@ -493,6 +502,7 @@ function fillRoomWithBotsAndStart(room) {
       seat: seat,
       team: team,
       isBot: true,
+      wasOriginallyBot: true,
       hand: []
     });
   }
@@ -844,6 +854,8 @@ io.on('connection', (socket) => {
         seat: 0,
         team: 'teamA',
         isBot: false,
+        wasOriginallyBot: false,
+        missedTurns: 0,
         hand: []
       });
 
@@ -889,6 +901,8 @@ io.on('connection', (socket) => {
         seat: nextSeat,
         team: team,
         isBot: false,
+        wasOriginallyBot: false,
+        missedTurns: 0,
         hand: []
       });
       socket.roomId = roomId;
@@ -934,6 +948,7 @@ io.on('connection', (socket) => {
     if (!player) player = room.players[room.turnIdx];
     if (room.players[room.turnIdx] && room.players[room.turnIdx].id !== player.id) return;
 
+    player.missedTurns = 0;
     room.consecutivePasses = 0;
     room.requiredFirstTile = null;
 
@@ -965,6 +980,7 @@ io.on('connection', (socket) => {
     }
     const player = room.players.find(p => p.id === socket.id);
     if (!player || room.players[room.turnIdx]?.id !== player.id) return;
+    player.missedTurns = 0;
     handlePass(room, player);
   });
 
@@ -974,6 +990,8 @@ io.on('connection', (socket) => {
 
     const currentP = room.players[room.turnIdx];
     if (!currentP || currentP.id !== socket.id) return;
+
+    currentP.missedTurns = 0;
 
     if (!room.deck || room.deck.length === 0) {
       socket.emit('receive_pulled', { pulled: null, boneyardCount: 0 });
@@ -993,17 +1011,46 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('disconnect', () => {
-    const room = rooms[socket.roomId];
-    if (!room || !room.started) return;
-    const player = room.players.find(p => p.id === socket.id);
+  socket.on('rejoin_room', ({ roomId, name }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+    const player = room.players.find(p => p.name === name && !p.wasOriginallyBot);
     if (player) {
-      player.isBot = true;
-      if (room.players[room.turnIdx]?.id === socket.id) {
-        clearTimeout(room.serverGuardTimeout);
-        room.botTimeout = setTimeout(() => checkIfBotTurn(room), 1000);
-      }
+      player.id = socket.id;
+      player.isBot = false;
+      player.missedTurns = 0;
+      socket.roomId = roomId;
+      socket.join(roomId);
+
+      const handCounts = {};
+      const playerNames = [];
+      room.players.forEach(p => {
+        handCounts[p.seat] = p.hand.length;
+        playerNames[p.seat] = p.name;
+      });
+      const currentP = room.players[room.turnIdx];
+
+      socket.emit('game_live', {
+        roomId: room.id,
+        mySeat: player.seat,
+        myHand: player.hand,
+        playerNames: playerNames,
+        turnSeat: currentP.seat,
+        turnSocketId: currentP.id,
+        turnName: currentP.name,
+        boneyardCount: room.deck.length,
+        handCounts: handCounts,
+        board: room.board,
+        teamScores: room.teamScores,
+        mode: room.mode,
+        isFirstEverRound: false,
+        requiredFirstTile: room.requiredFirstTile
+      });
     }
+  });
+
+  socket.on('disconnect', () => {
+    // یاریزانەکە ناکاتە بۆت بە هەمیشەیی مەگەر ٣ نۆرە لەسەر یەک بفەوتێنێت
   });
 });
 

@@ -278,6 +278,7 @@
     let boardChain = [];
     let isMyTurn = false;
     let isActionLocked = false;
+    let pullCooldown = false;
     let isFirstEverRound = true;
     let requiredFirstTile = null;
     let isGameFinished = false;
@@ -648,6 +649,7 @@
       if (isGameFinished) return;
       isMyTurn = (turnSeat === mySeat);
       isActionLocked = false;
+      pullCooldown = false;
       const visualTurnSeat = mapSeatToVisual(turnSeat);
 
       for (let s = 1; s <= 3; s++) {
@@ -889,13 +891,16 @@
     }
 
     function onPull() {
-      if (!isMyTurn || isGameFinished || isActionLocked) return;
-      isActionLocked = true;
+      if (!isMyTurn || isGameFinished || pullCooldown) return;
+      pullCooldown = true;
+      setTimeout(() => { pullCooldown = false; }, 1200);
       socket.emit('request_pull');
     }
 
     socket.on('receive_pulled', (data) => {
+      pullCooldown = false;
       isActionLocked = false;
+      isMyTurn = true;
       if (data.pulled) {
         myHand.push(data.pulled);
         renderRack();
@@ -934,6 +939,12 @@
       }
 
       alert(`گەڕ کۆتایی پێهات!\nشێواز: ${data.isLock ? 'قەپات' : 'دۆمینە'}\nبراوە: ${data.winnerName}\nخاڵی زیادکراو: +${data.gainedPoints}`);
+    });
+
+    socket.on('connect', () => {
+      if (currentRoomId && myName) {
+        socket.emit('rejoin_room', { roomId: currentRoomId, name: myName });
+      }
     });
 
     window.addEventListener('resize', renderBoard);
