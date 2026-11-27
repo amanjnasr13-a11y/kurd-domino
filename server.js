@@ -34,6 +34,10 @@ app.get('/marketplace', (req, res) => {
   res.sendFile(path.join(__dirname, 'www', 'marketplace.html'));
 });
 
+app.get('/professionals', (req, res) => {
+  res.sendFile(path.join(__dirname, 'www', 'professionals.html'));
+});
+
 app.get('/taxi', (req, res) => {
   const wwwTaxi = path.join(__dirname, 'www', 'taxi.html');
   if (fs.existsSync(wwwTaxi)) {
@@ -71,7 +75,7 @@ function parseBase64Image(dataUrl) {
 }
 
 async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch = false) {
-  const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
   let lastError = null;
 
   for (const model of models) {
@@ -123,9 +127,10 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   if (openRouterKey) {
     const orModels = [
-      'google/gemma-3-27b-it:free',
-      'deepseek/deepseek-chat-v3-0324:free',
-      'mistralai/mistral-small-3.1-24b-instruct:free'
+      'google/gemini-2.0-flash-exp:free',
+      'meta-llama/llama-3.3-70b-instruct:free',
+      'qwen/qwen-2.5-72b-instruct:free',
+      'openrouter/free'
     ];
     const orMessages = [{ role: 'system', content: systemInstruction }];
     for (const c of contents) {
@@ -417,6 +422,78 @@ app.delete('/api/admin/marketplace/reject/:id', (req, res) => {
 });
 
 // ==========================================
+// --- بەشی پیشەوەرەکان و وەستاکان ---
+// ==========================================
+const PROS_FILE = path.join(__dirname, 'professionals.json');
+
+const DEFAULT_PROFESSIONALS = [
+  { id: 1, name: 'کاروان فەرهاد', job: 'کارەبایی و سیستەمی ماڵان', city: 'هەولێر', phone: '07502222222', bio: 'دانان و چاککردنەوەی هەموو جۆرە سیستەمێکی کارەبایی و مۆلیدە', status: 'approved' },
+  { id: 2, name: 'وەستا کاوە', job: 'میکانیک و فیتەری بزوێنەر', city: 'سلێمانی', phone: '07701111111', bio: 'زیاتر لە ٨ ساڵ ئەزموون لە بزوێنەری بەنزین و دیزڵ', status: 'approved' }
+];
+
+function getProfessionals() {
+  if (!fs.existsSync(PROS_FILE)) {
+    return JSON.parse(JSON.stringify(DEFAULT_PROFESSIONALS));
+  }
+  try {
+    const data = fs.readFileSync(PROS_FILE, 'utf-8');
+    const parsed = JSON.parse(data || '[]');
+    return Array.isArray(parsed) ? parsed : JSON.parse(JSON.stringify(DEFAULT_PROFESSIONALS));
+  } catch (err) {
+    return JSON.parse(JSON.stringify(DEFAULT_PROFESSIONALS));
+  }
+}
+
+function saveProfessionals(list) {
+  fs.writeFileSync(PROS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+}
+
+app.get('/api/professionals', (req, res) => {
+  res.json(getProfessionals());
+});
+
+app.post('/api/professionals', (req, res) => {
+  try {
+    const list = getProfessionals();
+    const newPro = {
+      id: req.body.id || Date.now(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      ...req.body
+    };
+    list.unshift(newPro);
+    saveProfessionals(list);
+    io.emit('professional_requested', newPro);
+    res.json({ success: true, professional: newPro });
+  } catch (err) {
+    res.status(500).json({ error: 'پاشەکەوت نەکرا' });
+  }
+});
+
+app.get('/api/admin/professionals', (req, res) => {
+  res.json(getProfessionals());
+});
+
+app.post('/api/admin/professionals/approve/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const list = getProfessionals();
+  const pro = list.find(p => Number(p.id) === id);
+  if (pro) {
+    pro.status = 'approved';
+    saveProfessionals(list);
+    return res.json({ success: true });
+  }
+  res.status(404).json({ error: 'پیشەوەرەکە نەدۆزرایەوە' });
+});
+
+app.delete('/api/admin/professionals/reject/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const list = getProfessionals().filter(p => Number(p.id) !== id);
+  saveProfessionals(list);
+  res.json({ success: true });
+});
+
+// ==========================================
 // --- بەشی تەکسی، گەیاندن، نرخەکان و شۆفێران ---
 // ==========================================
 const TAXI_DATA_FILE = path.join(__dirname, 'taxi-data.json');
@@ -487,13 +564,11 @@ function saveTaxiData(data) {
   fs.writeFileSync(TAXI_DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// ناردنی خشتەی نرخەکان بۆ لاپەڕەی سەرنشین و ئەدمین
 app.get('/api/taxi/rates', (req, res) => {
   const db = getTaxiData();
   res.json(db.rates);
 });
 
-// دەستکاریکردن و پاشەکەوتکردنی نرخەکان لە لایەن ئەدمینەوە
 app.post('/api/admin/taxi/rates', (req, res) => {
   try {
     const db = getTaxiData();
@@ -553,7 +628,6 @@ app.post('/api/delivery/orders', (req, res) => {
   }
 });
 
-// کاتێک شۆفێر داواکارییەکە وەردەگرێت (پشتگیری هەردوو ڕێڕەو دەکات)
 function handleAcceptOrder(req, res) {
   const id = Number(req.params.id || req.body.orderId);
   const db = getTaxiData();
@@ -586,7 +660,21 @@ function handleAcceptOrder(req, res) {
 app.post('/api/taxi/orders/accept', handleAcceptOrder);
 app.post('/api/taxi/orders/accept/:id', handleAcceptOrder);
 
-// تۆمارکردنی شۆفێری نوێ (پشتگیری هەردوو ڕێڕەو دەکات)
+app.post('/api/taxi/orders/complete/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const db = getTaxiData();
+  const ride = db.rideOrders.find(o => Number(o.id) === id);
+  const delivery = db.deliveryOrders.find(o => Number(o.id) === id);
+  const target = ride || delivery;
+  if (target) {
+    target.status = 'completed';
+    saveTaxiData(db);
+    io.emit('order_completed_by_driver', { orderId: id });
+    return res.json({ success: true });
+  }
+  res.status(404).json({ error: 'داواکارییەکە نەدۆزرایەوە' });
+});
+
 function handleDriverRegister(req, res) {
   try {
     const db = getTaxiData();

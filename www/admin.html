@@ -135,6 +135,7 @@
     <!-- بەشە سەرەکییەکانی ئەدمین -->
     <div class="main-sections">
       <button class="sec-btn active" id="secBtnMarket" onclick="switchAdminSection('market')">🛒 کاڵاکانی بازاڕ</button>
+      <button class="sec-btn" id="secBtnPros" onclick="switchAdminSection('pros')">🛠️ پیشەوەرەکان</button>
       <button class="sec-btn" id="secBtnOrders" onclick="switchAdminSection('orders')">🚖 داواکاری تەکسی و گەیاندن</button>
       <button class="sec-btn" id="secBtnDrivers" onclick="switchAdminSection('drivers')">🪪 شۆفێرەکان</button>
       <button class="sec-btn" id="secBtnRates" onclick="switchAdminSection('rates')">💰 نرخەکانی تەکسی و کاڵا</button>
@@ -153,7 +154,14 @@
       </div>
     </div>
 
-    <!-- ٢. بەشی داواکاری تەکسی و گەیاندنی کاڵا -->
+    <!-- ٢. بەشی پیشەوەرەکان -->
+    <div class="admin-section" id="section-pros">
+      <div class="grid" id="prosAdminGrid">
+        <p style="color: #9ca3af; text-align: center; grid-column: 1 / -1;">باردەکرێت...</p>
+      </div>
+    </div>
+
+    <!-- ٣. بەشی داواکاری تەکسی و گەیاندنی کاڵا -->
     <div class="admin-section" id="section-orders">
       <div class="tabs">
         <button class="tab-btn active" id="tabRideOrders" onclick="switchOrderTab('rides')">🚖 داواکارییەکانی تەکسی</button>
@@ -162,12 +170,12 @@
       <div class="grid" id="ordersGrid"></div>
     </div>
 
-    <!-- ٣. بەشی شۆفێران -->
+    <!-- ٤. بەشی شۆفێران -->
     <div class="admin-section" id="section-drivers">
       <div class="grid" id="driversAdminGrid"></div>
     </div>
 
-    <!-- ٤. بەشی دەستکاریکردنی نرخەکان -->
+    <!-- ٥. بەشی دەستکاریکردنی نرخەکان -->
     <div class="admin-section" id="section-rates">
       <div class="rates-grid" id="ratesEditorGrid"></div>
       <button class="save-rates-btn" onclick="saveTaxiRates()">💾 پاشەکەوتکردنی نرخە نوێیەکان</button>
@@ -175,6 +183,10 @@
   </div>
 
   <script>
+    const API_BASE = window.location.origin.startsWith('http')
+      ? window.location.origin
+      : 'https://kurd-domino-production.up.railway.app';
+
     function checkLoginStatus() {
       sessionStorage.removeItem('admin_logged');
       document.getElementById('loginModal').style.display = 'flex';
@@ -196,6 +208,7 @@
         document.getElementById('passInput').value = '';
         document.getElementById('loginModal').style.display = 'none';
         fetchAdminItems();
+        fetchAdminPros();
         fetchTaxiAdminData();
       } else {
         alert("❌ وشەی نهێنی هەڵەیە! تکایە دووبارە تاقی بکەرەوە.");
@@ -204,17 +217,17 @@
     }
 
     function switchAdminSection(sec) {
-      ['market', 'orders', 'drivers', 'rates'].forEach(s => {
+      ['market', 'pros', 'orders', 'drivers', 'rates'].forEach(s => {
         document.getElementById('section-' + s).classList.toggle('active', s === sec);
       });
       document.getElementById('secBtnMarket').classList.toggle('active', sec === 'market');
+      document.getElementById('secBtnPros').classList.toggle('active', sec === 'pros');
       document.getElementById('secBtnOrders').classList.toggle('active', sec === 'orders');
       document.getElementById('secBtnDrivers').classList.toggle('active', sec === 'drivers');
       document.getElementById('secBtnRates').classList.toggle('active', sec === 'rates');
 
-      if (sec !== 'market') {
-        fetchTaxiAdminData();
-      }
+      if (sec === 'pros') fetchAdminPros();
+      else if (sec !== 'market') fetchTaxiAdminData();
     }
 
     // --- بازاڕ ---
@@ -223,7 +236,7 @@
 
     async function fetchAdminItems() {
       try {
-        const res = await fetch('/api/admin/marketplace/items');
+        const res = await fetch(`${API_BASE}/api/admin/marketplace/items`);
         allItems = await res.json();
         renderAdminCards();
       } catch (err) {
@@ -283,16 +296,74 @@
 
     async function approveItem(id) {
       if (!confirm('ئایا دڵنیایت لە قبووڵکردنی ئەم کاڵایە بۆ ناو بازاڕ؟')) return;
-      const res = await fetch(`/api/admin/marketplace/approve/${id}`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/admin/marketplace/approve/${id}`, { method: 'POST' });
       const data = await res.json();
       if (data.success) fetchAdminItems();
     }
 
     async function rejectItem(id) {
       if (!confirm('ئایا دڵنیایت لە سڕینەوە و ڕەتکردنەوەی ئەم کاڵایە؟')) return;
-      const res = await fetch(`/api/admin/marketplace/reject/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/admin/marketplace/reject/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) fetchAdminItems();
+    }
+
+    // --- پیشەوەرەکان ---
+    let allPros = [];
+
+    async function fetchAdminPros() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/professionals`);
+        if (res.ok) {
+          allPros = await res.json();
+          renderProsAdminGrid();
+        }
+      } catch (e) {
+        document.getElementById('prosAdminGrid').innerHTML = '<p style="color:#ef4444;">هەڵە لە هێنانی پیشەوەرەکان.</p>';
+      }
+    }
+
+    function renderProsAdminGrid() {
+      const grid = document.getElementById('prosAdminGrid');
+      if (!allPros || allPros.length === 0) {
+        grid.innerHTML = '<p style="color:#9ca3af; text-align:center; grid-column:1/-1;">هیچ پیشەوەرێک تۆمار نەکراوە.</p>';
+        return;
+      }
+
+      grid.innerHTML = allPros.map(p => {
+        const isPending = p.status === 'pending';
+        return `
+          <div class="admin-card">
+            <div class="card-content">
+              <span class="badge ${isPending ? 'badge-pending' : 'badge-approved'}">
+                ${isPending ? '⏳ چاوەڕوانی پەسەندکردن' : '✅ پەسەندکراوە'}
+              </span>
+              <h3 style="margin-bottom:5px;">🛠️ ${p.name}</h3>
+              <p style="font-size:13px; color:#f59e0b; font-weight:bold;">⚙️ ${p.job} — 📍 ${p.city}</p>
+              <p style="font-size:13px; color:#cbd5e1; margin-top:5px;">${p.bio || ''}</p>
+              <p style="font-size:13px; color:#38bdf8; margin-top:6px;">📞 ${p.phone}</p>
+              <div class="actions">
+                ${isPending ? `<button class="btn-approve" onclick="approvePro(${p.id})">✔ پەسەندکردن</button>` : ''}
+                <button class="btn-reject" onclick="rejectPro(${p.id})">✖ سڕینەوە</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approvePro(id) {
+      if (!confirm('دڵنیایت لە پەسەندکردنی ئەم پیشەوەرە؟')) return;
+      const res = await fetch(`${API_BASE}/api/admin/professionals/approve/${id}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) fetchAdminPros();
+    }
+
+    async function rejectPro(id) {
+      if (!confirm('دڵنیایت لە سڕینەوەی ئەم پیشەوەرە؟')) return;
+      const res = await fetch(`${API_BASE}/api/admin/professionals/reject/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) fetchAdminPros();
     }
 
     // --- تەکسی، گەیاندن، شۆفێران و نرخەکان ---
@@ -301,7 +372,7 @@
 
     async function fetchTaxiAdminData() {
       try {
-        const res = await fetch('/api/admin/taxi');
+        const res = await fetch(`${API_BASE}/api/admin/taxi`);
         if (res.ok) {
           taxiDb = await res.json();
           renderOrdersGrid();
@@ -400,14 +471,14 @@
 
     async function approveDriver(id) {
       if (!confirm('دڵنیایت لە پەسەندکردنی ئەم شۆفێرە؟')) return;
-      const res = await fetch(`/api/admin/taxi/drivers/approve/${id}`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/admin/taxi/drivers/approve/${id}`, { method: 'POST' });
       const data = await res.json();
       if (data.success) fetchTaxiAdminData();
     }
 
     async function rejectDriver(id) {
       if (!confirm('دڵنیایت لە سڕینەوەی ئەم شۆفێرە؟')) return;
-      const res = await fetch(`/api/admin/taxi/drivers/reject/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/admin/taxi/drivers/reject/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) fetchTaxiAdminData();
     }
@@ -470,7 +541,7 @@
       };
 
       try {
-        const res = await fetch('/api/admin/taxi/rates', {
+        const res = await fetch(`${API_BASE}/api/admin/taxi/rates`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedRates)

@@ -2,7 +2,7 @@
 <html lang="ku" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>پیشەوەرەکان - Kurd AI</title>
   <style>
     * {
@@ -10,33 +10,35 @@
       margin: 0;
       padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
     body {
       background-color: #0b111e;
       color: #ffffff;
-      padding: 20px;
+      padding: 16px;
       direction: rtl;
     }
     .header {
       max-width: 1000px;
-      margin: 0 auto 30px auto;
+      margin: 0 auto 24px auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #1a2638;
-      padding-bottom: 15px;
+      padding-bottom: 14px;
     }
     .brand-title {
-      font-size: 20px;
-      font-weight: bold;
-      color: #ffffff;
+      font-size: 19px;
+      font-weight: 800;
+      color: #f59e0b;
     }
     .back-btn {
       color: #ff9800;
       text-decoration: none;
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: bold;
       border: 1px solid #ff9800;
-      padding: 6px 16px;
+      padding: 6px 14px;
       border-radius: 20px;
       transition: 0.2s;
     }
@@ -49,19 +51,20 @@
       margin: 0 auto;
     }
     .tabs {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
     .tab-btn {
       background: #131c2e;
-      border: 1px solid #22324b;
+      border: 1.5px solid #22324b;
       color: #94a3b8;
-      padding: 10px 22px;
-      border-radius: 8px;
+      padding: 11px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 14px;
-      font-weight: bold;
+      font-weight: 800;
       transition: 0.2s;
     }
     .tab-btn.active {
@@ -69,35 +72,47 @@
       color: #0b111e;
       border-color: #ff9800;
     }
+    .filter-bar {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: #131c2e;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #22324b;
+    }
     .form-wrapper {
       background: #131c2e;
       border: 1px solid #22324b;
-      border-radius: 12px;
-      padding: 30px;
+      border-radius: 14px;
+      padding: 24px;
       max-width: 600px;
       margin: 0 auto;
     }
     .form-title {
       font-size: 18px;
-      margin-bottom: 20px;
+      font-weight: 800;
+      margin-bottom: 18px;
       text-align: center;
       color: #ff9800;
     }
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     label {
       display: block;
       margin-bottom: 6px;
       font-size: 13px;
       color: #94a3b8;
+      font-weight: bold;
     }
     input, select, textarea {
       width: 100%;
-      padding: 12px;
+      padding: 11px 12px;
       background: #0b111e;
       border: 1px solid #22324b;
-      border-radius: 8px;
+      border-radius: 9px;
       color: #fff;
       font-size: 14px;
       outline: none;
@@ -110,53 +125,87 @@
       background: #ff9800;
       color: #0b111e;
       border: none;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 13px;
+      border-radius: 9px;
       font-size: 15px;
-      font-weight: bold;
+      font-weight: 900;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 20px;
+      gap: 16px;
     }
     .pro-card {
       background: #131c2e;
       border: 1px solid #22324b;
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 14px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
+    .pro-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
     .pro-name {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 4px;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .city-badge {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
     }
     .pro-job {
-      color: #ff9800;
+      color: #38bdf8;
       font-size: 14px;
-      margin-bottom: 8px;
+      font-weight: 700;
+      margin-bottom: 10px;
     }
     .pro-bio {
       font-size: 13px;
-      color: #94a3b8;
+      color: #cbd5e1;
       line-height: 1.6;
       margin-bottom: 16px;
+    }
+    .contact-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
     .call-btn {
       display: block;
       text-align: center;
-      background: #22c55e;
-      color: #fff;
+      background: #10b981;
+      color: #070d17;
       text-decoration: none;
-      padding: 9px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: bold;
+      padding: 10px 6px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .wa-btn {
+      display: block;
+      text-align: center;
+      background: #25D366;
+      color: #05130d;
+      text-decoration: none;
+      padding: 10px 6px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    @media (max-width: 520px) {
+      .filter-bar { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -164,18 +213,32 @@
 
   <div class="header">
     <div class="brand-title">🛠️ پیشەوەرەکان و وەستاکان</div>
-    <a href="index.html" class="back-btn">گەڕانەوە بۆ سەرەکی</a>
+    <a href="index.html" class="back-btn">سەرەکی ↩</a>
   </div>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="setTab('list')">لیستی پیشەوەران</button>
-      <button class="tab-btn" onclick="setTab('register')">خۆتۆمارکردن</button>
+      <button type="button" class="tab-btn active" id="tabBtnList" onclick="setTab('list')">📋 لیستی پیشەوەران</button>
+      <button type="button" class="tab-btn" id="tabBtnReg" onclick="setTab('register')">📝 خۆتۆمارکردنی وەستا</button>
     </div>
 
-    <!-- تەنها پیشەوەرە پەسەندکراوەکان پیشان دەدات -->
+    <!-- لیستی پیشەوەرە پەسەندکراوەکان -->
     <div id="section-list">
-      <div id="approvedList" class="grid"></div>
+      <div class="filter-bar">
+        <input type="text" id="searchJobInput" placeholder="🔍 گەڕان بەدوای پیشە یان ناو (بۆ نموونە: کارەباچی، فیتەر...)" oninput="renderList()">
+        <select id="filterCitySelect" onchange="renderList()">
+          <option value="all">📍 هەموو شارەکان</option>
+          <option value="هەولێر">هەولێر</option>
+          <option value="سلێمانی">سلێمانی</option>
+          <option value="دهۆک">دهۆک</option>
+          <option value="کەرکووک">کەرکووک</option>
+          <option value="هەڵەبجە">هەڵەبجە</option>
+        </select>
+      </div>
+
+      <div id="approvedList" class="grid">
+        <p style="color: #94a3b8;">⏳ بارکردنی لیستی پیشەوەران...</p>
+      </div>
     </div>
 
     <!-- فۆڕمی تۆمارکردنی پیشەوەران -->
@@ -184,104 +247,169 @@
         <div class="form-title">تۆمارکردنی پیشە و زانیارییەکانت</div>
         <form id="regForm" onsubmit="submitForm(event)">
           <div class="form-group">
-            <label>ناوی سیانی</label>
-            <input type="text" id="name" required placeholder="وەک: ئاراس کامەران">
+            <label>ناوی سیانی وەستا / پیشەوەر:</label>
+            <input type="text" id="name" required placeholder="وەک: وەستا ئاراس کامەران">
           </div>
           <div class="form-group">
-            <label>پیشە / پسپۆڕی</label>
-            <input type="text" id="job" required placeholder="وەک: فیتەر، کارەباچی، بۆریچی">
+            <label>پیشە / پسپۆڕی:</label>
+            <input type="text" id="job" required placeholder="وەک: فیتەر، کارەباچی، بۆریچی، سپلیت">
           </div>
           <div class="form-group">
-            <label>شار</label>
+            <label>شار:</label>
             <select id="city">
-              <option value="سلێمانی">سلێمانی</option>
               <option value="هەولێر">هەولێر</option>
+              <option value="سلێمانی">سلێمانی</option>
               <option value="دهۆک">دهۆک</option>
               <option value="کەرکووک">کەرکووک</option>
               <option value="هەڵەبجە">هەڵەبجە</option>
             </select>
           </div>
           <div class="form-group">
-            <label>ژمارەی مۆبایلی خۆت (تەنها لای بەڕێوەبەر دەبێت)</label>
-            <input type="tel" id="phone" required placeholder="0770xxxxxxx">
+            <label>ژمارەی مۆبایل (واتسئەپی لەسەر بێت):</label>
+            <input type="tel" id="phone" required placeholder="0750 000 0000">
           </div>
           <div class="form-group">
-            <label>ئەزموون و کورتەی کارەکانت</label>
-            <textarea id="bio" rows="3" placeholder="چەند ساڵ ئەزموونت هەیە و چی دەکەیت..."></textarea>
+            <label>ئەزموون و کورتەی کارەکانت:</label>
+            <textarea id="bio" rows="3" placeholder="چەند ساڵ ئەزموونت هەیە و چ جۆرە کارێک دەکەیت..."></textarea>
           </div>
-          <button type="submit" class="submit-btn">ناردنی داواکاری بۆ بەڕێوەبەر</button>
+          <button type="submit" class="submit-btn">✅ ناردنی داواکاری بۆ بەڕێوەبەر</button>
         </form>
       </div>
     </div>
   </div>
 
   <script>
-    // لەم دێڕەدا ژمارەی مۆبایلی خۆت دابنێ:
-    const MY_PHONE_NUMBER = "07701234567";
+    const API_BASE = window.location.origin.startsWith('http')
+      ? window.location.origin
+      : 'https://kurd-domino-production.up.railway.app';
 
-    let pros = JSON.parse(localStorage.getItem('kurdai_pros')) || [
-      { id: 1, name: "وەستا کاوە", job: "میکانیک و فیتەری بزوێنەر", city: "سلێمانی", phone: "07701111111", bio: "زیاتر لە ٨ ساڵ ئەزموون لە بزوێنەری بەنزین و دیزڵ", status: "approved" },
-      { id: 2, name: "کاروان فەرهاد", job: "کارەبایی و سیستەمی ماڵان", city: "هەولێر", phone: "07502222222", bio: "دانان و چاککردنەوەی سیستەمی کارەبایی", status: "approved" }
+    // ئەگەر بتەوێت هەموو پەیوەندییەکان بێن بۆ ژمارەی ناوەندی خۆت، ئەمە بکە true و ژمارەکەت لە خوارەوە بنووسە:
+    const USE_ADMIN_PHONE = false;
+    const ADMIN_CONTACT_PHONE = "07500000000";
+
+    const DEFAULT_PROS = [
+      { id: 1, name: "کاروان فەرهاد", job: "کارەبایی و سیستەمی ماڵان", city: "هەولێر", phone: "07502222222", bio: "دانان و چاککردنەوەی هەموو جۆرە سیستەمێکی کارەبایی و مۆلیدە", status: "approved" },
+      { id: 2, name: "وەستا کاوە", job: "میکانیک و فیتەری بزوێنەر", city: "سلێمانی", phone: "07701111111", bio: "زیاتر لە ٨ ساڵ ئەزموون لە بزوێنەری بەنزین و دیزڵ", status: "approved" }
     ];
 
-    function setTab(tab) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('section-list').style.display = 'none';
-      document.getElementById('section-register').style.display = 'none';
+    let pros = [];
 
-      if (tab === 'list') {
-        document.getElementById('section-list').style.display = 'block';
-        event.target.classList.add('active');
-      } else if (tab === 'register') {
-        document.getElementById('section-register').style.display = 'block';
-        event.target.classList.add('active');
-      }
+    function normalizePhone(p) {
+      return String(p || '')
+        .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+        .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+        .replace(/\s+/g, '')
+        .trim();
     }
 
-    function submitForm(e) {
+    function formatIraqWhatsApp(phone) {
+      let p = normalizePhone(phone).replace(/[^0-9]/g, '');
+      if (p.startsWith('07')) p = '964' + p.substring(1);
+      else if (p.startsWith('7')) p = '964' + p;
+      return p;
+    }
+
+    function setTab(tab) {
+      document.getElementById('tabBtnList').classList.toggle('active', tab === 'list');
+      document.getElementById('tabBtnReg').classList.toggle('active', tab === 'register');
+      document.getElementById('section-list').style.display = tab === 'list' ? 'block' : 'none';
+      document.getElementById('section-register').style.display = tab === 'register' ? 'block' : 'none';
+    }
+
+    async function loadProfessionals() {
+      try {
+        const res = await fetch(`${API_BASE}/api/professionals`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            pros = data;
+            localStorage.setItem('kurdai_pros', JSON.stringify(pros));
+            renderList();
+            return;
+          }
+        }
+      } catch (e) {}
+
+      const localSaved = JSON.parse(localStorage.getItem('kurdai_pros') || '[]');
+      pros = localSaved.length > 0 ? localSaved : DEFAULT_PROS;
+      renderList();
+    }
+
+    async function submitForm(e) {
       e.preventDefault();
       const newEntry = {
         id: Date.now(),
-        name: document.getElementById('name').value,
-        job: document.getElementById('job').value,
+        name: document.getElementById('name').value.trim(),
+        job: document.getElementById('job').value.trim(),
         city: document.getElementById('city').value,
-        phone: document.getElementById('phone').value,
-        bio: document.getElementById('bio').value,
-        status: 'pending' // چاوەڕوان دەبێت تا لە لاپەڕەی سەرەکی پەسەندی دەکەیت
+        phone: normalizePhone(document.getElementById('phone').value),
+        bio: document.getElementById('bio').value.trim(),
+        status: 'pending'
       };
 
-      pros.push(newEntry);
-      localStorage.setItem('kurdai_pros', JSON.stringify(pros));
-      alert("داواکارییەکەت نێردرا! دوای پەسەندکردنی لەلایەن بەڕێوەبەرەوە لە لیستەکە دەردەکەوێت.");
+      try {
+        const res = await fetch(`${API_BASE}/api/professionals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEntry)
+        });
+        if (!res.ok) throw new Error('Server error');
+      } catch (err) {
+        pros.push(newEntry);
+        localStorage.setItem('kurdai_pros', JSON.stringify(pros));
+      }
+
+      alert("✅ داواکارییەکەت نێردرا بۆ بەڕێوەبەر! دوای پەسەندکردن لە لیستەکەدا دەردەکەوێت.");
       document.getElementById('regForm').reset();
       setTab('list');
-      renderList();
+      loadProfessionals();
     }
 
     function renderList() {
       const container = document.getElementById('approvedList');
-      pros = JSON.parse(localStorage.getItem('kurdai_pros')) || pros;
-      const approved = pros.filter(p => p.status === 'approved');
+      const searchQ = (document.getElementById('searchJobInput').value || '').trim().toLowerCase();
+      const cityQ = document.getElementById('filterCitySelect').value;
+
+      const approved = pros.filter(p => {
+        if (p.status !== 'approved') return false;
+        if (cityQ !== 'all' && p.city !== cityQ) return false;
+        if (searchQ) {
+          const hay = `${p.name} ${p.job} ${p.bio || ''}`.toLowerCase();
+          if (!hay.includes(searchQ)) return false;
+        }
+        return true;
+      });
 
       if (approved.length === 0) {
-        container.innerHTML = '<p style="color: #94a3b8;">هیچ پیشەوەرێک پەسەند نەکراوە تا ئێستا.</p>';
+        container.innerHTML = '<p style="color: #94a3b8; grid-column: 1 / -1; text-align: center; padding: 20px;">هیچ پیشەوەرێک بەم گەڕانە نەدۆزرایەوە.</p>';
         return;
       }
 
-      container.innerHTML = approved.map(p => `
-        <div class="pro-card">
-          <div>
-            <div class="pro-name">${p.name}</div>
-            <div class="pro-job">⚙️ ${p.job} - ${p.city}</div>
-            <div class="pro-bio">${p.bio || 'هیچ زانیارییەک نەنووسراوە'}</div>
+      container.innerHTML = approved.map(p => {
+        const targetPhone = USE_ADMIN_PHONE ? ADMIN_CONTACT_PHONE : normalizePhone(p.phone);
+        const waPhone = formatIraqWhatsApp(targetPhone);
+        const waMsg = encodeURIComponent(`سڵاو ${p.name}، لە ڕێگەی ئەپی Kurd AI پەیوەندیت پێوە دەکەم سەبارەت بە کاری (${p.job}).`);
+
+        return `
+          <div class="pro-card">
+            <div>
+              <div class="pro-header">
+                <div class="pro-name">${p.name}</div>
+                <span class="city-badge">📍 ${p.city}</span>
+              </div>
+              <div class="pro-job">⚙️ ${p.job}</div>
+              <div class="pro-bio">${p.bio || 'ئامادەیە بۆ جێبەجێکردنی کارەکانتان بە باشترین شێوە.'}</div>
+            </div>
+            <div class="contact-actions">
+              <a href="tel:${targetPhone}" class="call-btn">📞 پەیوەندی سیم</a>
+              <a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" class="wa-btn">💬 واتسئەپ</a>
+            </div>
           </div>
-          <!-- ژمارەی پەیوەندی کردن ژمارەی تۆیە نەک پیشەوەرەکە -->
-          <a href="tel:${MY_PHONE_NUMBER}" class="call-btn">📞 پەیوەندی کردن: ${MY_PHONE_NUMBER}</a>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    renderList();
+    loadProfessionals();
   </script>
 </body>
 </html>
