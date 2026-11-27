@@ -348,7 +348,18 @@
             padding: 10px;
             border-radius: 10px;
             font-weight: 900;
-            font-size: 0.86rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: #05130d;
+            text-decoration: none;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 0.85rem;
         }
 
         .btn-gmaps {
@@ -359,7 +370,20 @@
             padding: 10px;
             border-radius: 10px;
             font-weight: 800;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
+        }
+
+        .btn-complete-trip {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #070d17;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 0.92rem;
+            cursor: pointer;
+            margin-top: 2px;
         }
 
         .empty-orders {
@@ -516,6 +540,13 @@
                 .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
                 .replace(/\s+/g, '')
                 .trim();
+        }
+
+        function formatIraqWhatsApp(phone) {
+            let p = normalizePhone(phone).replace(/[^0-9]/g, '');
+            if (p.startsWith('07')) p = '964' + p.substring(1);
+            else if (p.startsWith('7')) p = '964' + p;
+            return p;
         }
 
         function switchAuthTab(tab) {
@@ -680,7 +711,7 @@
                 const rides = (db.rideOrders || []).map(o => ({ ...o, serviceType: 'taxi' }));
                 const cargos = (db.deliveryOrders || []).map(o => ({ ...o, serviceType: 'delivery' }));
                 const allPending = [...rides, ...cargos]
-                    .filter(o => o.status !== 'accepted' && isOrderSuitableForDriver(o))
+                    .filter(o => o.status !== 'accepted' && o.status !== 'completed' && isOrderSuitableForDriver(o))
                     .sort((a, b) => Number(b.id) - Number(a.id));
 
                 renderOpenOrders(allPending);
@@ -760,7 +791,11 @@
             const fromText = isCargo ? order.origin : order.pickup;
             const toText = isCargo ? order.destination : order.dropoff;
             const custPhone = isCargo ? order.senderPhone : order.passengerPhone;
-            const navCoords = order.pickupCoords ? `${order.pickupCoords[0]},${order.pickupCoords[1]}` : encodeURIComponent(fromText);
+            const waPhone = formatIraqWhatsApp(custPhone);
+            const waMsg = encodeURIComponent(`سڵاو، من شۆفێری Kurd AIـم (${currentDriver.name} - ${currentDriver.car} / ${currentDriver.plate}) داواکارییەکەتم وەرگرت و لە ڕێگام بۆ لات.`);
+
+            const originCoords = order.pickupCoords ? `${order.pickupCoords[0]},${order.pickupCoords[1]}` : encodeURIComponent(fromText);
+            const destCoords = order.dropoffCoords ? `${order.dropoffCoords[0]},${order.dropoffCoords[1]}` : encodeURIComponent(toText);
 
             document.getElementById('myAcceptedContainer').style.display = 'block';
             document.getElementById('myAcceptedCard').innerHTML = `
@@ -773,12 +808,30 @@
                     <div class="route-row">🏁 <b>بۆ:</b> ${toText}</div>
                     <div class="route-row">👤 <b>داواکار:</b> ${isCargo ? `نێرەر (${order.senderPhone}) / وەرگر (${order.receiverPhone})` : `${order.passengerName} (${order.passengerPhone})`}</div>
                     <div class="accepted-tools">
-                        <a href="tel:${custPhone}" class="btn-call-cust">📞 پەیوەندی بە سەرنشین</a>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=${navCoords}" target="_blank" class="btn-gmaps">🧭 ڕێنمایی Google Maps</a>
+                        <a href="tel:${custPhone}" class="btn-call-cust">📞 پەیوەندی تەلەفۆنی</a>
+                        <a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" class="btn-whatsapp">💬 نامەی واتسئەپ</a>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${originCoords}" target="_blank" class="btn-gmaps">📍 چوون بۆ لای سەرنشین</a>
+                        <a href="https://www.google.com/maps/dir/?api=1&origin=${originCoords}&destination=${destCoords}" target="_blank" class="btn-gmaps" style="background:#6366f1;">🏁 نەخشەی تەواوی گەشت</a>
+                        <button type="button" class="btn-complete-trip" onclick="completeActiveTrip(${order.id})">🏁 گەشتەکە تەواو بوو (وەرگرتنی کرێ)</button>
                     </div>
                 </div>
             `;
             previewOrderOnMap(order);
+        }
+
+        async function completeActiveTrip(orderId) {
+            if (!confirm('ئایا دڵنیایت گەشتەکە تەواو بوو و سەرنشینەکە گەیشت؟')) return;
+            try {
+                await fetch(`${API_BASE}/api/taxi/orders/complete/${orderId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } catch (e) {}
+            acceptedOrder = null;
+            document.getElementById('myAcceptedContainer').style.display = 'none';
+            document.getElementById('myAcceptedCard').innerHTML = '';
+            alert('✅ دەستت خۆش بێت! گەشتەکە بە سەرکەوتوویی تەواو بوو و ئامادەیت بۆ داواکاریی نوێ.');
+            loadOpenOrders();
         }
 
         // وەرگرتنی ڕاستەوخۆی داواکاریی نوێ لە ڕێگەی Socket.io
