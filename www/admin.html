@@ -7,9 +7,11 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
     body { background-color: #0b1320; color: #fff; padding-bottom: 50px; }
-    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #060b13; border-bottom: 1px solid #1f2937; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #060b13; border-bottom: 1px solid #1f2937; gap: 10px; }
     .nav-title { font-size: 20px; font-weight: bold; color: #ef4444; }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
     .btn-back { color: #9ca3af; text-decoration: none; font-size: 14px; border: 1px solid #374151; padding: 6px 14px; border-radius: 8px; }
+    .btn-logout { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.45); font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     .container { max-width: 1120px; margin: 26px auto; padding: 0 20px; }
 
     /* Main Section Switcher */
@@ -49,7 +51,9 @@
     /* Rates Editor Styles */
     .rates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; margin-bottom: 20px; }
     .rate-box { background: #111927; border: 1px solid #374151; border-radius: 14px; padding: 18px; }
+    .rate-box.women-box { border-color: #ec4899; }
     .rate-box h3 { color: #f59e0b; margin-bottom: 14px; font-size: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; }
+    .rate-box.women-box h3 { color: #f472b6; }
     .rate-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 11px; }
     .rate-field label { font-size: 12px; color: #9ca3af; font-weight: bold; }
     .rate-field input {
@@ -120,7 +124,10 @@
   </div>
 
   <header class="navbar">
-    <a href="index.html" class="btn-back">← پەڕەی سەرەکی</a>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-back">← پەڕەی سەرەکی</a>
+      <button class="btn-logout" onclick="logoutAdmin()">🔒 چوونەدەرەوە</button>
+    </div>
     <div class="nav-title">کۆنتڕۆڵی بەڕێوەبەر (Admin)</div>
   </header>
 
@@ -169,11 +176,14 @@
 
   <script>
     function checkLoginStatus() {
-      if (sessionStorage.getItem('admin_logged') === 'true') {
-        document.getElementById('loginModal').style.display = 'none';
-        fetchAdminItems();
-        fetchTaxiAdminData();
-      }
+      sessionStorage.removeItem('admin_logged');
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('admin_logged');
+      document.getElementById('passInput').value = '';
+      document.getElementById('loginModal').style.display = 'flex';
     }
 
     function handleLogin(e) {
@@ -183,7 +193,7 @@
                             .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 
       if (normalized === "123456") {
-        sessionStorage.setItem('admin_logged', 'true');
+        document.getElementById('passInput').value = '';
         document.getElementById('loginModal').style.display = 'none';
         fetchAdminItems();
         fetchTaxiAdminData();
@@ -319,16 +329,20 @@
 
       grid.innerHTML = list.map(o => {
         const isAccepted = o.status === 'accepted';
+        const isWomen = o.taxiCategory === 'women' || (o.tier && o.tier.includes('ئافرەتان'));
         const badge = isAccepted
           ? '<span class="badge badge-approved">✅ وەرگیراوە لەلایەن شۆفێر</span>'
           : '<span class="badge badge-pending">⏳ لە چاوەڕوانی شۆفێردایە</span>';
 
         if (currentOrderTab === 'rides') {
           return `
-            <div class="admin-card">
+            <div class="admin-card" style="${isWomen ? 'border-color:#ec4899;' : ''}">
               <div class="card-content">
-                ${badge}
-                <h3 style="margin-bottom:6px; color:#f59e0b;">🚖 ${o.passengerName || 'سەرنشین'}</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  ${badge}
+                  ${isWomen ? '<span class="badge" style="background:#831843; color:#fbcfe8;">👩🏻‍✈️ تەکسی ئافرەتان</span>' : ''}
+                </div>
+                <h3 style="margin-bottom:6px; color:${isWomen ? '#f472b6' : '#f59e0b'};">🚖 ${o.passengerName || 'سەرنشین'}</h3>
                 <p style="font-size:13px; color:#e5e7eb; margin-bottom:4px;">📍 لە: ${o.pickup}</p>
                 <p style="font-size:13px; color:#e5e7eb; margin-bottom:6px;">🏁 بۆ: ${o.dropoff}</p>
                 <p style="font-size:13px; color:#10b981; font-weight:bold;">💰 نرخ: ${o.estimatedPrice} (${o.distanceKm || ''})</p>
@@ -401,16 +415,18 @@
     function renderRatesEditor() {
       const grid = document.getElementById('ratesEditorGrid');
       if (!taxiDb.rates) return;
+      const womenData = taxiDb.rates.taxi.women || taxiDb.rates.taxi.standard;
 
       const entries = [
-        { group: 'taxi', key: 'standard', title: '🚖 تەکسی سەرنشین', data: taxiDb.rates.taxi.standard },
-        { group: 'delivery', key: 'moto', title: '🛵 ماتۆڕی گەیاندن', data: taxiDb.rates.delivery.moto },
-        { group: 'delivery', key: 'taxi_cargo', title: '🚖 تەکسی کاڵا', data: taxiDb.rates.delivery.taxi_cargo },
-        { group: 'delivery', key: 'van', title: '🚚 پیکاب / بارهەڵگر', data: taxiDb.rates.delivery.van }
+        { group: 'taxi', key: 'standard', title: '🚖 تەکسی گشتی', isWomen: false, data: taxiDb.rates.taxi.standard },
+        { group: 'taxi', key: 'women', title: '👩🏻‍✈️ تەکسی ئافرەتان', isWomen: true, data: womenData },
+        { group: 'delivery', key: 'moto', title: '🛵 ماتۆڕی گەیاندن', isWomen: false, data: taxiDb.rates.delivery.moto },
+        { group: 'delivery', key: 'taxi_cargo', title: '🚖 تەکسی کاڵا', isWomen: false, data: taxiDb.rates.delivery.taxi_cargo },
+        { group: 'delivery', key: 'van', title: '🚚 پیکاب / بارهەڵگر', isWomen: false, data: taxiDb.rates.delivery.van }
       ];
 
       grid.innerHTML = entries.map(item => `
-        <div class="rate-box">
+        <div class="rate-box ${item.isWomen ? 'women-box' : ''}">
           <h3>${item.title}</h3>
           <div class="rate-field">
             <label>نرخی دەستپێک (دینار):</label>
@@ -443,7 +459,8 @@
 
       const updatedRates = {
         taxi: {
-          standard: readBox('taxi', 'standard', 'تەکسی')
+          standard: readBox('taxi', 'standard', 'تەکسی گشتی'),
+          women: readBox('taxi', 'women', 'تەکسی ئافرەتان')
         },
         delivery: {
           moto: readBox('delivery', 'moto', 'ماتۆڕی گەیاندن'),

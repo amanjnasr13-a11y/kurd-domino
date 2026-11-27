@@ -24,6 +24,7 @@
             --accent-gold: #f59e0b;
             --accent-emerald: #10b981;
             --accent-sky: #38bdf8;
+            --accent-pink: #ec4899;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -96,7 +97,6 @@
             color: #ffffff;
         }
 
-        /* High-Detail Google Map Wrapper */
         .map-wrapper {
             position: relative;
             border-radius: 18px;
@@ -108,7 +108,6 @@
 
         #liveMap { width: 100%; height: 295px; z-index: 1; }
 
-        /* Map Layer Switcher: Google Street vs Satellite HD */
         .map-layer-controls {
             position: absolute;
             top: 10px;
@@ -136,7 +135,6 @@
             border-color: var(--accent-gold);
         }
 
-        /* Careem-Style Center Crosshair Pin */
         .center-pin-overlay {
             position: absolute;
             top: 50%;
@@ -350,15 +348,59 @@
 
         .std-input:focus { border-color: var(--accent-gold); }
 
-        .single-taxi-badge {
-            background: rgba(245, 158, 11, 0.14);
-            border: 1.5px solid var(--accent-gold);
-            border-radius: 12px;
-            padding: 11px 14px;
+        /* Taxi Category Selector: General vs Women-Only */
+        .taxi-type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .taxi-type-card {
+            background: rgba(11, 19, 34, 0.92);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 13px;
+            padding: 11px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .taxi-type-card.selected-general {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--accent-gold);
+        }
+
+        .taxi-type-card.selected-women {
+            background: rgba(236, 72, 153, 0.15);
+            border-color: var(--accent-pink);
+        }
+
+        .taxi-type-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
+        }
+
+        .taxi-type-title {
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #ffffff;
+        }
+
+        .taxi-type-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        .taxi-type-rate {
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: var(--accent-emerald);
+            margin-top: 2px;
         }
 
         .tier-list {
@@ -469,6 +511,7 @@
         @media (max-width: 520px) {
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full { grid-column: span 1; }
+            .taxi-type-grid { grid-template-columns: 1fr; }
             .tier-list { grid-template-columns: 1fr; }
         }
     </style>
@@ -513,7 +556,6 @@
                 <button type="button" class="layer-btn" id="btnLayerSat" onclick="switchMapLayer('satellite')">🛰️ سەتەلایت HD</button>
             </div>
 
-            <!-- Careem-style Center Pin -->
             <div class="center-pin-overlay">
                 <div class="center-pin-badge" id="centerPinLabel">📍 شوێنی هەڵگرتن</div>
                 <div class="center-pin-icon" id="centerPinEmoji">📍</div>
@@ -572,7 +614,7 @@
                     </div>
                 </div>
 
-                <!-- Passenger Taxi -->
+                <!-- Passenger Taxi (General + Women Only) -->
                 <div class="extra-fields active" id="fields-taxi">
                     <div class="form-grid">
                         <div class="form-group">
@@ -585,15 +627,26 @@
                         </div>
                     </div>
 
-                    <div class="single-taxi-badge">
-                        <div style="display:flex; align-items:center; gap:9px;">
-                            <span style="font-size:1.4rem;">🚖</span>
-                            <div>
-                                <div style="font-weight:800; font-size:0.92rem;" id="label-taxi-standard">تەکسی</div>
-                                <div style="font-size:0.74rem; color:#94a3b8;">گواستنەوەی خێرا و سەلامەت</div>
+                    <div class="taxi-type-grid">
+                        <!-- تەکسی گشتی -->
+                        <div class="taxi-type-card selected-general" id="card-taxi-standard" onclick="selectTaxiCategory('standard')">
+                            <div class="taxi-type-top">
+                                <span class="taxi-type-title" id="label-taxi-standard">تەکسی گشتی</span>
+                                <span style="font-size:1.3rem;">🚖</span>
                             </div>
+                            <div class="taxi-type-desc">گواستنەوەی خێرا و سەلامەت بۆ هەمووان</div>
+                            <div class="taxi-type-rate" id="sub-taxi-standard">750 د.ع / کم</div>
                         </div>
-                        <span style="font-size:0.8rem; font-weight:800; color:#10b981;" id="sub-taxi-standard">750 د.ع / کم</span>
+
+                        <!-- تەکسی ئافرەتان -->
+                        <div class="taxi-type-card" id="card-taxi-women" onclick="selectTaxiCategory('women')">
+                            <div class="taxi-type-top">
+                                <span class="taxi-type-title" id="label-taxi-women" style="color:#f472b6;">تەکسی ئافرەتان</span>
+                                <span style="font-size:1.3rem;">👩🏻‍✈️</span>
+                            </div>
+                            <div class="taxi-type-desc">شۆفێری ئافرەت • تایبەت بە ئافرەتان و خێزان</div>
+                            <div class="taxi-type-rate" id="sub-taxi-women">750 د.ع / کم</div>
+                        </div>
                     </div>
                 </div>
 
@@ -671,6 +724,7 @@
 
         const socket = io(API_BASE);
         let currentMode = 'taxi';
+        let selectedTaxiKey = 'standard'; // 'standard' | 'women'
         let activePinMode = 'pickup';
         let activeOrderId = null;
         let selectedCargoKey = 'moto';
@@ -712,7 +766,8 @@
 
         let ratesTable = {
             taxi: {
-                standard: { label: 'تەکسی', base: 2000, perKm: 750, perMin: 100, minFare: 3000 }
+                standard: { label: 'تەکسی گشتی', base: 2000, perKm: 750, perMin: 100, minFare: 3000 },
+                women: { label: 'تەکسی ئافرەتان', base: 2000, perKm: 750, perMin: 100, minFare: 3000 }
             },
             delivery: {
                 moto: { label: 'ماتۆڕی گەیاندن', base: 1500, perKm: 600, perMin: 50, minFare: 2500 },
@@ -726,7 +781,6 @@
         let realRoadKm = null;
         let realRoadMins = null;
 
-        // Google Maps High-Detail Layers (Streets + Hybrid Satellite)
         const googleStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ku', {
             maxZoom: 21,
             attribution: '© Google Maps'
@@ -762,10 +816,16 @@
         const routeLine = L.polyline([pickupCoords, dropoffCoords], { color: '#2563eb', weight: 5 }).addTo(map);
 
         function applyRatesToCards() {
-            const taxiRate = ratesTable.taxi?.standard || ratesTable.taxi?.economy;
-            if (taxiRate) {
-                document.getElementById('label-taxi-standard').innerText = taxiRate.label || 'تەکسی';
-                document.getElementById('sub-taxi-standard').innerText = `${Number(taxiRate.perKm).toLocaleString()} د.ع / کم`;
+            const stdRate = ratesTable.taxi?.standard || ratesTable.taxi?.economy;
+            const womenRate = ratesTable.taxi?.women || stdRate;
+
+            if (stdRate) {
+                document.getElementById('label-taxi-standard').innerText = stdRate.label || 'تەکسی گشتی';
+                document.getElementById('sub-taxi-standard').innerText = `${Number(stdRate.perKm).toLocaleString()} د.ع / کم`;
+            }
+            if (womenRate) {
+                document.getElementById('label-taxi-women').innerText = womenRate.label || 'تەکسی ئافرەتان';
+                document.getElementById('sub-taxi-women').innerText = `${Number(womenRate.perKm).toLocaleString()} د.ع / کم`;
             }
             ['moto', 'taxi_cargo', 'van'].forEach(k => {
                 const item = ratesTable.delivery?.[k];
@@ -781,16 +841,30 @@
             try {
                 const res = await fetch(`${API_BASE}/api/taxi/rates`);
                 if (res.ok) {
-                    ratesTable = await res.json();
+                    const serverRates = await res.json();
+                    if (!serverRates.taxi.women) {
+                        serverRates.taxi.women = { ...serverRates.taxi.standard, label: 'تەکسی ئافرەتان' };
+                    }
+                    ratesTable = serverRates;
                     applyRatesToCards();
                 }
             } catch (e) {}
         }
 
         socket.on('taxi_rates_updated', (updatedRates) => {
+            if (!updatedRates.taxi.women) {
+                updatedRates.taxi.women = { ...updatedRates.taxi.standard, label: 'تەکسی ئافرەتان' };
+            }
             ratesTable = updatedRates;
             applyRatesToCards();
         });
+
+        function selectTaxiCategory(type) {
+            selectedTaxiKey = type;
+            document.getElementById('card-taxi-standard').classList.toggle('selected-general', type === 'standard');
+            document.getElementById('card-taxi-women').classList.toggle('selected-women', type === 'women');
+            updateFareDisplay();
+        }
 
         function setActivePinMode(mode) {
             activePinMode = mode;
@@ -823,7 +897,6 @@
             document.getElementById('liveMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // دانانی دەرزییەکە ڕێک لە ناوەڕاستی نەخشەکە (هاوشێوەی کەریم)
         function confirmCenterPinLocation() {
             const center = map.getCenter();
             const lat = Number(center.lat.toFixed(6));
@@ -1046,7 +1119,7 @@
             const mins = realRoadMins !== null ? realRoadMins : Math.max(4, Math.round(km * 1.7));
 
             const r = currentMode === 'taxi'
-                ? (ratesTable.taxi?.standard || ratesTable.taxi?.economy)
+                ? (ratesTable.taxi?.[selectedTaxiKey] || ratesTable.taxi?.standard)
                 : ratesTable.delivery[selectedCargoKey];
 
             const rawFare = Number(r.base) + (km * Number(r.perKm)) + (mins * Number(r.perMin));
@@ -1097,7 +1170,7 @@
             const priceText = document.getElementById('offerPriceText').innerText;
             const distanceText = document.getElementById('liveKmBadge').innerText;
             const r = currentMode === 'taxi'
-                ? (ratesTable.taxi?.standard || ratesTable.taxi?.economy)
+                ? (ratesTable.taxi?.[selectedTaxiKey] || ratesTable.taxi?.standard)
                 : ratesTable.delivery[selectedCargoKey];
 
             if (!pickup || !dropoff) return alert('تکایە هەردوو لۆکەیشنی هەڵگرتن و گەیشتن دیاری بکە.');
@@ -1111,15 +1184,24 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        id: activeOrderId, serviceType: 'taxi', pickup, dropoff,
-                        pickupCoords, dropoffCoords, distanceKm: distanceText,
-                        passengerName: name, passengerPhone: phone, tier: r.label, estimatedPrice: priceText
+                        id: activeOrderId,
+                        serviceType: 'taxi',
+                        taxiCategory: selectedTaxiKey,
+                        pickup,
+                        dropoff,
+                        pickupCoords,
+                        dropoffCoords,
+                        distanceKm: distanceText,
+                        passengerName: name,
+                        passengerPhone: phone,
+                        tier: r.label,
+                        estimatedPrice: priceText
                     })
                 }).catch(() => {});
 
                 document.getElementById('activeTripCard').style.display = 'block';
                 document.getElementById('tripSummaryText').innerText =
-                    `تەکسی | لە: ${pickup} ← بۆ: ${dropoff} | دووری: ${distanceText} | نرخ: ${priceText}`;
+                    `${r.label} | لە: ${pickup} ← بۆ: ${dropoff} | دووری: ${distanceText} | نرخ: ${priceText}`;
             } else {
                 const senderPhone = document.getElementById('senderPhone').value.trim();
                 const receiverPhone = document.getElementById('receiverPhone').value.trim();
