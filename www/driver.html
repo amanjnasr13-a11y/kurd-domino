@@ -81,7 +81,6 @@
 
         .container { max-width: 720px; margin: 16px auto 0 auto; padding: 0 14px; }
 
-        /* Auth Box (Login / Register) */
         .auth-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
@@ -172,7 +171,6 @@
             color: #fca5a5;
         }
 
-        /* Driver Dashboard */
         #driverDashboard { display: none; }
 
         .driver-header-card {
@@ -221,7 +219,6 @@
             box-shadow: none;
         }
 
-        /* Driver Map */
         .map-box {
             border-radius: 16px;
             overflow: hidden;
@@ -345,10 +342,11 @@
             color: #070d17;
             text-decoration: none;
             text-align: center;
-            padding: 10px;
+            padding: 10px 6px;
             border-radius: 10px;
             font-weight: 900;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
+            display: block;
         }
 
         .btn-whatsapp {
@@ -356,10 +354,11 @@
             color: #05130d;
             text-decoration: none;
             text-align: center;
-            padding: 10px;
+            padding: 10px 6px;
             border-radius: 10px;
             font-weight: 900;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
+            display: block;
         }
 
         .btn-gmaps {
@@ -367,10 +366,11 @@
             color: #ffffff;
             text-decoration: none;
             text-align: center;
-            padding: 10px;
+            padding: 10px 6px;
             border-radius: 10px;
             font-weight: 800;
             font-size: 0.82rem;
+            display: block;
         }
 
         .btn-complete-trip {
@@ -406,7 +406,7 @@
 <body>
 
     <header class="navbar">
-        <a href="index.html" class="logo-wrap">
+        <a href="taxi.html" class="logo-wrap">
             <svg class="kurdish-flag" viewBox="0 0 600 400">
                 <rect width="600" height="133.3" fill="#EE2A24"/>
                 <rect y="133.3" width="600" height="133.3" fill="#FFFFFF"/>
@@ -417,7 +417,7 @@
         </a>
         <div class="nav-right">
             <button class="logout-btn" id="driverLogoutBtn" onclick="logoutDriver()">چوونەدەرەوە</button>
-            <a href="index.html" class="back-btn">سەرەکی ↩</a>
+            <a href="taxi.html" class="back-btn">گەڕانەوە ↩</a>
         </div>
     </header>
 
@@ -790,12 +790,35 @@
             const isCargo = order.serviceType === 'delivery';
             const fromText = isCargo ? order.origin : order.pickup;
             const toText = isCargo ? order.destination : order.dropoff;
-            const custPhone = isCargo ? order.senderPhone : order.passengerPhone;
-            const waPhone = formatIraqWhatsApp(custPhone);
-            const waMsg = encodeURIComponent(`سڵاو، من شۆفێری Kurd AIـم (${currentDriver.name} - ${currentDriver.car} / ${currentDriver.plate}) داواکارییەکەتم وەرگرت و لە ڕێگام بۆ لات.`);
 
             const originCoords = order.pickupCoords ? `${order.pickupCoords[0]},${order.pickupCoords[1]}` : encodeURIComponent(fromText);
             const destCoords = order.dropoffCoords ? `${order.dropoffCoords[0]},${order.dropoffCoords[1]}` : encodeURIComponent(toText);
+
+            let contactButtonsHTML = '';
+            if (isCargo) {
+                const senderTel = normalizePhone(order.senderPhone);
+                const receiverTel = normalizePhone(order.receiverPhone);
+                const senderWa = formatIraqWhatsApp(order.senderPhone);
+                const receiverWa = formatIraqWhatsApp(order.receiverPhone);
+                const msgSender = encodeURIComponent(`سڵاو، من شۆفێری Kurd AIـم (${currentDriver.name}) بۆ وەرگرتنی کاڵاکەت (${order.cargoDesc}) لە ڕێگام.`);
+                const msgReceiver = encodeURIComponent(`سڵاو، من شۆفێری Kurd AIـم (${currentDriver.name}) کاڵایەکت (${order.cargoDesc}) بۆ دەهێنم.`);
+
+                contactButtonsHTML = `
+                    <a href="tel:${senderTel}" class="btn-call-cust">📞 سیم نێرەر (${senderTel})</a>
+                    <a href="https://wa.me/${senderWa}?text=${msgSender}" target="_blank" class="btn-whatsapp">💬 واتسئەپی نێرەر</a>
+                    <a href="tel:${receiverTel}" class="btn-call-cust" style="background:#059669; color:#fff;">📞 سیم وەرگر (${receiverTel})</a>
+                    <a href="https://wa.me/${receiverWa}?text=${msgReceiver}" target="_blank" class="btn-whatsapp">💬 واتسئەپی وەرگر</a>
+                `;
+            } else {
+                const custTel = normalizePhone(order.passengerPhone);
+                const custWa = formatIraqWhatsApp(order.passengerPhone);
+                const waMsg = encodeURIComponent(`سڵاو، من شۆفێری Kurd AIـم (${currentDriver.name} - ${currentDriver.car} / ${currentDriver.plate}) داواکارییەکەتم وەرگرت و لە ڕێگام بۆ لات.`);
+
+                contactButtonsHTML = `
+                    <a href="tel:${custTel}" class="btn-call-cust">📞 پەیوەندی سیم (${custTel})</a>
+                    <a href="https://wa.me/${custWa}?text=${waMsg}" target="_blank" class="btn-whatsapp">💬 نامەی واتسئەپ</a>
+                `;
+            }
 
             document.getElementById('myAcceptedContainer').style.display = 'block';
             document.getElementById('myAcceptedCard').innerHTML = `
@@ -806,11 +829,10 @@
                     </div>
                     <div class="route-row">📍 <b>لە:</b> ${fromText}</div>
                     <div class="route-row">🏁 <b>بۆ:</b> ${toText}</div>
-                    <div class="route-row">👤 <b>داواکار:</b> ${isCargo ? `نێرەر (${order.senderPhone}) / وەرگر (${order.receiverPhone})` : `${order.passengerName} (${order.passengerPhone})`}</div>
+                    <div class="route-row">👤 <b>داواکار:</b> ${isCargo ? `کاڵا: ${order.cargoDesc}` : `${order.passengerName} (${order.passengerPhone})`}</div>
                     <div class="accepted-tools">
-                        <a href="tel:${custPhone}" class="btn-call-cust">📞 پەیوەندی تەلەفۆنی</a>
-                        <a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" class="btn-whatsapp">💬 نامەی واتسئەپ</a>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=${originCoords}" target="_blank" class="btn-gmaps">📍 چوون بۆ لای سەرنشین</a>
+                        ${contactButtonsHTML}
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${originCoords}" target="_blank" class="btn-gmaps">📍 چوون بۆ شوێنی هەڵگرتن</a>
                         <a href="https://www.google.com/maps/dir/?api=1&origin=${originCoords}&destination=${destCoords}" target="_blank" class="btn-gmaps" style="background:#6366f1;">🏁 نەخشەی تەواوی گەشت</a>
                         <button type="button" class="btn-complete-trip" onclick="completeActiveTrip(${order.id})">🏁 گەشتەکە تەواو بوو (وەرگرتنی کرێ)</button>
                     </div>
@@ -834,12 +856,10 @@
             loadOpenOrders();
         }
 
-        // وەرگرتنی ڕاستەوخۆی داواکاریی نوێ لە ڕێگەی Socket.io
         socket.on('new_taxi_order', () => loadOpenOrders());
         socket.on('new_delivery_order', () => loadOpenOrders());
         socket.on('order_accepted_by_driver', () => loadOpenOrders());
 
-        // چوونەژوورەوەی خۆکار ئەگەر شۆفێر پێشتر چووبێتە ژوورەوە
         (async function autoLoginDriver() {
             const savedPhone = localStorage.getItem('kurdai_driver_phone');
             if (!savedPhone) return;
