@@ -71,8 +71,8 @@
 
         .service-tabs {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
             margin-bottom: 12px;
         }
 
@@ -80,20 +80,33 @@
             background: var(--bg-card);
             border: 1.5px solid var(--border-subtle);
             border-radius: 14px;
-            padding: 11px;
+            padding: 11px 6px;
             color: var(--text-muted);
-            font-size: 0.92rem;
+            font-size: 0.86rem;
             font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.2s ease;
         }
 
         .service-tab.active {
             background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.08));
             border-color: var(--accent-gold);
+            color: #ffffff;
+        }
+
+        .service-tab.driver-portal-link {
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #6ee7b7;
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.14), rgba(15, 23, 42, 0.96));
+        }
+
+        .service-tab.driver-portal-link:hover {
+            border-color: var(--accent-emerald);
             color: #ffffff;
         }
 
@@ -513,6 +526,7 @@
             .form-group.full { grid-column: span 1; }
             .taxi-type-grid { grid-template-columns: 1fr; }
             .tier-list { grid-template-columns: 1fr; }
+            .service-tab { font-size: 0.8rem; padding: 10px 4px; }
         }
     </style>
 </head>
@@ -547,6 +561,10 @@
                 <span>📦</span>
                 <span>گەیاندنی کاڵا</span>
             </button>
+            <a href="driver.html" class="service-tab driver-portal-link">
+                <span>🪪</span>
+                <span>شۆفێران</span>
+            </a>
         </div>
 
         <!-- Google Maps Street & HD Satellite Map -->
@@ -711,7 +729,10 @@
                 <div class="driver-match-box" id="driverMatchBox">
                     <div style="font-weight:800; color:#f59e0b;">🚖 شۆفێر داواکارییەکەی قبوڵ کرد:</div>
                     <div id="assignedDriverInfo" style="font-size:0.86rem; margin-top:4px;"></div>
-                    <a id="callDriverLink" href="#" class="call-driver-btn">📞 پەیوەندیکردن بە شۆفێر</a>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                        <a id="callDriverLink" href="#" class="call-driver-btn">📞 پەیوەندیکردن بە شۆفێر</a>
+                        <a id="waDriverLink" href="#" target="_blank" class="call-driver-btn" style="background:#25D366;">💬 واتسئەپی شۆفێر</a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1062,7 +1083,7 @@
                     const lng = Number(pos.coords.longitude.toFixed(6));
                     pickupCoords = [lat, lng];
                     pickupMarker.setLatLng(pickupCoords).bindPopup('📍 شوێنی ئێستای تۆ').openPopup();
-                    map.setView(pickupCoords, 18);
+                    map.setView(pickupCoords, 17);
                     reverseGeocodeName(lat, lng, 'pickupText', 'شوێنی ئێستام');
                     setActivePinMode('dropoff');
                     fetchRealStreetRoute();
@@ -1071,7 +1092,7 @@
                     document.getElementById('pickupText').value = '';
                     alert('تکایە GPSـی مۆبایلەکەت داگیرسێنە یان نەخشەکە بجوڵێنە بۆ سەر شوێنەکەت.');
                 },
-                { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 30000 }
             );
         }
 
@@ -1232,6 +1253,17 @@
                 document.getElementById('assignedDriverInfo').innerText =
                     `شۆفێر: ${data.driverName} | ئۆتۆمبێل: ${data.driverCar} (${data.driverPlate})`;
                 document.getElementById('callDriverLink').href = `tel:${data.driverPhone}`;
+
+                let cleanP = String(data.driverPhone || '').replace(/[^0-9]/g, '');
+                if (cleanP.startsWith('07')) cleanP = '964' + cleanP.substring(1);
+                else if (cleanP.startsWith('7')) cleanP = '964' + cleanP;
+                document.getElementById('waDriverLink').href = `https://wa.me/${cleanP}?text=${encodeURIComponent('سڵاو کاک ' + data.driverName + '، من سەرنشینەکەم لە Kurd AI.')}`;
+            }
+        });
+
+        socket.on('order_completed_by_driver', (data) => {
+            if (activeOrderId && Number(data.orderId) === Number(activeOrderId)) {
+                document.getElementById('tripStatusHeading').innerText = '🏁 گەشتەکەت بە سەلامەتی تەواو بوو! سوپاس بۆ بەکارهێنانی Kurd AI.';
             }
         });
 
