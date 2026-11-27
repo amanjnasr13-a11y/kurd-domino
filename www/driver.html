@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kurd AI - پەڕەی شۆفێران (Driver Portal)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-dark: #070d17;
+            --bg-card: rgba(15, 23, 42, 0.96);
+            --bg-input: #0b1322;
+            --border-subtle: rgba(148, 163, 184, 0.2);
+            --accent-gold: #f59e0b;
+            --accent-emerald: #10b981;
+            --accent-sky: #38bdf8;
+            --accent-pink: #ec4899;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .navbar {
+            padding: 13px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(7, 13, 23, 0.95);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-wrap { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+        .kurdish-flag { width: 34px; height: 22px; border-radius: 4px; overflow: hidden; }
+        .logo-title { color: var(--accent-gold); font-size: 1.15rem; font-weight: 800; }
+
+        .nav-right { display: flex; align-items: center; gap: 8px; }
+
+        .back-btn {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 6px 13px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 999px;
+            text-decoration: none;
+        }
+
+        .logout-btn {
+            display: none;
+            background: rgba(239, 68, 68, 0.16);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .container { max-width: 720px; margin: 16px auto 0 auto; padding: 0 14px; }
+
+        /* Auth Box (Login / Register) */
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        .auth-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .auth-tab {
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 11px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.08));
+            border-color: var(--accent-gold);
+            color: #ffffff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
+
+        .std-input, .std-select {
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 11px;
+            padding: 11px 12px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .std-input:focus, .std-select:focus { border-color: var(--accent-gold); }
+
+        .primary-btn {
+            width: 100%;
+            margin-top: 16px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #070d17;
+            border: none;
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 0.96rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .status-alert {
+            display: none;
+            margin-top: 14px;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 0.86rem;
+            line-height: 1.6;
+            font-weight: 700;
+        }
+
+        .status-alert.pending {
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            color: #fde68a;
+        }
+
+        .status-alert.error {
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+        }
+
+        /* Driver Dashboard */
+        #driverDashboard { display: none; }
+
+        .driver-header-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(11, 19, 34, 0.98));
+            border: 1.5px solid rgba(245, 158, 11, 0.4);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .online-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(16, 185, 129, 0.16);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            color: #6ee7b7;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .online-pill.offline {
+            background: rgba(239, 68, 68, 0.16);
+            border-color: rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+        }
+
+        .dot-live {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .online-pill.offline .dot-live {
+            background: #ef4444;
+            box-shadow: none;
+        }
+
+        /* Driver Map */
+        .map-box {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        #driverMap { width: 100%; height: 220px; }
+
+        .orders-section-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .order-card.women-order {
+            border-color: var(--accent-pink);
+            background: linear-gradient(145deg, rgba(236, 72, 153, 0.1), rgba(15, 23, 42, 0.98));
+        }
+
+        .order-card.active-accepted {
+            border-color: var(--accent-emerald);
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.14), rgba(15, 23, 42, 0.98));
+        }
+
+        .order-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .order-tag {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            background: rgba(245, 158, 11, 0.18);
+            color: #fbbf24;
+        }
+
+        .order-tag.women {
+            background: rgba(236, 72, 153, 0.22);
+            color: #f472b6;
+        }
+
+        .order-tag.cargo {
+            background: rgba(56, 189, 248, 0.18);
+            color: #7dd3fc;
+        }
+
+        .order-price {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--accent-emerald);
+        }
+
+        .route-row {
+            font-size: 0.88rem;
+            margin-bottom: 6px;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .order-actions {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-accept-ride {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #05130d;
+            border: none;
+            border-radius: 11px;
+            padding: 11px;
+            font-size: 0.92rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-map-preview {
+            background: rgba(56, 189, 248, 0.16);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: var(--accent-sky);
+            border-radius: 11px;
+            padding: 11px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .accepted-tools {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-call-cust {
+            background: #10b981;
+            color: #070d17;
+            text-decoration: none;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 0.86rem;
+        }
+
+        .btn-gmaps {
+            background: #3b82f6;
+            color: #ffffff;
+            text-decoration: none;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.84rem;
+        }
+
+        .empty-orders {
+            background: var(--bg-card);
+            border: 1px dashed var(--border-subtle);
+            border-radius: 16px;
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 520px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+            .order-actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="index.html" class="logo-wrap">
+            <svg class="kurdish-flag" viewBox="0 0 600 400">
+                <rect width="600" height="133.3" fill="#EE2A24"/>
+                <rect y="133.3" width="600" height="133.3" fill="#FFFFFF"/>
+                <rect y="266.6" width="600" height="133.4" fill="#008C45"/>
+                <circle cx="300" cy="200" r="50" fill="#F8B617"/>
+            </svg>
+            <span class="logo-title">Kurd AI — شۆفێران</span>
+        </a>
+        <div class="nav-right">
+            <button class="logout-btn" id="driverLogoutBtn" onclick="logoutDriver()">چوونەدەرەوە</button>
+            <a href="index.html" class="back-btn">سەرەکی ↩</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- ١. بەشی چوونەژوورەوە و تۆمارکردنی شۆفێر -->
+        <section class="auth-card" id="authSection">
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">🔑 چوونەژوورەوەی شۆفێر</button>
+                <button type="button" class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">📝 تۆمارکردنی شۆفێری نوێ</button>
+            </div>
+
+            <!-- فۆڕمی چوونەژوورەوە -->
+            <form id="loginForm" onsubmit="handleDriverLogin(event)">
+                <div class="form-group">
+                    <label>ژمارەی مۆبایلی تۆمارکراو:</label>
+                    <input type="tel" class="std-input" id="loginPhone" placeholder="0750 000 0000" required>
+                </div>
+                <button type="submit" class="primary-btn">چوونەژوورەوە بۆ وەرگرتنی داواکاری</button>
+            </form>
+
+            <!-- فۆڕمی تۆمارکردنی نوێ -->
+            <form id="registerForm" style="display:none;" onsubmit="handleDriverRegister(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>ناوی سیانی شۆفێر:</label>
+                        <input type="text" class="std-input" id="regName" placeholder="ناوی تەواوت بنووسە..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>ژمارەی مۆبایل:</label>
+                        <input type="tel" class="std-input" id="regPhone" placeholder="0750 000 0000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>شار:</label>
+                        <select class="std-select" id="regCity">
+                            <option value="هەولێر">هەولێر</option>
+                            <option value="سلێمانی">سلێمانی</option>
+                            <option value="دهۆک">دهۆک</option>
+                            <option value="هەڵەبجە">هەڵەبجە</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>جۆری خزمەتگوزاری:</label>
+                        <select class="std-select" id="regServiceType">
+                            <option value="taxi_general">🚖 تەکسی گشتی</option>
+                            <option value="taxi_women">👩🏻‍✈️ تەکسی ئافرەتان (تەنها شۆفێری ئافرەت)</option>
+                            <option value="delivery_moto">🛵 ماتۆڕی گەیاندنی کاڵا</option>
+                            <option value="delivery_van">🚚 پیکاب / بارهەڵگر</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>جۆر و مۆدێلی ئۆتۆمبێل / ماتۆڕ:</label>
+                        <input type="text" class="std-input" id="regCar" placeholder="بۆ نموونە: تۆیۆتا کۆرۆلا 2020" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ژمارەی تابلۆ:</label>
+                        <input type="text" class="std-input" id="regPlate" placeholder="بۆ نموونە: 22 A 12345" required>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn">ناردنی داواکاری بۆ بەڕێوەبەر</button>
+            </form>
+
+            <div class="status-alert" id="authAlert"></div>
+        </section>
+
+        <!-- ٢. داشبۆردی شۆفێری پەسەندکراو -->
+        <section id="driverDashboard">
+            <div class="driver-header-card">
+                <div>
+                    <div style="font-weight:900; font-size:1.05rem; color:#f59e0b;" id="drvDisplayName">شۆفێر</div>
+                    <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px;" id="drvDisplayMeta">ئۆتۆمبێل • تابلۆ</div>
+                </div>
+                <button type="button" class="online-pill" id="onlineToggleBtn" onclick="toggleDriverOnline()">
+                    <span class="dot-live"></span>
+                    <span id="onlineStatusLabel">ئامادەم بۆ کار (Online)</span>
+                </button>
+            </div>
+
+            <!-- نەخشەی شۆفێر -->
+            <div class="map-box">
+                <div id="driverMap"></div>
+            </div>
+
+            <!-- گەشتی وەرگیراوی ئێستا -->
+            <div id="myAcceptedContainer" style="display:none; margin-bottom:16px;">
+                <div class="orders-section-title">
+                    <span style="color:#10b981;">✅ گەشتی چالاکی ئێستات</span>
+                </div>
+                <div id="myAcceptedCard"></div>
+            </div>
+
+            <!-- داواکارییە نوێیەکان -->
+            <div class="orders-section-title">
+                <span>🔔 داواکارییە نوێیەکان (Live)</span>
+                <button type="button" onclick="loadOpenOrders()" style="background:#1e293b; color:#e2e8f0; border:none; padding:5px 11px; border-radius:8px; font-size:0.78rem; cursor:pointer;">🔄 نوێکردنەوە</button>
+            </div>
+
+            <div id="openOrdersList">
+                <div class="empty-orders">چاوەڕوانی داواکاریی نوێ لە سەرنشینەکان...</div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = window.location.origin.startsWith('http')
+            ? window.location.origin
+            : 'https://kurd-domino-production.up.railway.app';
+
+        const socket = io(API_BASE);
+        let currentDriver = null;
+        let isDriverOnline = true;
+        let driverMap = null;
+        let pickupPin = null;
+        let dropoffPin = null;
+        let tripLine = null;
+        let acceptedOrder = null;
+
+        function normalizePhone(p) {
+            return String(p || '')
+                .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+                .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+                .replace(/\s+/g, '')
+                .trim();
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+            document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+            document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('authAlert').style.display = 'none';
+        }
+
+        function showAuthAlert(type, msg) {
+            const box = document.getElementById('authAlert');
+            box.className = 'status-alert ' + type;
+            box.innerText = msg;
+            box.style.display = 'block';
+        }
+
+        async function handleDriverRegister(e) {
+            e.preventDefault();
+            const payload = {
+                id: Date.now(),
+                name: document.getElementById('regName').value.trim(),
+                phone: normalizePhone(document.getElementById('regPhone').value),
+                city: document.getElementById('regCity').value,
+                serviceType: document.getElementById('regServiceType').value,
+                car: document.getElementById('regCar').value.trim(),
+                plate: document.getElementById('regPlate').value.trim(),
+                status: 'pending'
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/api/taxi/drivers/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showAuthAlert('pending', '✅ داواکارییەکەت بە سەرکەوتوویی نێردرا! دوای پەسەندکردنی لەلایەن بەڕێوەبەرەوە دەتوانیت بە ژمارەی مۆبایلەکەت بچیتە ژوورەوە.');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showAuthAlert('error', '❌ ' + (data.error || 'هەڵەیەک ڕوویدا لە تۆمارکردن.'));
+                }
+            } catch (err) {
+                showAuthAlert('error', '❌ کێشەی پەیوەندی بە سێرڤەرەوە هەیە.');
+            }
+        }
+
+        async function handleDriverLogin(e) {
+            e.preventDefault();
+            const phone = normalizePhone(document.getElementById('loginPhone').value);
+            if (!phone) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxi`);
+                if (!res.ok) throw new Error('Server error');
+                const db = await res.json();
+                const drivers = db.driverRequests || [];
+                const found = drivers.find(d => normalizePhone(d.phone) === phone);
+
+                if (!found) {
+                    showAuthAlert('error', '❌ ئەم ژمارە مۆبایلە تۆمار نەکراوە! تکایە سەرەتا لە بەشی «تۆمارکردنی شۆفێری نوێ» خۆت تۆمار بکە.');
+                    return;
+                }
+
+                if (found.status !== 'approved') {
+                    showAuthAlert('pending', '⏳ هەژمارەکەت تۆمار کراوە بەڵام هێشتا لەلایەن بەڕێوەبەرەوە پەسەند نەکراوە. تکایە چاوەڕێ بکە.');
+                    return;
+                }
+
+                localStorage.setItem('kurdai_driver_phone', phone);
+                enterDriverDashboard(found);
+            } catch (err) {
+                showAuthAlert('error', '❌ هەڵە لە پشکنینی هەژمارەکەت.');
+            }
+        }
+
+        function enterDriverDashboard(driver) {
+            currentDriver = driver;
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('driverDashboard').style.display = 'block';
+            document.getElementById('driverLogoutBtn').style.display = 'inline-block';
+
+            const roleLabels = {
+                taxi_general: '🚖 تەکسی گشتی',
+                taxi_women: '👩🏻‍✈️ تەکسی ئافرەتان',
+                delivery_moto: '🛵 ماتۆڕی گەیاندن',
+                delivery_van: '🚚 پیکاب / بارهەڵگر'
+            };
+            const roleText = roleLabels[driver.serviceType] || '🚖 شۆفێر';
+
+            document.getElementById('drvDisplayName').innerText = `${driver.name} (${roleText})`;
+            document.getElementById('drvDisplayMeta').innerText = `🚗 ${driver.car} | تابلۆ: ${driver.plate} | 📍 ${driver.city}`;
+
+            initDriverMap();
+            loadOpenOrders();
+        }
+
+        function logoutDriver() {
+            localStorage.removeItem('kurdai_driver_phone');
+            currentDriver = null;
+            document.getElementById('driverDashboard').style.display = 'none';
+            document.getElementById('driverLogoutBtn').style.display = 'none';
+            document.getElementById('authSection').style.display = 'block';
+        }
+
+        function toggleDriverOnline() {
+            isDriverOnline = !isDriverOnline;
+            const btn = document.getElementById('onlineToggleBtn');
+            const label = document.getElementById('onlineStatusLabel');
+            btn.classList.toggle('offline', !isDriverOnline);
+            label.innerText = isDriverOnline ? 'ئامادەم بۆ کار (Online)' : 'لە کاردام نیم (Offline)';
+            if (isDriverOnline) loadOpenOrders();
+            else document.getElementById('openOrdersList').innerHTML = '<div class="empty-orders">تۆ ئێستا لە دۆخی Offlineـیت؛ دوگمەی سەرەوە دابگرە بۆ وەرگرتنی داواکاری.</div>';
+        }
+
+        function initDriverMap() {
+            if (driverMap) return;
+            const googleStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ku', { maxZoom: 20 });
+            driverMap = L.map('driverMap', {
+                center: [36.1911, 44.0092],
+                zoom: 13,
+                layers: [googleStreets]
+            });
+            pickupPin = L.marker([36.1911, 44.0092]).addTo(driverMap).bindPopup('📍 شوێنی هەڵگرتن');
+            dropoffPin = L.marker([36.1995, 43.9722]).addTo(driverMap).bindPopup('🏁 شوێنی مەبەست');
+            tripLine = L.polyline([], { color: '#10b981', weight: 5 }).addTo(driverMap);
+        }
+
+        function previewOrderOnMap(order) {
+            if (!driverMap || !order.pickupCoords || !order.dropoffCoords) return;
+            pickupPin.setLatLng(order.pickupCoords).bindPopup(`📍 هەڵگرتن: ${order.pickup || order.origin}`).openPopup();
+            dropoffPin.setLatLng(order.dropoffCoords).bindPopup(`🏁 گەیشتن: ${order.dropoff || order.destination}`);
+            tripLine.setLatLngs([order.pickupCoords, order.dropoffCoords]);
+            driverMap.fitBounds([order.pickupCoords, order.dropoffCoords], { padding: [35, 35] });
+            document.getElementById('driverMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function isOrderSuitableForDriver(order) {
+            if (!currentDriver) return false;
+            const dType = currentDriver.serviceType || 'taxi_general';
+            const isWomenOrder = order.taxiCategory === 'women' || (order.tier && order.tier.includes('ئافرەتان'));
+
+            if (order.serviceType === 'delivery') {
+                return dType === 'delivery_moto' || dType === 'delivery_van' || dType === 'taxi_general';
+            }
+
+            if (isWomenOrder) {
+                return dType === 'taxi_women';
+            }
+
+            return dType === 'taxi_general' || dType === 'taxi_women';
+        }
+
+        async function loadOpenOrders() {
+            if (!currentDriver || !isDriverOnline) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxi`);
+                if (!res.ok) return;
+                const db = await res.json();
+
+                const rides = (db.rideOrders || []).map(o => ({ ...o, serviceType: 'taxi' }));
+                const cargos = (db.deliveryOrders || []).map(o => ({ ...o, serviceType: 'delivery' }));
+                const allPending = [...rides, ...cargos]
+                    .filter(o => o.status !== 'accepted' && isOrderSuitableForDriver(o))
+                    .sort((a, b) => Number(b.id) - Number(a.id));
+
+                renderOpenOrders(allPending);
+            } catch (e) {}
+        }
+
+        function renderOpenOrders(orders) {
+            const container = document.getElementById('openOrdersList');
+            if (!orders || orders.length === 0) {
+                container.innerHTML = '<div class="empty-orders">لەم ساتەدا هیچ داواکارییەکی نوێ نییە؛ هەر داواکارییەک بنێردرێت ڕاستەوخۆ لێرە دەردەکەوێت 🔔</div>';
+                return;
+            }
+
+            container.innerHTML = orders.map(o => {
+                const isCargo = o.serviceType === 'delivery';
+                const isWomen = !isCargo && (o.taxiCategory === 'women' || (o.tier && o.tier.includes('ئافرەتان')));
+                const fromText = isCargo ? o.origin : o.pickup;
+                const toText = isCargo ? o.destination : o.dropoff;
+                const tagClass = isCargo ? 'cargo' : (isWomen ? 'women' : '');
+                const tagText = isCargo ? `📦 گەیاندن (${o.tier || ''})` : (isWomen ? '👩🏻‍✈️ تەکسی ئافرەتان' : '🚖 تەکسی گشتی');
+
+                return `
+                    <div class="order-card ${isWomen ? 'women-order' : ''}" id="order-card-${o.id}">
+                        <div class="order-top">
+                            <span class="order-tag ${tagClass}">${tagText}</span>
+                            <span class="order-price">${o.estimatedPrice || ''}</span>
+                        </div>
+                        <div class="route-row">📍 <b>هەڵگرتن:</b> ${fromText}</div>
+                        <div class="route-row">🏁 <b>گەیشتن:</b> ${toText}</div>
+                        <div class="route-row" style="font-size:0.8rem; color:#94a3b8;">
+                            📏 دووری: ${o.distanceKm || 'دیاریکراو'} ${isCargo ? `• 📦 کاڵا: ${o.cargoDesc}` : `• 👤 سەرنشین: ${o.passengerName}`}
+                        </div>
+                        <div class="order-actions">
+                            <button type="button" class="btn-accept-ride" onclick='acceptOrder(${JSON.stringify(o).replace(/'/g, "&#39;")})'>
+                                ✅ وەرگرتنی داواکاری
+                            </button>
+                            <button type="button" class="btn-map-preview" onclick='previewOrderOnMap(${JSON.stringify(o).replace(/'/g, "&#39;")})'>
+                                🗺️ بینین لەسەر نەخشە
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function acceptOrder(order) {
+            if (!currentDriver) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/taxi/orders/accept`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: order.id,
+                        serviceType: order.serviceType || 'taxi',
+                        driverName: currentDriver.name,
+                        driverPhone: currentDriver.phone,
+                        driverCar: currentDriver.car,
+                        driverPlate: currentDriver.plate
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    acceptedOrder = order;
+                    showAcceptedTrip(order);
+                    loadOpenOrders();
+                } else {
+                    alert(data.error || 'ئەم داواکارییە پێشتر لەلایەن شۆفێرێکی ترەوە وەرگیراوە.');
+                    loadOpenOrders();
+                }
+            } catch (e) {
+                alert('❌ هەڵە لە وەرگرتنی داواکارییەکە.');
+            }
+        }
+
+        function showAcceptedTrip(order) {
+            const isCargo = order.serviceType === 'delivery';
+            const fromText = isCargo ? order.origin : order.pickup;
+            const toText = isCargo ? order.destination : order.dropoff;
+            const custPhone = isCargo ? order.senderPhone : order.passengerPhone;
+            const navCoords = order.pickupCoords ? `${order.pickupCoords[0]},${order.pickupCoords[1]}` : encodeURIComponent(fromText);
+
+            document.getElementById('myAcceptedContainer').style.display = 'block';
+            document.getElementById('myAcceptedCard').innerHTML = `
+                <div class="order-card active-accepted">
+                    <div class="order-top">
+                        <span class="order-tag" style="background:rgba(16,185,129,0.25); color:#6ee7b7;">گەشتی پەسەندکراو</span>
+                        <span class="order-price">${order.estimatedPrice || ''}</span>
+                    </div>
+                    <div class="route-row">📍 <b>لە:</b> ${fromText}</div>
+                    <div class="route-row">🏁 <b>بۆ:</b> ${toText}</div>
+                    <div class="route-row">👤 <b>داواکار:</b> ${isCargo ? `نێرەر (${order.senderPhone}) / وەرگر (${order.receiverPhone})` : `${order.passengerName} (${order.passengerPhone})`}</div>
+                    <div class="accepted-tools">
+                        <a href="tel:${custPhone}" class="btn-call-cust">📞 پەیوەندی بە سەرنشین</a>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${navCoords}" target="_blank" class="btn-gmaps">🧭 ڕێنمایی Google Maps</a>
+                    </div>
+                </div>
+            `;
+            previewOrderOnMap(order);
+        }
+
+        // وەرگرتنی ڕاستەوخۆی داواکاریی نوێ لە ڕێگەی Socket.io
+        socket.on('new_taxi_order', () => loadOpenOrders());
+        socket.on('new_delivery_order', () => loadOpenOrders());
+        socket.on('order_accepted_by_driver', () => loadOpenOrders());
+
+        // چوونەژوورەوەی خۆکار ئەگەر شۆفێر پێشتر چووبێتە ژوورەوە
+        (async function autoLoginDriver() {
+            const savedPhone = localStorage.getItem('kurdai_driver_phone');
+            if (!savedPhone) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxi`);
+                if (!res.ok) return;
+                const db = await res.json();
+                const found = (db.driverRequests || []).find(d => normalizePhone(d.phone) === savedPhone && d.status === 'approved');
+                if (found) enterDriverDashboard(found);
+            } catch (e) {}
+        })();
+    </script>
+</body>
+</html>

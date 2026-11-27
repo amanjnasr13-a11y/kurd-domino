@@ -42,6 +42,14 @@ app.get('/taxi', (req, res) => {
   res.sendFile(path.join(__dirname, 'taxi.html'));
 });
 
+app.get('/driver', (req, res) => {
+  const wwwDriver = path.join(__dirname, 'www', 'driver.html');
+  if (fs.existsSync(wwwDriver)) {
+    return res.sendFile(wwwDriver);
+  }
+  res.sendFile(path.join(__dirname, 'driver.html'));
+});
+
 app.get('/admin', (req, res) => {
   const wwwAdmin = path.join(__dirname, 'www', 'admin.html');
   if (fs.existsSync(wwwAdmin)) {
@@ -77,7 +85,6 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
         }
       };
 
-      // مۆدێلی gemma پشتگیری systemInstruction ناکات، بۆیە تەنها بۆ gemini دایدەنێین
       if (!model.includes('gemma')) {
         bodyData.systemInstruction = { parts: [{ text: systemInstruction }] };
         if (useGoogleSearch) {
@@ -113,7 +120,6 @@ async function callGemini(apiKey, systemInstruction, contents, useGoogleSearch =
     }
   }
 
-  // ئەگەر هەموو مۆدێلەکانی گۆگڵ قەرەباڵغ بوون، یەکسەر دەچێتە سەر OpenRouter وەک یەدەگ
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   if (openRouterKey) {
     const orModels = [
@@ -165,7 +171,7 @@ app.get('/api/materials-list', (req, res) => {
   });
 });
 
-// بەشی چاتکردنی گشتی (Kurd AI) بە Google Gemini + گەڕانی زیندووی گۆگڵ + کات + کەشوهەوا + هەرسێ زمان + وێنە
+// بەشی چاتکردنی گشتی (Kurd AI)
 app.post('/api/chat', async (req, res) => {
   try {
     const { history, imageBase64, lang } = req.body;
@@ -188,7 +194,6 @@ app.post('/api/chat', async (req, res) => {
     const rawUserText = recentHistory[recentHistory.length - 1]?.content || '';
     const normalizedText = rawUserText.replace(/ك/g, 'ک').replace(/ي/g, 'ی').trim();
 
-    // هێنانی کەشوهەوای ڕاستەوخۆی شارەکانی کوردستان
     let liveWeatherInfo = '';
     if (/کەش|هەوا|گەرما|باران|ساردی|پلەی|طقس|حرارة|weather|temp/i.test(normalizedText)) {
       try {
@@ -418,7 +423,8 @@ const TAXI_DATA_FILE = path.join(__dirname, 'taxi-data.json');
 
 const DEFAULT_TAXI_RATES = {
   taxi: {
-    standard: { label: 'تەکسی', base: 2000, perKm: 750, perMin: 100, minFare: 3000 }
+    standard: { label: 'تەکسی گشتی', base: 2000, perKm: 750, perMin: 100, minFare: 3000 },
+    women: { label: 'تەکسی ئافرەتان', base: 2000, perKm: 750, perMin: 100, minFare: 3000 }
   },
   delivery: {
     moto: { label: 'ماتۆڕی گەیاندن', base: 1500, perKm: 600, perMin: 50, minFare: 2500 },
@@ -438,12 +444,18 @@ function getTaxiData() {
   }
   try {
     const parsed = JSON.parse(fs.readFileSync(TAXI_DATA_FILE, 'utf-8') || '{}');
+    const stdRate = (parsed.rates && parsed.rates.taxi && parsed.rates.taxi.standard)
+      ? parsed.rates.taxi.standard
+      : DEFAULT_TAXI_RATES.taxi.standard;
+    const womenRate = (parsed.rates && parsed.rates.taxi && parsed.rates.taxi.women)
+      ? parsed.rates.taxi.women
+      : { ...stdRate, label: 'تەکسی ئافرەتان' };
+
     return {
       rates: {
         taxi: {
-          standard: (parsed.rates && parsed.rates.taxi && parsed.rates.taxi.standard)
-            ? parsed.rates.taxi.standard
-            : DEFAULT_TAXI_RATES.taxi.standard
+          standard: stdRate,
+          women: womenRate
         },
         delivery: {
           moto: (parsed.rates && parsed.rates.delivery && parsed.rates.delivery.moto)
@@ -507,7 +519,7 @@ app.post('/api/taxi/orders', (req, res) => {
   try {
     const db = getTaxiData();
     const order = {
-      id: Date.now(),
+      id: req.body.id || Date.now(),
       status: 'pending',
       createdAt: new Date().toISOString(),
       ...req.body
@@ -515,6 +527,7 @@ app.post('/api/taxi/orders', (req, res) => {
     db.rideOrders.unshift(order);
     saveTaxiData(db);
     io.emit('taxi_order_created', order);
+    io.emit('new_taxi_order', order);
     res.json({ success: true, order });
   } catch (err) {
     res.status(500).json({ error: 'تۆمار نەکرا' });
@@ -525,7 +538,7 @@ app.post('/api/delivery/orders', (req, res) => {
   try {
     const db = getTaxiData();
     const cargoOrder = {
-      id: Date.now(),
+      id: req.body.id || Date.now(),
       status: 'pending',
       createdAt: new Date().toISOString(),
       ...req.body
@@ -533,15 +546,16 @@ app.post('/api/delivery/orders', (req, res) => {
     db.deliveryOrders.unshift(cargoOrder);
     saveTaxiData(db);
     io.emit('delivery_order_created', cargoOrder);
+    io.emit('new_delivery_order', cargoOrder);
     res.json({ success: true, cargoOrder });
   } catch (err) {
     res.status(500).json({ error: 'تۆمار نەکرا' });
   }
 });
 
-// کاتێک شۆفێر داواکارییەکە وەردەگرێت
-app.post('/api/taxi/orders/accept/:id', (req, res) => {
-  const id = Number(req.params.id);
+// کاتێک شۆفێر داواکارییەکە وەردەگرێت (پشتگیری هەردوو ڕێڕەو دەکات)
+function handleAcceptOrder(req, res) {
+  const id = Number(req.params.id || req.body.orderId);
   const db = getTaxiData();
   const ride = db.rideOrders.find(o => Number(o.id) === id);
   const delivery = db.deliveryOrders.find(o => Number(o.id) === id);
@@ -549,6 +563,9 @@ app.post('/api/taxi/orders/accept/:id', (req, res) => {
 
   if (!target) {
     return res.status(404).json({ error: 'داواکارییەکە نەدۆزرایەوە' });
+  }
+  if (target.status === 'accepted') {
+    return res.status(400).json({ error: 'ئەم داواکارییە پێشتر لەلایەن شۆفێرێکی ترەوە وەرگیراوە.' });
   }
 
   target.status = 'accepted';
@@ -564,11 +581,24 @@ app.post('/api/taxi/orders/accept/:id', (req, res) => {
   });
 
   res.json({ success: true, order: target });
-});
+}
 
-app.post('/api/taxi/drivers', (req, res) => {
+app.post('/api/taxi/orders/accept', handleAcceptOrder);
+app.post('/api/taxi/orders/accept/:id', handleAcceptOrder);
+
+// تۆمارکردنی شۆفێری نوێ (پشتگیری هەردوو ڕێڕەو دەکات)
+function handleDriverRegister(req, res) {
   try {
     const db = getTaxiData();
+    const phone = String(req.body.phone || '').trim();
+    if (!phone) {
+      return res.status(400).json({ error: 'تکایە ژمارەی مۆبایل بنووسە.' });
+    }
+    const exists = db.driverRequests.some(d => String(d.phone).trim() === phone);
+    if (exists) {
+      return res.status(400).json({ error: 'ئەم ژمارە مۆبایلە پێشتر تۆمار کراوە.' });
+    }
+
     const driverReq = {
       id: Date.now(),
       status: 'pending',
@@ -582,7 +612,10 @@ app.post('/api/taxi/drivers', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'تۆمار نەکرا' });
   }
-});
+}
+
+app.post('/api/taxi/drivers', handleDriverRegister);
+app.post('/api/taxi/drivers/register', handleDriverRegister);
 
 app.get('/api/admin/taxi', (req, res) => {
   res.json(getTaxiData());
@@ -591,7 +624,7 @@ app.get('/api/admin/taxi', (req, res) => {
 app.post('/api/admin/taxi/drivers/approve/:id', (req, res) => {
   const id = Number(req.params.id);
   const db = getTaxiData();
-  const driver = db.driverRequests.find(d => d.id === id);
+  const driver = db.driverRequests.find(d => Number(d.id) === id);
   if (driver) {
     driver.status = 'approved';
     saveTaxiData(db);
@@ -604,7 +637,7 @@ app.post('/api/admin/taxi/drivers/approve/:id', (req, res) => {
 app.delete('/api/admin/taxi/drivers/reject/:id', (req, res) => {
   const id = Number(req.params.id);
   const db = getTaxiData();
-  db.driverRequests = db.driverRequests.filter(d => d.id !== id);
+  db.driverRequests = db.driverRequests.filter(d => Number(d.id) !== id);
   saveTaxiData(db);
   res.json({ success: true });
 });
@@ -634,7 +667,6 @@ function getHandSum(hand) {
   }, 0);
 }
 
-// دۆزینەوەی خاوەنی گەورەترین جووت (لە 6-6 بۆ 0-0) یان گەورەترین پوول لە یەکەم گەڕدا
 function findFirstRoundStarter(players) {
   for (let d = 6; d >= 0; d--) {
     for (let pIdx = 0; pIdx < players.length; pIdx++) {
@@ -1019,7 +1051,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // سیستەمی یاریی دۆمینە (ئۆنلاین + چاوەڕوانیی بێسنوور بۆ هاوڕێ + بۆت)
+  // سیستەمی یاریی دۆمینە
   socket.on('join_game', ({ name, mode, roomType, customCode }) => {
     const selectedMode = (mode === 2) ? 2 : 4;
     const finalPlayerName = (name && name.trim()) ? name.trim() : 'یاریزان';
