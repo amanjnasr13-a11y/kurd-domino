@@ -85,10 +85,67 @@
     .scores-text { color: #38bdf8; font-weight: bold; font-size: 11px; }
     .header-title { font-size: 12px; color: #f59e0b; font-weight: bold; }
 
-    #tableArea { flex: 1; background: radial-gradient(circle, #0e4429 0%, #062315 100%); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; direction: ltr !important; }
-    #boardChain { position: absolute; display: flex; align-items: center; justify-content: center; direction: ltr !important; transition: transform 0.2s ease-out; z-index: 10; margin-top: 14px; }
-    .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; background: rgba(11, 18, 27, 0.94); border: 1.5px solid #23354d; padding: 3px 6px; border-radius: 7px; min-width: 64px; max-width: 96px; transition: 0.3s; z-index: 30; direction: rtl; }
-    .player-seat.active-turn { border-color: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.9); }
+    /* ====================================================
+       تەختەی دۆمینەی ئاڵای کوردستان بە چوارچێوەی دار و قەراغی زێڕین
+       ==================================================== */
+    #tableArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      direction: ltr !important;
+      /* چوارچێوەی داری قاوەیی تۆخ */
+      border: 11px solid #593215;
+      box-shadow:
+        inset 0 0 0 3px #c59b27,
+        inset 0 0 26px rgba(0, 0, 0, 0.55),
+        0 4px 18px rgba(0, 0, 0, 0.85);
+      /* سێ ڕەنگی قوماشی ئاڵای کوردستان لەگەڵ بافتی قوماش */
+      background-image:
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.045) 0px, rgba(0, 0, 0, 0.045) 2px, transparent 2px, transparent 5px),
+        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 2px, transparent 2px, transparent 5px),
+        radial-gradient(ellipse at center, rgba(0, 0, 0, 0.02) 35%, rgba(0, 0, 0, 0.36) 100%),
+        linear-gradient(180deg,
+          #9e1922 0%,
+          #8f141c 33.33%,
+          #e8e4da 33.33%,
+          #dfd9cc 66.66%,
+          #166b38 66.66%,
+          #0f522a 100%
+        );
+    }
+
+    /* قەراغی زێڕینی چنراو لە ناوەوەی تەختەکە */
+    #tableArea::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 2.5px dashed #e2b842;
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 2;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+    }
+
+    /* خۆری زێڕینی ٢١ تیشکی ئاڵای کوردستان لە ناوەڕاستی تەختەکە */
+    .kurdistan-table-sun {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(56vw, 240px);
+      height: min(56vw, 240px);
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.92;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+    }
+
+    #boardChain { position: absolute; display: flex; align-items: center; justify-content: center; direction: ltr !important; transition: transform 0.2s ease-out; z-index: 15; margin-top: 14px; }
+    .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; background: rgba(11, 18, 27, 0.94); border: 1.5px solid #23354d; padding: 3px 6px; border-radius: 7px; min-width: 64px; max-width: 96px; transition: 0.3s; z-index: 30; direction: rtl; box-shadow: 0 4px 10px rgba(0,0,0,0.6); }
+    .player-seat.active-turn { border-color: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.95); }
     .timer-ring-box { position: relative; width: 24px; height: 24px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; }
     .timer-svg { position: absolute; inset: 0; transform: rotate(-90deg); width: 100%; height: 100%; }
     .timer-circle-bg { fill: none; stroke: #1e293b; stroke-width: 3.5; }
@@ -97,11 +154,11 @@
     .seat-name { font-size: 9.5px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 88px; }
 
     /* شوێنی دانیشتنەکان: راست (1)، سەرەوە بەرامبەر (2)، چەپ (3) */
-    #seat-1 { right: 6px; top: 52%; transform: translateY(-50%); }
-    #seat-2 { top: 6px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 6px; padding: 3px 10px; max-width: 185px; }
+    #seat-1 { right: 8px; top: 52%; transform: translateY(-50%); }
+    #seat-2 { top: 8px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 6px; padding: 3px 10px; max-width: 185px; }
     #seat-2 .timer-ring-box { margin-bottom: 0; width: 22px; height: 22px; }
     #seat-2 .seat-name { max-width: 135px; font-size: 10.5px; font-weight: bold; }
-    #seat-3 { left: 6px; top: 52%; transform: translateY(-50%); }
+    #seat-3 { left: 8px; top: 52%; transform: translateY(-50%); }
 
     #bottomRackArea { background: #080e15; padding: 4px 8px; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #1a2634; z-index: 40; direction: rtl; flex-shrink: 0; }
     .action-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
@@ -111,7 +168,7 @@
     .btn-mic { background: #334155; color: #94a3b8; border: 1px solid #475569; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; cursor: pointer; }
     .btn-mic.active { background: #16a34a; color: #fff; border-color: #22c55e; }
     #myRack { display: flex; gap: 5px; min-height: 54px; align-items: center; direction: ltr; max-width: 100%; overflow-x: auto; padding: 2px; }
-    .domino-tile { background: radial-gradient(ellipse at top left, #ffffff 25%, #f8fafc 70%, #cbd5e1 100%); border: 1.5px solid #0f172a; border-radius: 3px; box-shadow: 1px 2px 5px rgba(0,0,0,0.75); position: relative; cursor: pointer; display: flex; flex-shrink: 0; transition: transform 0.15s; }
+    .domino-tile { background: radial-gradient(ellipse at top left, #ffffff 30%, #f8fafc 75%, #cbd5e1 100%); border: 1.6px solid #090d16; border-radius: 3.5px; box-shadow: 0 3px 7px rgba(0,0,0,0.85); position: relative; cursor: pointer; display: flex; flex-shrink: 0; transition: transform 0.15s; }
     .tile-rack { width: 28px; height: 54px; flex-direction: column; }
     .tile-rack .half-top { flex: 1; border-bottom: 1.5px solid #334155; }
     .tile-rack .half-bottom { flex: 1; }
@@ -220,6 +277,18 @@
     </header>
 
     <div id="tableArea">
+      <!-- خۆری زێڕینی ٢١ تیشکی ئاڵای کوردستان لە ناوەڕاستی مێزەکە -->
+      <svg class="kurdistan-table-sun" viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <radialGradient id="kurdSunGold" cx="45%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#f6d365"/>
+            <stop offset="55%" stop-color="#d49b27"/>
+            <stop offset="100%" stop-color="#a67212"/>
+          </radialGradient>
+        </defs>
+        <polygon id="kurdSunStar" fill="url(#kurdSunGold)" stroke="#9a670d" stroke-width="0.8"/>
+      </svg>
+
       <!-- دەستە ڕاست (تەنها لە ٤ نەفەری) -->
       <div id="seat-1" class="player-seat">
         <div class="timer-ring-box">
@@ -277,6 +346,23 @@
   </div>
 
   <script>
+    // دروستکردنی خۆری ٢١ تیشکی ئاڵای کوردستان بە وردی لە ناوەڕاستی مێزەکە
+    (function drawKurdistanSun() {
+      const star = document.getElementById('kurdSunStar');
+      if (!star) return;
+      const points = [];
+      const rays = 21;
+      const cx = 100, cy = 100, outerR = 96, innerR = 46;
+      for (let i = 0; i < rays * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const angle = (i * Math.PI) / rays - Math.PI / 2;
+        const x = (cx + r * Math.cos(angle)).toFixed(2);
+        const y = (cy + r * Math.sin(angle)).toFixed(2);
+        points.push(`${x},${y}`);
+      }
+      star.setAttribute('points', points.join(' '));
+    })();
+
     const socket = io();
     let selectedMode = 4;
     let roomType = 'public';
@@ -569,7 +655,6 @@
       document.getElementById('waitingOverlay').style.display = 'flex';
 
       if (selectedMode === 2) {
-        // لە ٢ نەفەری تەنها سەرەوە (seat-2) بەرامبەرت دەبێت و لای ڕاست و چەپ دەشاردرێنەوە
         document.getElementById('seat-1').style.display = 'none';
         document.getElementById('seat-3').style.display = 'none';
         document.getElementById('seat-2').style.display = 'flex';
@@ -606,7 +691,6 @@
 
       document.getElementById('roomDisplay').innerText = `ژوور: #${currentRoomId} 📋`;
 
-      // نوێکردنەوەی ناوی یاریزانەکان لە شوێنی دروستدا
       if (data.playerNames) {
         for (let s = 0; s < data.playerNames.length; s++) {
           const vSeat = mapSeatToVisual(s);
