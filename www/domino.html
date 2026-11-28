@@ -96,13 +96,11 @@
       align-items: center;
       justify-content: center;
       direction: ltr !important;
-      /* چوارچێوەی داری قاوەیی تۆخ */
       border: 11px solid #593215;
       box-shadow:
         inset 0 0 0 3px #c59b27,
         inset 0 0 26px rgba(0, 0, 0, 0.55),
         0 4px 18px rgba(0, 0, 0, 0.85);
-      /* سێ ڕەنگی قوماشی ئاڵای کوردستان لەگەڵ بافتی قوماش */
       background-image:
         repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.045) 0px, rgba(0, 0, 0, 0.045) 2px, transparent 2px, transparent 5px),
         repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 2px, transparent 2px, transparent 5px),
@@ -117,7 +115,6 @@
         );
     }
 
-    /* قەراغی زێڕینی چنراو لە ناوەوەی تەختەکە */
     #tableArea::before {
       content: "";
       position: absolute;
@@ -129,7 +126,6 @@
       box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
     }
 
-    /* خۆری زێڕینی ٢١ تیشکی ئاڵای کوردستان لە ناوەڕاستی تەختەکە */
     .kurdistan-table-sun {
       position: absolute;
       top: 50%;
@@ -383,7 +379,6 @@
 
     let pendingChoice = null;
 
-    // خوێندنەوەی لینک ئەگەر هاوڕێکەت بە لینکی بانگهێشت هاتبێتە ژوورەوە
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
       const urlRoom = params.get('room');
@@ -412,7 +407,6 @@
       socket.emit('force_fill_bots');
     }
 
-    // گۆڕینی ئیندێکسی سێرڤەر بۆ شوێنی بینراوی سەر شاشە تا هەمیشە تۆ لە خوارەوە بیت (0) و لە ٢ نەفەری ڕکابەرەکەت لە سەرەوە بێت (2)
     function mapSeatToVisual(serverSeat) {
       if (selectedMode === 2) {
         return (serverSeat === mySeat) ? 0 : 2;
